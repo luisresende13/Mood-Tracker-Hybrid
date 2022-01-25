@@ -6,26 +6,18 @@ const styles = {
         flex: 1,                 
         marginTop: StatusBar.currentHeight,
     },
-    absoluteView: {
-        position: 'absolute',
-        width: '100%', 
-        height: '100%',
-        flexDirection: 'column-reverse',
-    },
     postButton: {
-        // position: 'absolute',
+        position: 'absolute',
         height: 65,
         width: 65,
         borderRadius: 32.5,
-        top: '1%',
+        bottom: '0%',
         alignSelf: 'center',
-        backgroundColor: 'black',    
+        backgroundColor: 'white',
+        justifyContent: 'center',  
     },
-      postButtonLabel: {
-        lineHeight: 65,
-        fontSize: 55,
-        fontWeight: 'bold',
-        textAlign: 'center',
+    postButtonLabel: {
+        alignSelf: 'center',
     },
     scrollView: {
         paddingHorizontal: '5%',
@@ -46,7 +38,7 @@ const styles = {
         paddingVertical: 5,
         paddingHorizontal: 10,
         borderRadius: 20,
-        backgroundColor: 'rgba(255,255,255,0.3)',
+        backgroundColor: 'rgba(0,0,0,0.2)',
     },
     cardRow: {
         flexDirection: 'row',
@@ -66,7 +58,7 @@ const styles = {
         // left: 5,
     },
     emotionBadge: {
-        backgroundColor: 'rgba(1,1,1,0.5)',
+        backgroundColor: 'aliceblue',
         borderRadius: 30,
         paddingVertical: 7,
         paddingHorizontal: 12.5,
@@ -76,7 +68,7 @@ const styles = {
         textAlign: 'center',
     },
     textBadge: {
-        backgroundColor: 'rgba(1,1,1,0.5)',
+        backgroundColor: 'aliceblue',
         borderRadius: 20,
         paddingVertical: 4,
         paddingHorizontal: 10,
@@ -86,7 +78,7 @@ const styles = {
         textAlign: 'left',
     },
     text: {
-        fontSize: 14
+        fontSize: 14,
     },
     spaceBetween: {
         justifyContent: 'space-between',

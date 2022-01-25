@@ -1,9 +1,10 @@
 
 import React, { Component } from 'react';
 import { View, Text, ImageBackground, Button, Pressable, ScrollView} from 'react-native';
+import { Icon } from 'react-native-eva-icons'
 
 import DATA from '../shared/DatabaseReduced'
-const data = DATA['7007']
+const data = DATA['0']
 
 import styles from '../styles/entrancesStyles'
 
@@ -14,18 +15,21 @@ function LoadAddress ({entry}) {
         return <></>
     }
 }
+function LoadDiary ({entry}) {
+    if (entry.diary!='') {
+        return <Text style={styles.textBadge}>{entry.diary}</Text>
+    } else {
+        return <></>
+    }
+}
 function LoadEmotions ({entry}) {
     if (entry.emotions.length>0) {
         return (
-            <View style={styles.cardRow}>
-                {
                     entry.emotions.map((emotion, index) => {
                         return(
                             <Text key={index} style={styles.emotionBadge}>{emotion}</Text>
                         )
                     })
-                }
-            </View>        
         )
     } else {
         return (
@@ -46,11 +50,16 @@ function EntryCard({ entry }) {
                 <Text style={styles.text}>{entry.time}</Text>
             </View>
 
-            <LoadEmotions entry={entry} />
-            <LoadAddress entry={entry} />
+            <View style={styles.cardRow}>
+                <LoadEmotions entry={entry} />
+            </View>        
+            
+            <View style={styles.cardRow}>
+                <LoadAddress entry={entry} />
+            </View>        
 
             <View style={styles.cardRow}>
-                <Text style={styles.textBadge}>{entry.diary}</Text>
+                <LoadDiary entry={entry} />
             </View>
         
         </View>
@@ -116,11 +125,9 @@ export default class EntrancesScreen extends Component {
 
                 </ScrollView>
 
-                <View style={styles.absoluteView}>
-                    <Pressable onPress={() => {this.props.navigation.navigate('PostEntrance', {newId: this.newEntryId()})}}  style={[styles.postButton]}>
-                            <Text style={styles.postButtonLabel}>+</Text>
-                    </Pressable>
-                </View>
+                <Pressable onPress={() => {this.props.navigation.navigate('PostEntrance', {newId: this.newEntryId()})}}  style={[styles.postButton]}>
+                        <Icon name='plus-circle' width={80} height={80} fill='black' style={styles.postButtonLabel}/>
+                </Pressable>
   
             </ImageBackground>
             )

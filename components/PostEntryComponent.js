@@ -19,7 +19,7 @@ styles.text = {fontSize: 14}
 
 // Date() => wed jan 91 2022 07:46:57 ...
 const now = new Date().toString().split(' ')
-const datetime = now[2] + ' ' + now[1] + ' ' + now[3] + ' - ' + now[4].slice(0,5)
+const datetime = now[2] + ' ' + now[1] + ' ' + now[3] + ' - ' + now[4].slice(0, 5)
 
 // export default class PostEntranceScreen extends Component {
   
@@ -32,7 +32,7 @@ const datetime = now[2] + ' ' + now[1] + ' ' + now[3] + ' - ' + now[4].slice(0,5
 //     }
 // }
 
-const basicEmotions = ['Felicidade', 'Tristeza', 'Cansaço', 'Ansiedade', 'Drepressão', 'Desespero', 'Euforia', 'Concentração', 'Equilíbrio', 'Amor', 'Medo', 'Vergonha', 'Nojo']
+const basicEmotions = ['Felicidade', 'Tristeza', 'Cansaço', 'Ansiedade', 'Drepressão','Desespero', 'Euforia', 'Concentração', 'Equilíbrio', 'Amor', 'Medo', 'Vergonha', 'Nojo']
 var isSelectedEmotions = {}
 for (var i=0; i<basicEmotions.length; i++){
 isSelectedEmotions[basicEmotions[i]] = false
@@ -47,7 +47,7 @@ export default class PostEntranceScreen extends Component {
         moodButtons: {
           colors: ['darkred', 'lightblue', 'darkgrey', 'pink', 'lightgreen'],
           colorsSelected: ['red', 'blue', 'grey', 'purple', 'green'],
-          moods: ['Horrivel', 'Mau', 'Regular', 'Bom', 'Ótimo'],  
+          moods: ['Horrivel', 'Mau', 'Regular', 'Bem', 'Ótimo'],  
         },
         emotionButtons: {
             isSelectedEmotions: isSelectedEmotions,

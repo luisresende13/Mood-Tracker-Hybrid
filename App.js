@@ -11,7 +11,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 //import { createDrawerNavigator } from '@react-navigation/drawer';
 
 import EntrancesScreen from './components/EntrancesComponent';
-import PostEntranceScreen from './components/PostEntry';
+import PostEntranceScreen from './components/PostEntryComponent';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
