@@ -21,17 +21,6 @@ styles.text = {fontSize: 14}
 const now = new Date().toString().split(' ')
 const datetime = now[2] + ' ' + now[1] + ' ' + now[3] + ' - ' + now[4].slice(0, 5)
 
-// export default class PostEntranceScreen extends Component {
-  
-//     render() {
-//         return(
-//             <View> 
-//                 <Text>{now}</Text>
-//             </View>
-//         )
-//     }
-// }
-
 const basicEmotions = ['Felicidade', 'Tristeza', 'Cansaço', 'Ansiedade', 'Drepressão','Desespero', 'Euforia', 'Concentração', 'Equilíbrio', 'Amor', 'Medo', 'Vergonha', 'Nojo']
 var isSelectedEmotions = {}
 for (var i=0; i<basicEmotions.length; i++){

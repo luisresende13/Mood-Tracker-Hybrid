@@ -31,6 +31,8 @@ const styles = {
     sectionTitle: {
         paddingVertical: 7.5,
         fontSize: 17.5,
+        color: 'white',
+        fontWeight: '400',
         // backgroundColor: 'blue',    
     },
     card: {
@@ -49,6 +51,7 @@ const styles = {
         // borderWidth: 2,  
     },
     moodBadge: {
+        fontFamily: 'sans-serif',
         backgroundColor: 'green',
         borderRadius: 30,
         paddingVertical: 6,
@@ -58,6 +61,7 @@ const styles = {
         // left: 5,
     },
     emotionBadge: {
+        fontFamily: 'sans-serif',
         backgroundColor: 'aliceblue',
         borderRadius: 30,
         paddingVertical: 7,
@@ -68,6 +72,7 @@ const styles = {
         textAlign: 'center',
     },
     textBadge: {
+        fontFamily: 'sans-serif',
         backgroundColor: 'aliceblue',
         borderRadius: 20,
         paddingVertical: 4,
@@ -78,11 +83,16 @@ const styles = {
         textAlign: 'left',
     },
     text: {
+        fontFamily: 'sans-serif',
         fontSize: 14,
+        color: 'white'
     },
     spaceBetween: {
         justifyContent: 'space-between',
     },
+    icon: {
+        paddingHorizontal: 5,
+        }
     
 };
 

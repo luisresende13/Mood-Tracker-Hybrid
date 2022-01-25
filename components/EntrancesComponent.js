@@ -10,7 +10,12 @@ import styles from '../styles/entrancesStyles'
 
 function LoadAddress ({entry}) {
     if (entry.address!='Missing') {
-        return <Text style={styles.text}>{entry.address}</Text>
+        return(
+            <View style={styles.cardRow}>
+                <Icon name='pin' height={16} width={16} fill='rgba(255,255,255,0.75)' style={styles.icon} />
+                <Text style={styles.text}>{entry.address}</Text>
+            </View>        
+        )
     } else {
         return <></>
     }
@@ -47,16 +52,17 @@ function EntryCard({ entry }) {
             
             <View style={[styles.cardRow, styles.spaceBetween]}>
                 <Text style={[styles.moodBadge, {backgroundColor: moodColors[entry.mood]}]}>{entry.mood}</Text>
-                <Text style={styles.text}>{entry.time}</Text>
+                <View style={[styles.cardRow]}>
+                    <Icon name='edit' height={18} width={18} fill='rgba(255,255,255,0.75)' style={styles.icon} />
+                    <Text style={styles.text}>{entry.time}</Text>
+               </View>
             </View>
 
             <View style={styles.cardRow}>
                 <LoadEmotions entry={entry} />
             </View>        
             
-            <View style={styles.cardRow}>
                 <LoadAddress entry={entry} />
-            </View>        
 
             <View style={styles.cardRow}>
                 <LoadDiary entry={entry} />
@@ -118,10 +124,10 @@ export default class EntrancesScreen extends Component {
                         {this.state.data.map(entry => <EntryCard entry={entry} />)}
                     </View>
                     
-                    <View style={styles.section}>
+                    {/* <View style={styles.section}>
                         <Text style={styles.sectionTitle}>Gratidão</Text>
                         {this.state.data.map(entry => <EntryCard key={entry._id} entry={entry} />)}
-                    </View>
+                    </View> */}
 
                 </ScrollView>
 

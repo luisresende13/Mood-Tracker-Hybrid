@@ -36,7 +36,7 @@ function HomeScreen() {
     <Stack.Navigator 
     initialRouteName='Entrances' 
     screenOptions={{
-      headerShown: true,
+      headerShown: false,
     }}
     > 
       <Stack.Screen
