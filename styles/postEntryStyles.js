@@ -3,7 +3,6 @@ const styles = {
   entrances: {
     marginTop: 27.5,
     borderWidth: 0,
-    
     flex:1,
     justifyContent: 'space-between',
     alignItems: 'flex-start',
@@ -17,7 +16,6 @@ const styles = {
     paddingHorizontal: '6%',
     alignSelf: 'stretch',
     // justifyContent: 'space-between',
-
     borderColor: 'black',
     // borderWidth: 3,
     // backgroundColor: 'blue',
@@ -42,10 +40,12 @@ const styles = {
     backgroundColor: 'rgba(255,255,255, 0.3)',
 
   },
-  rowTitle: {
-    paddingBottom: 10,
-    fontSize: 20,
-    textAlign: 'center',
+  entryTitle: {
+    paddingBottom: 3,
+    paddingLeft: 5,
+    fontSize: 19,
+    // textAlign: 'center',
+    color: 'white'
   },
   postButtonView: {
     // flexDirection: 'row',
@@ -85,19 +85,20 @@ const styles = {
     borderRadius: 20
   },
   diaryText: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    minHeight:200,
-    borderWidth: 0,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    borderRadius: 30,
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    minHeight:100,
+    width: '100%',
+    borderRadius: 20,
+    color: 'white',
+    fontSize: 14,
   },
   saveButton: {
-    position: 'absolute',
-    bottom: 0,
+    // position: 'absolute',
+    // bottom: 0,
     height: 50,
     width: '100%',
-    alignSelf: 'center',
+    // alignSelf: 'center',
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
     justifyContent: 'center',
