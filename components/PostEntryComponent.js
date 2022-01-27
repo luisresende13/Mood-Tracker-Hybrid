@@ -83,7 +83,8 @@ export default class PostEntranceScreen extends Component {
             address: 'Missing',
 
             startTime: FormattedTime(),
-            isEntrySelected: {'Mood': true, 'Emotions': false, 'Jornal': false},
+            // isEntrySelected: {'Mood': true, 'Emotions': false, 'Jornal': false},
+            selectedEntry: 'Mood',
         };
 
         this.onSaveButtonPress = this.onSaveButtonPress.bind(this);
@@ -203,14 +204,16 @@ export default class PostEntranceScreen extends Component {
 
     setSelectedEntry (entry) {
         function setSelected() {
-            this.setState( {isEntrySelected: { ...this.state.isEntrySelected, [entry]: !this.state.isEntrySelected[entry] } } )
+            // this.setState( {isEntrySelected: { ...this.state.isEntrySelected, [entry]: !this.state.isEntrySelected[entry] } } )
+            this.setState( {selectedEntry:  this.state.selectedEntry === entry ? null : entry  } )
         }
         setSelected = setSelected.bind(this);
         return setSelected
     }
 
     inputSection(section, inputStyle, inputs) {
-        if (this.state.isEntrySelected[section]) {
+        // if (this.state.isEntrySelected[section]) {
+        if (this.state.selectedEntry === section) {
             return(
                 <View style={[styles2.cardRow, inputStyle]}>
                     {inputs}

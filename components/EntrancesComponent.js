@@ -1,6 +1,6 @@
 
 import React, { Component } from 'react';
-import { View, Text, ImageBackground, Button, Pressable, ScrollView} from 'react-native';
+import { View, Text, ImageBackground, Pressable, ScrollView} from 'react-native';
 import { Icon } from 'react-native-eva-icons'
 
 import DATA from '../shared/DatabaseReduced'
@@ -149,6 +149,7 @@ export default class EntrancesScreen extends Component {
 
     render() {
 
+        const isToday = this.state.selectedDate===this.state.date
         this.postIfNewEntry();
 
         return(
@@ -163,9 +164,16 @@ export default class EntrancesScreen extends Component {
                                 <Icon name='arrow-back' width={35} height={35} fill='white' />
                             </Pressable>
                             <Text style={styles.sectionTitle}>{'Suas entradas  •  ' + ( this.state.selectedDate===this.state.date ? 'Hoje, ' : '' ) + this.state.selectedDate}</Text>
-                            <Pressable onPress={ this.onNextButtonPress() }>
-                                <Icon name='arrow-forward' width={35} height={35} fill='white' />
-                            </Pressable>
+                            
+                            {
+                                !isToday ? (
+                                    <Pressable onPress={ this.onNextButtonPress() }>
+                                        <Icon name='arrow-forward' width={35} height={35} fill='white' />
+                                    </Pressable>   
+                                ) : (
+                                    <View></View>
+                                )
+                            }
                             
                         </View>
 
