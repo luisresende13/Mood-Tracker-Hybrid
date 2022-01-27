@@ -24,13 +24,42 @@ styles.text = {fontSize: 14}
 const now = new Date().toString().split(' ')
 const datetime = now[2] + ' ' + now[1] + ' ' + now[3] + ' - ' + now[4].slice(0, 5)
 
-const basicEmotions = ['Felicidade', 'Tristeza', 'Cansaço', 'Ansiedade', 'Drepressão','Desespero', 'Euforia', 'Concentração', 'Equilíbrio', 'Amor', 'Medo', 'Vergonha', 'Nojo']
+const basicEmotions = ['Felicidade', 'Tristeza', 'Cansaço', 'Ansiedade', 'Depressão','Desespero', 'Euforia', 'Concentração', 'Equilíbrio', 'Amor', 'Medo', 'Vergonha', 'Nojo']
 var isSelectedEmotions = {}
 for (var i=0; i<basicEmotions.length; i++){
 isSelectedEmotions[basicEmotions[i]] = false
 }
 // Array(basicEmotions.length).fill(false)
 
+
+function convertMonthSig(monthSig) {
+    const monthSigs = ['Jan', 'Feb', 'Mar', 'Apr', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dec']
+    const months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12']
+    const thisMonth = months[monthSigs.indexOf(monthSig)]
+    return thisMonth
+}
+
+function getTime() {
+    //Wed,Jan,26,2022,15:12:37,GMT-0300,(Horário,Padrão,de,Brasília)
+    const now = Date().toString().split(' ')
+    const time = now[4]
+    return time
+}
+
+function getToday() {
+    const now = Date().toString().split(' ')
+    const today = [ now[3], convertMonthSig(now[1]), now[2] ].join('-')
+    return today
+}
+
+function FormattedTime() {
+    // const time = new Date().toString().split(' ')[4]
+    var newTime = getTime().slice(0,5)
+    var h = parseInt(newTime.slice(0,2))
+    var m = parseInt(newTime.slice(3,5))
+    newTime = h > 12 ? ( (h-12).toString().length==1 ? '0'+(h-12) : h-12 ) + ':' +  m + ' PM' : ( h.toString().length==1 ? '0'+ h : h ) + ' AM'
+    return newTime
+}
 
 export default class PostEntranceScreen extends Component {
   
@@ -52,17 +81,21 @@ export default class PostEntranceScreen extends Component {
             diaryEntry: '',    
             emotions: [],
             address: 'Missing',
+
+            startTime: FormattedTime(),
+            isEntrySelected: {'Mood': true, 'Emotions': false, 'Jornal': false},
         };
 
         this.onSaveButtonPress = this.onSaveButtonPress.bind(this);
-        this.EmotionsCard = this.EmotionsCard.bind(this);
         this.EmotionButtons = this.EmotionButtons.bind(this);
         this.MoodButtons = this.MoodButtons.bind(this);
-        this.MoodCard = this.MoodCard.bind(this);
-        this.JornalCard = this.JornalCard.bind(this);
         this.postEntryHeader = this.postEntryHeader.bind(this);
         this.onEmotionButtonPress = this.onEmotionButtonPress.bind(this);
         this.onMoodButtonPress = this.onMoodButtonPress.bind(this);
+        this.inputSection = this.inputSection.bind(this);
+        this.setSelectedEntry = this.setSelectedEntry.bind(this);
+        this.InputCard = this.InputCard.bind(this);
+        this.JornalInput = this.JornalInput.bind(this);
     }
 
     postEntryHeader() {
@@ -156,74 +189,74 @@ export default class PostEntranceScreen extends Component {
         )
     }
 
-    MoodCard() {
+    JornalInput() {
         return(
-            <View style={[styles2.card]}>
-                <View style={styles2.cardRow}>
-                    <Icon name='activity' fill='rgba(255,255,255,0.75)' height={25} width={25} style={styles2.entryIcon}/>
-                    <Text style={styles.entryTitle}>Avaliação </Text>
-                </View>
-                <View style={[styles2.cardRow, {justifyContent: 'space-between'}]}>
-                    {this.MoodButtons()}
-                </View>
-            </View>
+        <TextInput multiline 
+            placeholder='Today was...' 
+            style={styles.diaryText}
+            onChangeText={text => this.setState({diaryEntry: text})}
+            value={this.state.diaryEntry}
+            >
+        </TextInput>
         )
     }
 
-    EmotionsCard() {
-        return (
-            <View style={styles2.card}>
-                <View style={styles2.cardRow}>
-                    <Icon name='color-palette' fill='rgba(255,255,255,0.75)' height={25} width={25} style={styles2.entryIcon}/>
-                    <Text style={[styles.entryTitle]}>Emoções</Text>
-                </View>
-                <View style={[styles2.cardRow, {flexWrap: 'wrap', justifyContent: 'space-evenly'}]}>
-                    {this.EmotionButtons()}
-                </View>
-            </View>
-        );
+    setSelectedEntry (entry) {
+        function setSelected() {
+            this.setState( {isEntrySelected: { ...this.state.isEntrySelected, [entry]: !this.state.isEntrySelected[entry] } } )
+        }
+        setSelected = setSelected.bind(this);
+        return setSelected
     }
 
-    JornalCard() {
+    inputSection(section, inputStyle, inputs) {
+        if (this.state.isEntrySelected[section]) {
+            return(
+                <View style={[styles2.cardRow, inputStyle]}>
+                    {inputs}
+                </View>
+            )
+        } else {
+            return(
+                <></>
+            )
+        }
+
+    }
+
+    InputCard(section, sectionName, icon, inputStyle, inputs) {
         return(
             <View style={[styles2.card]}>
-                <View style={styles2.cardRow}>
-                    <Icon name='book-open' fill='rgba(255,255,255,0.75)' height={25} width={25} style={styles2.entryIcon}/>
-                    <Text style={styles.entryTitle}>Jornal</Text>
-                </View>
-                <View style={[styles2.cardRow, {flexDirection: 'column'}]}>
-                    <TextInput multiline 
-                    placeholder='Today was...' 
-                    style={styles.diaryText}
-                    onChangeText={text => this.setState({diaryEntry: text})}
-                    value={this.state.diaryEntry}
-                    >
-                    </TextInput>
-                </View>
+                <Pressable style={styles2.cardRow}  onPress={this.setSelectedEntry(section)}>
+                    <Icon name={icon} fill='rgba(255,255,255,0.75)' height={25} width={25} style={styles2.entryIcon}/>
+                    <Text style={styles.entryTitle}> {sectionName} </Text>
+                </Pressable>
+
+                {this.inputSection(section=section, inputStyle=inputStyle, inputs=inputs)}
+
             </View>
         )
     }
 
     onSaveButtonPress () {
-        const datetime = new Date().toString().split(' ')
-        const newDate = datetime.slice(1,4).join('-')
-        var newTime = datetime[4].slice(0,5)
-        var h = parseInt(newTime.slice(0,2))
-        var m = parseInt(newTime.slice(3,5))
-        newTime = h > 12 ? ( (h-12).toString().length==1 ? '0'+(h-12) : h-12 ) + ':' +  m + ' PM' : ( h.toString().length==1 ? '0'+ h : h ) + ' AM'
+        if (!this.state.selectedMood) {
+            alert('Necessário adicionar avaliação')
 
-        const newPost = {
-            diary: this.state.diaryEntry,
-            mood: this.state.selectedMood,
-            emotions: this.state.emotionButtons.basicEmotions.filter( emotion => this.state.emotionButtons.isSelectedEmotions[emotion] ) ,
-            address: this.state.address,
-            user_id: this.props.route.params.newId,
-            _id: this.props.route.params.newId,
-            date: newDate,
-            time: newTime,
-            star: this.state.star,
+        } else {
+            const newPost = {
+                diary: this.state.diaryEntry,
+                mood: this.state.selectedMood,
+                emotions: this.state.emotionButtons.basicEmotions.filter( emotion => this.state.emotionButtons.isSelectedEmotions[emotion] ) ,
+                address: this.state.address,
+                user_id: this.props.route.params.newId,
+                _id: this.props.route.params.newId,
+                date: getToday(),
+                time: this.state.startTime,
+                endTime: FormattedTime(),
+                star: this.state.star,
+            }
+            this.props.navigation.navigate('Entrances', {newPost: newPost} )    
         }
-        this.props.navigation.navigate('Entrances', {newPost: newPost} )
     }
 
 
@@ -234,9 +267,9 @@ export default class PostEntranceScreen extends Component {
                 <ScrollView style={styles2.scrollView}>
                     <View style={styles2.section}>
                             {this.postEntryHeader()}
-                            {this.MoodCard()}            
-                            {this.EmotionsCard()}
-                            {this.JornalCard()}
+                            {this.InputCard('Mood', 'Avaliação', 'activity', {justifyContent: 'space-between'}, this.MoodButtons())}
+                            {this.InputCard('Emotions', 'Emoções', 'color-palette', {flexWrap: 'wrap', justifyContent: 'space-evenly'}, this.EmotionButtons())}
+                            {this.InputCard('Jornal', 'Jornal', 'book-open', {flexDirection: 'column'}, this.JornalInput())}
                     </View>
                 </ScrollView>  
 
