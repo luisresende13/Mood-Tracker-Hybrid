@@ -1,0 +1,23 @@
+{
+  "files": {
+    "app.js": "/mood-tracker/static/js/app.cd3833d5.chunk.js",
+    "app.js.map": "/mood-tracker/static/js/app.cd3833d5.chunk.js.map",
+    "runtime~app.js": "/mood-tracker/static/js/runtime~app.97ca8346.js",
+    "runtime~app.js.map": "/mood-tracker/static/js/runtime~app.97ca8346.js.map",
+    "static/js/2.eae44b4a.chunk.js": "/mood-tracker/static/js/2.eae44b4a.chunk.js",
+    "static/js/2.eae44b4a.chunk.js.map": "/mood-tracker/static/js/2.eae44b4a.chunk.js.map",
+    "favicon-16.png": "/mood-tracker/favicon-16.png",
+    "favicon-32.png": "/mood-tracker/favicon-32.png",
+    "favicon.ico": "/mood-tracker/favicon.ico",
+    "index.html": "/mood-tracker/index.html",
+    "manifest.json": "/mood-tracker/manifest.json",
+    "serve.json": "/mood-tracker/serve.json",
+    "static/js/2.eae44b4a.chunk.js.LICENSE.txt": "/mood-tracker/static/js/2.eae44b4a.chunk.js.LICENSE.txt",
+    "static/media/wallpaper.jpg": "/mood-tracker/static/media/wallpaper.9987c866.jpg"
+  },
+  "entrypoints": [
+    "static/js/runtime~app.97ca8346.js",
+    "static/js/2.eae44b4a.chunk.js",
+    "static/js/app.cd3833d5.chunk.js"
+  ]
+}
