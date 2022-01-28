@@ -7,6 +7,16 @@ import DATA from '../shared/DatabaseReduced'
 import dateRange from '../shared/dateRange'
 import styles from '../styles/entrancesStyles'
 
+
+// import { firebase } from '@react-native-firebase/database';
+// const reference = firebase
+//     .app()
+//     .database('https://mood-tracker-13-default-rtdb.firebaseio.com/')
+//     .ref('/entries/0')
+//     .set({'mood': '0', 'emotions': '[cansado, triste]'})
+//     .then(() => alert('Data set.'));
+
+
 function LoadAddress ({entry}) {
     if (entry.address!='Missing') {
         return(
