@@ -1,9 +1,7 @@
-//import Ionicons from 'react-native-vector-icons/Ionicons';
-// import Ionicons from ' @expo/vector-icons/Ionicons';
 import { Icon } from 'react-native-eva-icons'
 
-import React from 'react';
-import { Text, ImageBackground } from 'react-native';
+import React, { Component } from 'react';
+import { View, Text, ImageBackground, TextInput, Pressable } from 'react-native';
 
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -12,24 +10,10 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 import EntrancesScreen from './components/EntrancesComponent';
 import PostEntranceScreen from './components/PostEntryComponent';
+import LoginScreen from './components/LoginComponent'
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
-
-// function EntrancesScreen() {
-//   return(
-//     <ImageBackground source={require('./assets/wallpaper.jpg')} style={{width: '100%', height: '100%'}}>
-//       <Text>Entrances Screen</Text>
-//     </ImageBackground>
-//   )
-// }
-// function PostEntranceScreen() {
-//   return(
-//     <ImageBackground source={require('./assets/wallpaper.jpg')} style={{width: '100%', height: '100%'}}>
-//       <Text>Post Entrance Screen</Text>
-//     </ImageBackground>
-//   )
-// }
 
 function HomeScreen() {
   return(    
@@ -80,17 +64,39 @@ const mainScreenOptions = ({ route }) => ({
   },
 })
 
-export default function App() {
-  return (
-    <NavigationContainer>
+class App extends Component {
 
-      <Tab.Navigator
-        screenOptions={mainScreenOptions}
-      >
-        <Tab.Screen name="Home" component={HomeScreen} />
-        <Tab.Screen name="Settings" component={SettingsScreen} />
-      </Tab.Navigator>
+  constructor(props) {
+    super(props);
 
-    </NavigationContainer>
-  );
+    this.state = {
+      isUserAuth: false,
+    };
+    this.authUser = this.authUser.bind(this);
+  }
+
+  authUser() {
+    this.setState( {isUserAuth: true} )
+  }
+
+
+  render() {
+
+    if (!this.state.isUserAuth) {
+      return <LoginScreen authUser={this.authUser} />
+    } else {
+      return (
+        <NavigationContainer>
+          <Tab.Navigator
+            screenOptions={mainScreenOptions}
+          >
+            <Tab.Screen name="Home" component={HomeScreen} />
+            <Tab.Screen name="Settings" component={SettingsScreen} />
+          </Tab.Navigator>    
+        </NavigationContainer>
+      );  
+    }
+  }
 } 
+
+export default App;
