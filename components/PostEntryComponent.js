@@ -6,6 +6,8 @@ import { Icon } from 'react-native-eva-icons'
 import styles from '../styles/postEntryStyles'
 import styles2 from '../styles/entrancesStyles'
 
+const cors_uri = 'https://morning-journey-78874.herokuapp.com/'
+
 styles.emotionBadge = {
     backgroundColor: 'rgba(1,1,1,0.5)',
     borderRadius: 30,
@@ -24,7 +26,13 @@ styles.text = {fontSize: 14}
 const now = new Date().toString().split(' ')
 const datetime = now[2] + ' ' + now[1] + ' ' + now[3] + ' - ' + now[4].slice(0, 5)
 
-const basicEmotions = ['Felicidade', 'Tristeza', 'Cansaço', 'Ansiedade', 'Depressão','Desespero', 'Euforia', 'Concentração', 'Equilíbrio', 'Amor', 'Medo', 'Vergonha', 'Nojo']
+const goodEnergizedEmotions = ['Animado(a)', 'Concentrado(a)', 'Desinibido(a)', 'Motivado(a)', 'Energizado(a)', 'Euforico(a)', 'Emocionado(a)', 'Amor']
+const goodCalmEmotions = ['Alíviado(a)', 'Calmo(a)', 'Confortável', 'Despreocupado(a)', 'Inspirado(a)', 'Orgulhoso(a)', 'Paz', 'Relaxado(a)', 'Satisfeito(a)', 'Seguro(a)']
+const badEnergizedEmotions = ['Agitado(a)', 'Ansioso(a)', 'Triste', 'Decepcionado(a)', 'Depressivo(a)', 'Desesperado(a)', 'Frustrado(a)', 'Insatisfeito(a)', 'Irritado(a)', 'Medo', 'Paranoico(a)', 'Preocupado(a)', 'Impaciente', 'Raiva', 'Revoltado(a)', 'Sobrecarregado(a)', 'Tenso(a)', 'Anti-social', 'Enojado(a)']
+const badCalmEmotions = ['Timido(a)', 'Cansado(a)', 'Confuso(a)', 'Desanimado(a)', 'Vergonha', 'Inseguro(a)', 'Apático(a)', 'Solitário(a)', 'Tedio']
+const basicEmotions = [ ...goodEnergizedEmotions, ...goodCalmEmotions, ...badEnergizedEmotions, ...badCalmEmotions]
+const emotionGroups = [goodEnergizedEmotions, goodCalmEmotions, badEnergizedEmotions, badCalmEmotions]
+const emotionGroupsNames = ['Bem & Energizado', 'Bem & Calmo', 'Mal e Energizado', 'Mal & Calmo']
 var isSelectedEmotions = {}
 for (var i=0; i<basicEmotions.length; i++){
 isSelectedEmotions[basicEmotions[i]] = false
@@ -57,7 +65,7 @@ function FormattedTime() {
     var newTime = getTime().slice(0,5)
     var h = parseInt(newTime.slice(0,2))
     var m = parseInt(newTime.slice(3,5))
-    newTime = h > 12 ? ( (h-12).toString().length==1 ? '0'+(h-12) : h-12 ) + ':' +  m + ' PM' : ( h.toString().length==1 ? '0'+ h : h ) + ' AM'
+    newTime = h > 12 ? ( (h-12).toString().length==1 ? '0'+(h-12) : h-12 ) + ':' +  m + ' PM' : ( h.toString().length==1 ? '0'+ h : h ) + ':' + m + ' AM'
     return newTime
 }
 
@@ -70,21 +78,22 @@ export default class PostEntranceScreen extends Component {
             moodButtons: {
             colors: ['darkred', 'lightblue', 'darkgrey', 'pink', 'lightgreen'],
             colorsSelected: ['red', 'blue', 'grey', 'purple', 'green'],
-            moods: ['Horrivel', 'Mau', 'Regular', 'Bem', 'Ótimo'],  
+            moods: ['Horrivel', 'Mal', 'Regular', 'Bem', 'Ótimo'],  
             },
             emotionButtons: {
                 isSelectedEmotions: isSelectedEmotions,
-                basicEmotions: basicEmotions,  
+                basicEmotions: basicEmotions,
+                emotionGroups: emotionGroups,
             },
             star: false,
             selectedMood: null,
-            diaryEntry: '',    
+            jornalEntry: '',    
             emotions: [],
-            address: 'Missing',
+            address: '',
 
             startTime: FormattedTime(),
-            // isEntrySelected: {'Mood': true, 'Emotions': false, 'Jornal': false},
             selectedEntry: 'Mood',
+            isLoading: false,
         };
 
         this.onSaveButtonPress = this.onSaveButtonPress.bind(this);
@@ -97,6 +106,7 @@ export default class PostEntranceScreen extends Component {
         this.setSelectedEntry = this.setSelectedEntry.bind(this);
         this.InputCard = this.InputCard.bind(this);
         this.JornalInput = this.JornalInput.bind(this);
+        this.postNewEntryAsync = this.postNewEntryAsync.bind(this);
     }
 
     postEntryHeader() {
@@ -176,9 +186,9 @@ export default class PostEntranceScreen extends Component {
         )
     }
 
-    EmotionButtons() {
+    EmotionButtons(emotions) {
         return(
-            this.state.emotionButtons.basicEmotions.map( emotion => (
+            emotions.map( emotion => (
                 <Pressable
                 title={emotion}
                 style={ {paddingVertical: 5} }
@@ -194,9 +204,9 @@ export default class PostEntranceScreen extends Component {
         return(
         <TextInput multiline 
             placeholder='Today was...' 
-            style={styles.diaryText}
-            onChangeText={text => this.setState({diaryEntry: text})}
-            value={this.state.diaryEntry}
+            style={styles.jornalText}
+            onChangeText={text => this.setState({jornalEntry: text})}
+            value={this.state.jornalEntry}
             >
         </TextInput>
         )
@@ -204,7 +214,6 @@ export default class PostEntranceScreen extends Component {
 
     setSelectedEntry (entry) {
         function setSelected() {
-            // this.setState( {isEntrySelected: { ...this.state.isEntrySelected, [entry]: !this.state.isEntrySelected[entry] } } )
             this.setState( {selectedEntry:  this.state.selectedEntry === entry ? null : entry  } )
         }
         setSelected = setSelected.bind(this);
@@ -214,11 +223,23 @@ export default class PostEntranceScreen extends Component {
     inputSection(section, inputStyle, inputs) {
         // if (this.state.isEntrySelected[section]) {
         if (this.state.selectedEntry === section) {
-            return(
-                <View style={[styles2.cardRow, inputStyle]}>
-                    {inputs}
-                </View>
-            )
+
+            if (section == 'Emotions') {
+                return this.state.emotionButtons.emotionGroups.map((emotions, index) => (
+                    <View style={{width: '100%', alignItems: 'center'}}>
+                        <Text style={{fontSize: 15, color: 'white', paddingVertical: 11}}>{emotionGroupsNames[index]}</Text>
+                        <View key={index} style={[styles2.cardRow, inputStyle]}>
+                            {inputs(emotions)}
+                        </View>
+                    </View>
+                ))
+            } else {
+                return(
+                    <View style={[styles2.cardRow, inputStyle]}>
+                        {inputs}
+                    </View>
+                )    
+            }
         } else {
             return(
                 <></>
@@ -243,26 +264,60 @@ export default class PostEntranceScreen extends Component {
 
     onSaveButtonPress () {
         if (!this.state.selectedMood) {
-            alert('Necessário adicionar avaliação')
+            alert('Necessário adicionar uma avaliação.')
 
         } else {
-            const newPost = {
-                diary: this.state.diaryEntry,
+            const newEntry = {
+                jornal: this.state.jornalEntry,
                 mood: this.state.selectedMood,
                 emotions: this.state.emotionButtons.basicEmotions.filter( emotion => this.state.emotionButtons.isSelectedEmotions[emotion] ) ,
                 address: this.state.address,
-                user_id: this.props.route.params.newId,
-                _id: this.props.route.params.newId,
                 date: getToday(),
-                time: this.state.startTime,
+                startTime: this.state.startTime,
                 endTime: FormattedTime(),
                 star: this.state.star,
             }
-            this.props.navigation.navigate('Entrances', {newPost: newPost} )    
+            this.postNewEntryAsync(newEntry)
         }
     }
 
+    async postNewEntryAsync(newEntry) {
+        this.setState({ isLoading: true });
+        var info = this.props.route.params.userInfo;
 
+        try {
+        const postUserEntryOpts = { 
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify( newEntry ),
+        }
+        var postUserEntryResult = await fetch(`${cors_uri}https://mood-tracker-server.herokuapp.com/Users/${info.username}/entries`, postUserEntryOpts);
+        // var postUserEntryResult = await fetch('http://localhost:3000/Users/'+info.username +'/entries', postUserEntryOpts);
+
+        if (postUserEntryResult.ok) {
+            console.log('fetch POST request successful. Printing response status...')
+            console.log('Status: ' + postUserEntryResult.status + ', ' + postUserEntryResult.statusText)
+
+            this.props.navigation.navigate('Entrances', {newPost: true} )    
+
+        } else {
+            console.log('fetch POST request failed. Throwing error status...')
+            throw new Error('Status: ' + postUserEntryResult.status + ', ' + postUserEntryResult.statusText)
+        }
+  
+        } catch (error) {
+          alert('Erro no servidor, não foi possível adicionar a entrada. Por favor, tente novamente.')
+          console.log('Erro capturado:')
+          console.log(error);
+
+        } finally {
+          this.setState({ isLoading: false });
+        }
+
+    }
+  
     render() {
 
         return(
@@ -271,7 +326,7 @@ export default class PostEntranceScreen extends Component {
                     <View style={styles2.section}>
                             {this.postEntryHeader()}
                             {this.InputCard('Mood', 'Avaliação', 'activity', {justifyContent: 'space-between'}, this.MoodButtons())}
-                            {this.InputCard('Emotions', 'Emoções', 'color-palette', {flexWrap: 'wrap', justifyContent: 'space-evenly'}, this.EmotionButtons())}
+                            {this.InputCard('Emotions', 'Emoções', 'color-palette', {flexWrap: 'wrap', justifyContent: 'space-evenly'}, this.EmotionButtons)}
                             {this.InputCard('Jornal', 'Jornal', 'book-open', {flexDirection: 'column'}, this.JornalInput())}
                     </View>
                 </ScrollView>  

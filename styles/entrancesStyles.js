@@ -1,5 +1,6 @@
 //import StatusBar from 'react-native'
 import { StatusBar } from 'expo-status-bar';
+import { Platform } from 'react-native';
 
 const styles = {
     mainView: {
@@ -20,7 +21,9 @@ const styles = {
         alignSelf: 'center',
     },
     scrollView: {
-        paddingHorizontal: '5%',
+        paddingHorizontal: Platform.OS != 'web' ? '5%' : '25%',
+        width: '100%',
+        alignSelf: 'center'
     },
     section: {
         paddingVertical: '16%',

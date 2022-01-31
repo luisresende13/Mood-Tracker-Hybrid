@@ -84,7 +84,7 @@ const styles = {
     backgroundColor: 'white',
     borderRadius: 20
   },
-  diaryText: {
+  jornalText: {
     paddingVertical: 5,
     paddingHorizontal: 10,
     minHeight:100,

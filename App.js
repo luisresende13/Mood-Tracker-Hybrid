@@ -1,6 +1,6 @@
 import { Icon } from 'react-native-eva-icons'
 
-import React, { Component } from 'react';
+import React, { Component } from 'react';0
 import { View, Text, ImageBackground, TextInput, Pressable } from 'react-native';
 
 import { NavigationContainer } from '@react-navigation/native';
@@ -15,7 +15,7 @@ import LoginScreen from './components/LoginComponent'
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
-function HomeScreen() {
+function HomeScreen(props) {
   return(    
     <Stack.Navigator 
     initialRouteName='Entrances' 
@@ -27,11 +27,13 @@ function HomeScreen() {
       name="Entrances"
       component={EntrancesScreen}
       options={{title: 'Suas entradas'}}
+      initialParams={{userInfo: props.route.params.userInfo}}
       />
       <Stack.Screen
       name="PostEntrance"
       component={PostEntranceScreen}
-      options={{title: 'Adicione uma  entrada' }}
+      options={{title: 'Adicione uma  entrada'}}
+      initialParams={{userInfo: props.route.params.userInfo}}
       />
     </Stack.Navigator>
   )
@@ -71,14 +73,14 @@ class App extends Component {
 
     this.state = {
       isUserAuth: false,
+      userInfo: null,
     };
     this.authUser = this.authUser.bind(this);
   }
 
-  authUser() {
-    this.setState( {isUserAuth: true} )
+  authUser(userInfo) {
+    this.setState( {isUserAuth: true, userInfo: userInfo} )
   }
-
 
   render() {
 
@@ -90,8 +92,8 @@ class App extends Component {
           <Tab.Navigator
             screenOptions={mainScreenOptions}
           >
-            <Tab.Screen name="Home" component={HomeScreen} />
-            <Tab.Screen name="Settings" component={SettingsScreen} />
+            <Tab.Screen name="Home" component={HomeScreen} initialParams={{userInfo: this.state.userInfo}}/>
+            <Tab.Screen name="Settings" component={SettingsScreen} initialParams={{userInfo: this.state.userInfo}} />
           </Tab.Navigator>    
         </NavigationContainer>
       );  
