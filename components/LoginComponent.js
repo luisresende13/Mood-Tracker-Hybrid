@@ -1,7 +1,7 @@
 import { Icon } from 'react-native-eva-icons'
 
 import React, { Component } from 'react';
-import { View, Text, ImageBackground, TextInput, Pressable } from 'react-native';
+import { View, Text, ImageBackground, TextInput, Pressable, Platform } from 'react-native';
 
 const cors_uri = 'https://morning-journey-78874.herokuapp.com/'
 
@@ -12,10 +12,11 @@ const styles = {
       // padding: 30,
       justifyContent: 'center',
       alignItems: 'center',
+      // paddingHorizontal: Platform.OS != 'web' ? '5%' : '5%',
     },
     card: {
       height: '70%',
-      width: 350,
+      width: 380,
       paddingHorizontal: 10,
       paddingVertical: 10,
       // paddingBottom: 20,

@@ -59,11 +59,11 @@ function Loadjornal ({entry}) {
 function LoadEmotions ({entry}) {
     if (entry.emotions.length>0) {
         return (
-                    entry.emotions.map((emotion, index) => {
-                        return(
-                            <Text key={index} style={styles.emotionBadge}>{emotion}</Text>
-                        )
-                    })
+            entry.emotions.map((emotion, index) => {
+                return(
+                    <Text key={index} style={styles.emotionBadge}>{emotion}</Text>
+                )
+            })
         )
     } else {
         return (
@@ -189,33 +189,26 @@ export default class EntrancesScreen extends Component {
         return(
 
             <ImageBackground source={require('../assets/wallpaper.jpg')} style={[styles.mainView]}>
+                
                 <ScrollView style={styles.scrollView}>
-
-                    <View style={styles.section}>
-                        <View style={[styles.cardRow, {justifyContent: 'space-between'}]}>
-                            <Pressable onPress={ this.onNextButtonPress('previous') }>
-                                <Icon name='arrow-back' width={35} height={35} fill='white' />
-                            </Pressable>
-                            <Text style={styles.sectionTitle}>{'Suas entradas  •  ' + ( this.state.selectedDate===this.state.date ? 'Hoje, ' : '' ) + this.state.selectedDate}</Text>
-                            {
-                                !isToday ? (
-                                    <Pressable onPress={ this.onNextButtonPress() }>
-                                        <Icon name='arrow-forward' width={35} height={35} fill='white' />
-                                    </Pressable>   
-                                ) : (
-                                    <View></View>
-                                )
-                            }
+                        <View style={styles.section}>
+                            <View style={[styles.cardRow, {justifyContent: 'space-between'}]}>
+                                <Pressable onPress={ this.onNextButtonPress('previous') }>
+                                    <Icon name='arrow-back' width={35} height={35} fill='white' />
+                                </Pressable>
+                                <Text style={styles.sectionTitle}>{'Suas entradas  •  ' + ( this.state.selectedDate===this.state.date ? 'Hoje, ' : '' ) + this.state.selectedDate}</Text>
+                                {
+                                    !isToday ? (
+                                        <Pressable onPress={ this.onNextButtonPress() }>
+                                            <Icon name='arrow-forward' width={35} height={35} fill='white' />
+                                        </Pressable>   
+                                    ) : (
+                                        <View></View>
+                                    )
+                                }
+                            </View>
+                            {this.state.userEntries.filter( (entry) => entry.date === this.state.selectedDate ).map(entry => <EntryCard entry={entry} />)}            
                         </View>
-                        {this.state.userEntries.filter( (entry) => entry.date === this.state.selectedDate ).map(entry => <EntryCard entry={entry} />)}
-        
-                    </View>
-                    
-                    {/* <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>Gratidão</Text>
-                        {this.state.DATA.map(entry => <anotherExampleCard key={entry._id} entry={entry} />)}
-                    </View> */}
-
                 </ScrollView>
 
                 <Pressable onPress={() => { this.props.navigation.navigate( 'PostEntrance', {} )} }  style={[styles.postButton]}>

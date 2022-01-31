@@ -1,6 +1,13 @@
 //import StatusBar from 'react-native'
 import { StatusBar } from 'expo-status-bar';
+import { useState } from 'react';
 import { Platform } from 'react-native';
+
+// import { Dimensions } from 'react-native';
+// var windowWidth = Dimensions.get('window').width;
+// var windowHeight = Dimensions.get('window').height;
+
+var dims = <onDimensionChange />
 
 const styles = {
     mainView: {
@@ -21,14 +28,16 @@ const styles = {
         alignSelf: 'center',
     },
     scrollView: {
-        paddingHorizontal: Platform.OS != 'web' ? '5%' : '25%',
+        // paddingHorizontal: Platform.OS != 'web' ? '5%' : '5%',
         width: '100%',
-        alignSelf: 'center'
+        alignSelf: 'center',
     },
     section: {
+        width: 380,
         paddingVertical: '16%',
         borderBottomWidth: 1,
         borderColor: 'rgba(155,155,155,0.3)',
+        alignSelf: 'center',
 
     },
     sectionTitle: {
@@ -36,7 +45,6 @@ const styles = {
         fontSize: 18,
         color: 'white',
         fontWeight: '400',
-        // backgroundColor: 'blue',    
     },
     card: {
         marginTop: '5%',
@@ -48,10 +56,7 @@ const styles = {
     cardRow: {
         flexDirection: 'row',
         paddingVertical: 5,
-        // justifyContent: 'center',
         alignItems: 'center',
-        // backgroundColor: 'blue',  
-        // borderWidth: 2,  
     },
     moodBadge: {
         fontFamily: 'sans-serif',
@@ -61,7 +66,6 @@ const styles = {
         width: 130,
         fontSize: 16,
         textAlign: 'center',
-        // left: 5,
     },
     emotionBadge: {
         fontFamily: 'sans-serif',
@@ -70,7 +74,6 @@ const styles = {
         paddingVertical: 7,
         paddingHorizontal: 12.5,
         marginRight: 6,
-        // width: '100%', //must be removed, badge should have text width
         fontSize: 15,
         textAlign: 'center',
     },
@@ -80,7 +83,7 @@ const styles = {
         borderRadius: 20,
         paddingVertical: 4,
         paddingHorizontal: 10,
-        width: '100%', //must be removed, badge should have text width
+        width: '100%',
         fontSize: 14,
         lineHeight: 22,
         textAlign: 'left',

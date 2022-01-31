@@ -256,7 +256,7 @@ export default class PostEntranceScreen extends Component {
                     <Text style={styles.entryTitle}> {sectionName} </Text>
                 </Pressable>
 
-                {this.inputSection(section=section, inputStyle=inputStyle, inputs=inputs)}
+                {this.inputSection(section=section, inputStyle=inputStyle, inputs=inputs)}  
 
             </View>
         )
@@ -321,7 +321,7 @@ export default class PostEntranceScreen extends Component {
     render() {
 
         return(
-            <ImageBackground source={require('../assets/wallpaper.jpg')} style={{width: '100%', height: '100%'}}>
+            <ImageBackground source={require('../assets/wallpaper.jpg')} style={styles2.mainView}>
                 <ScrollView style={styles2.scrollView}>
                     <View style={styles2.section}>
                             {this.postEntryHeader()}

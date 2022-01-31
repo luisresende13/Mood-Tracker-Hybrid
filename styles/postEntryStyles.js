@@ -1,19 +1,22 @@
+import { StatusBar } from 'expo-status-bar';
+import { Platform } from 'react-native';
+
 const styles = {
   
   entrances: {
-    marginTop: 27.5,
+    marginTop: StatusBar.currentHeight,
     borderWidth: 0,
     flex:1,
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    paddingVertical: '0%',
-    paddingHorizontal: '0%',
+    // paddingVertical: '0%',
+    // paddingHorizontal: '0%',
   },
   content: {
     flexGrow: 1,
     // paddingVertical: '5%',
     paddingBottom: '0%',
-    paddingHorizontal: '6%',
+    paddingHorizontal: '5%',
     alignSelf: 'stretch',
     // justifyContent: 'space-between',
     borderColor: 'black',
