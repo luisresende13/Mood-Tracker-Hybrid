@@ -5,7 +5,6 @@ import { Icon } from 'react-native-eva-icons'
 
 console.log('Navigator.arguments: ' + JSON.stringify(Navigator.arguments))    
 
-import DATA from '../shared/DatabaseReduced'
 import dateRange from '../shared/dateRange'
 import styles from '../styles/entrancesStyles'
 
@@ -32,10 +31,6 @@ function getNextDate(date, next='next') {
     const nextDate = dateRange[dateRange.indexOf(date) + (next=='previous' ? -1 : 1)]
     return nextDate
 }
-
-const now = new Date().toString().split(' ')
-const date = now[2]+'th ' + now[1]
-
 
 function LoadAddress ({entry}) {
     if (entry.address) {
@@ -187,7 +182,6 @@ export default class EntrancesScreen extends Component {
         this.loadUserData()
 
         return(
-
             <ImageBackground source={require('../assets/wallpaper.jpg')} style={[styles.mainView]}>
                 
                 <ScrollView style={styles.scrollView}>
@@ -217,6 +211,6 @@ export default class EntrancesScreen extends Component {
   
             </ImageBackground>
             )
-      
+            
     }
   }

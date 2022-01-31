@@ -1,84 +1,10 @@
 import { Icon } from 'react-native-eva-icons'
 
 import React, { Component } from 'react';
-import { View, Text, ImageBackground, TextInput, Pressable, Platform } from 'react-native';
+import { View, Text, ImageBackground, TextInput, Pressable } from 'react-native';
+import styles from '../styles/loginStyles'
 
 const cors_uri = 'https://morning-journey-78874.herokuapp.com/'
-
-const styles = {
-  login: {
-    mainView: {
-      flex: 1,
-      // padding: 30,
-      justifyContent: 'center',
-      alignItems: 'center',
-      // paddingHorizontal: Platform.OS != 'web' ? '5%' : '5%',
-    },
-    card: {
-      height: '70%',
-      width: 380,
-      paddingHorizontal: 10,
-      paddingVertical: 10,
-      // paddingBottom: 20,
-      borderWidth: 1,
-      borderRadius: 10,
-      backgroundColor: 'azure',
-      // justifyContent: 'start',
-    },
-    cardHeader: {
-      height: '30%',
-      fontSize: 25,
-      fontWeight: 'bold',
-      color: 'black',
-      paddingTop: 30,
-      paddingBottom: 50,
-      paddingLeft: 15,
-      // borderWidth: 2,
-    },
-    cardSection: {
-      height: '25%',
-      // width: '100%',
-      justifyContent: 'space-evenly',
-      alignItems: 'center',
-      // borderWidth: 1,
-    },
-    inputField: {
-      height: 40,
-      width: '100%',
-      // marginBottom: 10, 
-      paddingLeft: 10,
-      fontSize: 14,
-      borderRadius: 5,
-      borderWidth: 1,
-      borderColor: 'grey',
-      backgroundColor: 'white'
-    },
-    button: {
-      height: 40,
-      width: '100%',
-      // marginBottom: 10,
-      borderRadius: 5,
-      borderWidth: 1,
-      borderColor: 'grey',
-      textAlign: 'center',
-      justifyContent: 'center',
-      backgroundColor: 'dodgerblue',        
-    },
-    buttonLabel: {
-      fontSize: 15,
-      fontWeight: 'bold',
-      color: 'black',
-    },
-    text: {
-      fontSize: 15,
-      textAlign: 'center',
-      // color: 'black',
-    },
-    loadingIcon: {
-      alignSelf: 'center'
-  },
-  }
-}
 
   class LoginScreen extends Component {
   
