@@ -6,7 +6,9 @@ import { Icon } from 'react-native-eva-icons'
 import styles from '../styles/postEntryStyles'
 import styles2 from '../styles/entrancesStyles'
 
-const cors_uri = 'https://morning-journey-78874.herokuapp.com/'
+// cors-midpoint uri (needed to avoid cors' allow-cross-origin error when fetching)
+const corsURI = 'https://morning-journey-78874.herokuapp.com/'
+const appServerURI = 'https://mood-tracker-server.herokuapp.com/'
 
 styles.emotionBadge = {
     backgroundColor: 'rgba(1,1,1,0.5)',
@@ -76,9 +78,9 @@ export default class PostEntranceScreen extends Component {
 
         this.state = {
             moodButtons: {
-            colors: ['darkred', 'lightblue', 'darkgrey', 'pink', 'lightgreen'],
-            colorsSelected: ['red', 'blue', 'grey', 'purple', 'green'],
-            moods: ['Horrivel', 'Mal', 'Regular', 'Bem', 'Ótimo'],  
+            colors: ['red', 'blue', 'darkgrey', 'orange', 'green'],
+            colorsSelected: ['darkred', 'darkblue', 'grey', 'darkorange', 'darkgreen'],
+            moods: ['Horrível', 'Mal', 'Regular', 'Bem', 'Ótimo'],  
             },
             emotionButtons: {
                 isSelectedEmotions: isSelectedEmotions,
@@ -293,7 +295,7 @@ export default class PostEntranceScreen extends Component {
                 },
                 body: JSON.stringify( newEntry ),
             }
-            var postUserEntryResult = await fetch(`${cors_uri}https://mood-tracker-server.herokuapp.com/Users/${info.username}/entries`, postUserEntryOpts);
+            var postUserEntryResult = await fetch( corsURI + appServerURI + 'Users/' + info.username + '/entries', postUserEntryOpts);
             // var postUserEntryResult = await fetch('http://localhost:3000/Users/'+info.username +'/entries', postUserEntryOpts);
 
             if (postUserEntryResult.ok) {
