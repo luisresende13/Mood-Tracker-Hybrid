@@ -8,7 +8,7 @@ var styles = {
       },
       card: {
         height: '70%',
-        width: 370,
+        width: 350,
         paddingHorizontal: 10,
         paddingVertical: 10,
         borderWidth: 1,

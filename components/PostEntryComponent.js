@@ -286,39 +286,39 @@ export default class PostEntranceScreen extends Component {
         var info = this.props.route.params.userInfo;
 
         try {
-        const postUserEntryOpts = { 
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify( newEntry ),
-        }
-        var postUserEntryResult = await fetch(`${cors_uri}https://mood-tracker-server.herokuapp.com/Users/${info.username}/entries`, postUserEntryOpts);
-        // var postUserEntryResult = await fetch('http://localhost:3000/Users/'+info.username +'/entries', postUserEntryOpts);
+            const postUserEntryOpts = { 
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify( newEntry ),
+            }
+            var postUserEntryResult = await fetch(`${cors_uri}https://mood-tracker-server.herokuapp.com/Users/${info.username}/entries`, postUserEntryOpts);
+            // var postUserEntryResult = await fetch('http://localhost:3000/Users/'+info.username +'/entries', postUserEntryOpts);
 
-        if (postUserEntryResult.ok) {
-            console.log('fetch POST request successful. Printing response status...')
-            console.log('Status: ' + postUserEntryResult.status + ', ' + postUserEntryResult.statusText)
+            if (postUserEntryResult.ok) {
+                // console.log('fetch POST request successful. Printing response status...')
+                // console.log('Status: ' + postUserEntryResult.status + ', ' + postUserEntryResult.statusText)
+                this.props.navigation.navigate('Entrances', {newPost: true} )    
 
-            this.props.navigation.navigate('Entrances', {newPost: true} )    
+            } else {
+                // console.log('fetch POST request failed. Throwing error status...')
+                throw new Error('Status: ' + postUserEntryResult.status + ', ' + postUserEntryResult.statusText)
+            }
 
-        } else {
-            console.log('fetch POST request failed. Throwing error status...')
-            throw new Error('Status: ' + postUserEntryResult.status + ', ' + postUserEntryResult.statusText)
-        }
-  
         } catch (error) {
-          alert('Erro no servidor, não foi possível adicionar a entrada. Por favor, tente novamente.')
-          console.log('Erro capturado:')
-          console.log(error);
+        //   alert('Erro no servidor, não foi possível adicionar a entrada. Por favor, tente novamente.')
+        //   console.log('Erro capturado:')
+        console.log(error);
 
         } finally {
-          this.setState({ isLoading: false });
+        this.setState({ isLoading: false });
         }
 
     }
   
     render() {
+        console.log('Rendering "Post Entry" screen...')
 
         return(
             <ImageBackground source={require('../assets/wallpaper.jpg')} style={styles2.mainView}>

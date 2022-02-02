@@ -1,26 +1,22 @@
-
+// Module import
 import React, { Component } from 'react';
 import { View, Text, ImageBackground, Pressable, ScrollView} from 'react-native';
 import { Icon } from 'react-native-eva-icons'
 
-console.log('Navigator.arguments: ' + JSON.stringify(Navigator.arguments))    
-
+// Local import
 import dateRange from '../shared/dateRange'
 import styles from '../styles/entrancesStyles'
 
-const cors_uri = 'https://morning-journey-78874.herokuapp.com/'
+// cors-midpoint uri (needed to avoid cors' allow-cross-origin error when fetching)
+const corsURI = 'https://morning-journey-78874.herokuapp.com/'
+const appServerURI = 'https://mood-tracker-server.herokuapp.com/'
+
+// Defining pertinent constants
+const monthDict = {'Jan': '01', 'Feb': '02', 'Mar': '03', 'Apr': '04', 'May': '05', 'Jun': '06', 'Jul': '07', 'Ago': '08', 'Sep': '09', 'Oct': '10', 'Nov': '11', 'Dec': '12'}
+const moodColors = {'Horrível': 'red', 'Mau': 'blue', 'Regular': 'lightblue', 'Bem': 'orange', 'Ótimo': 'green'};
 
 function convertMonthSig(monthSig) {
-    const monthSigs = ['Jan', 'Feb', 'Mar', 'Apr', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dec']
-    const months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12']
-    const thisMonth = months[monthSigs.indexOf(monthSig)]
-    return thisMonth
-}
-function getTime() {
-    //Wed,Jan,26,2022,15:12:37,GMT-0300,(Horário,Padrão,de,Brasília)
-    const now = Date().toString().split(' ')
-    const time = now[4]
-    return time
+    return monthDict[ monthSig ]
 }
 function getToday() {
     const now = Date().toString().split(' ')
@@ -31,7 +27,12 @@ function getNextDate(date, next='next') {
     const nextDate = dateRange[dateRange.indexOf(date) + (next=='previous' ? -1 : 1)]
     return nextDate
 }
-
+function getTime() {
+    //Wed,Jan,26,2022,15:12:37,GMT-0300,(Horário,Padrão,de,Brasília)
+    const now = Date().toString().split(' ')
+    const time = now[4]
+    return time
+}
 function LoadAddress ({entry}) {
     if (entry.address) {
         return(
@@ -63,12 +64,10 @@ function LoadEmotions ({entry}) {
     } else {
         return (
             <></>
-
         )
     }
 }
 
-const moodColors = {'Horrível': 'red', 'Mau': 'blue', 'Regular': 'grey', 'Good': 'orange', 'Bem': 'orange', 'Ótimo': 'green', 'Great': 'green'};
 function EntryCard({ entry }) {
     return (
         <View key={entry._id} style={styles.card}>
@@ -104,82 +103,83 @@ export default class EntrancesScreen extends Component {
             date: getToday(),
             time: getTime(),
             selectedDate: getToday(),
-            isLoading: false,
-            isDataSynced: false,
+            entriesLoading: false,
+            entriesSynced: false,
         };
         this.showTodayIfNewEntry = this.showTodayIfNewEntry.bind(this);
         this.onNextButtonPress = this.onNextButtonPress.bind(this);
-        this.loadUserData = this.loadUserData.bind(this);
+        this.syncUserEntries = this.syncUserEntries.bind(this);
     }
     
     onNextButtonPress(next='next') { 
-
         function setSelectedDate() {
             this.setState( {selectedDate: getNextDate(this.state.selectedDate, next)} ) 
         }
-        setSelectedDate = setSelectedDate.bind(this);
-        return setSelectedDate
+        return setSelectedDate.bind(this);
     }
 
     showTodayIfNewEntry() {
-        console.log('Checking if user just posted an entry...');
         if (this.props.route.params) {
             if (this.props.route.params.newPost) {
-                console.log('Checked, user posted. Setting today as selected date...')
-
+                console.log('JUSTPOSTED STATUS: True. Selecting current date ...');
                 this.setState({
                     selectedDate: getToday(),
-                    isDataSynced: false,
+                    entriesSynced: false,
                 });
                 this.props.navigation.setParams({newPost: false});
-            } else console.log('Checked, user did not just post.')
+            } else console.log('JUSTPOSTED STATUS: False. Skipping...')
         }
     }
 
-    async loadUserData() {
+    async syncUserEntries() {
 
-        if (!this.state.isDataSynced & !this.state.isLoading) {
+        if (!this.state.entriesSynced && !this.state.entriesLoading) {
 
+            console.log('SYNCENTRIES STATUS: Started...')
             var info = this.props.route.params.userInfo;
-            this.setState({ isLoading: true });
+            this.setState({ entriesLoading: true });
       
             try {
-            console.log('Attempting to sync user entries...')
-            var UsersResult = await fetch(`${cors_uri}https://mood-tracker-server.herokuapp.com/Users`, { method: 'GET' });
-              
-              if (!UsersResult.ok) {
-                console.log('fetch GET request failed. Throwing error...')
-                throw new Error(UsersResult.status + ', ' + UsersResult.statusText + '. For GET request in url: ' + UsersResult.url)
-              } else {
 
-                console.log('fetch GET request successful.')
-                console.log(UsersResult.status + ', ' + UsersResult.statusText + '. For GET request in url: ' + UsersResult.url)
-      
-                const Users = await UsersResult.json();
-                const user = Users.filter((user) => user.username === info.username)[0]
-                this.setState({userEntries: user['entries'].reverse(), isDataSynced: true})  
-                console.log('User entries successfully synced!')
-              }
-    
+                var UsersResult = await fetch( corsURI + appServerURI + 'Users', { method: 'GET' });
+                const usersStatus =  'Status: ' + UsersResult.status + ', ' + UsersResult.statusText
+                if (UsersResult.ok) {
+                    const users = await UsersResult.json();
+                    const user = users.filter((user) => user.username === info.username)[0]
+                    this.setState({userEntries: user['entries'].reverse(), entriesSynced: true})  
+                    console.log('fetch GET request for user entries successful.')
+                    console.log(usersStatus)
+                    console.log('SYNCENTRIES STATUS: Successful.')
+                } else {
+                    console.log( new Error('"fetch" GET request for user entries failed. Throwing error...') )
+                    throw new Error(usersStatus)
+                }
+        
             } catch (error) {
-              alert('Erro ao carregar entradas, tente novamente.')
-              console.log('Erro capturado:')
-              console.log(error);
-      
+                    console.log('SYNCENTRIES STATUS: Error captured. Printing error...')
+                    console.log(error);
+
             } finally {
-              this.setState({ isLoading: false });
+                console.log('SYNCENTRIES STATUS: Finished.')
+                this.setState({ entriesLoading: false });
             }    
         
         } else {
-            console.log('User data loading or already synced, skipping sync...')
+            if (this.state.entriesSynced) {
+                console.log()
+            } else if (this.state.entriesLoading) {
+                
+            }
+            console.log('User entries data already synced or loading, skipping sync...')
         }
       }
 
     render() {
 
+        console.log('Rendering "Entries" screen...')
         const isToday = this.state.selectedDate === this.state.date
         this.showTodayIfNewEntry();        
-        this.loadUserData()
+        this.syncUserEntries()
 
         return(
             <ImageBackground source={require('../assets/wallpaper.jpg')} style={[styles.mainView]}>
@@ -190,16 +190,14 @@ export default class EntrancesScreen extends Component {
                                 <Pressable onPress={ this.onNextButtonPress('previous') }>
                                     <Icon name='arrow-back' width={35} height={35} fill='white' />
                                 </Pressable>
-                                <Text style={styles.sectionTitle}>{'Suas entradas  •  ' + ( this.state.selectedDate===this.state.date ? 'Hoje, ' : '' ) + this.state.selectedDate}</Text>
-                                {
-                                    !isToday ? (
-                                        <Pressable onPress={ this.onNextButtonPress() }>
-                                            <Icon name='arrow-forward' width={35} height={35} fill='white' />
-                                        </Pressable>   
-                                    ) : (
-                                        <View></View>
-                                    )
-                                }
+                                <Text style={styles.sectionTitle}>{'Suas entradas  •  ' + ( this.state.selectedDate===this.state.date ? 'Hoje, ' : '' ) + this.state.selectedDate}</Text>                                
+                                { !isToday ? (
+                                    <Pressable onPress={ this.onNextButtonPress() }>
+                                        <Icon name='arrow-forward' width={35} height={35} fill='white' />
+                                    </Pressable>   
+                                ) : (
+                                    <View></View>
+                                )}
                             </View>
                             {this.state.userEntries.filter( (entry) => entry.date === this.state.selectedDate ).map(entry => <EntryCard entry={entry} />)}            
                         </View>
@@ -211,6 +209,6 @@ export default class EntrancesScreen extends Component {
   
             </ImageBackground>
             )
-            
+
     }
   }

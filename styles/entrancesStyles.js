@@ -1,7 +1,7 @@
-//import StatusBar from 'react-native'
 import { StatusBar } from 'expo-status-bar';
-import { useState } from 'react';
-import { Platform } from 'react-native';
+
+//import StatusBar from 'react-native'
+// import { Platform } from 'react-native';
 
 // import { Dimensions } from 'react-native';
 // var windowWidth = Dimensions.get('window').width;
@@ -53,7 +53,7 @@ const styles = {
         alignSelf: 'center',
     },
     section: {
-        width: 370,
+        width: 350,
         paddingVertical: '16%',
         borderBottomWidth: 1,
         borderColor: 'rgba(155,155,155,0.3)',

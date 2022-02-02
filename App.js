@@ -79,7 +79,8 @@ class App extends Component {
   }
 
   authUser(userInfo) {
-    this.setState( {isUserAuth: true, userInfo: userInfo} )
+    console.log('User authenticated. Navigating to "Entries" screen...')
+    this.setState( {isUserAuth: true, userInfo} )
   }
 
   render() {
