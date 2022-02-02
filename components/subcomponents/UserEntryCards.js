@@ -85,10 +85,10 @@ export default class UserEntryCards extends Component {
     constructor(props) {
         super(props);
         this.state = {
+            date: this.props.date,
             userEntries: [],
             entriesSyncing: false,
             newPost: this.props.newPost,
-            // selectedDate: Today(),
         };
         this.syncUserEntries = this.syncUserEntries.bind(this);
     }
@@ -96,7 +96,7 @@ export default class UserEntryCards extends Component {
     componentDidMount() {
         console.log('"Subcomponent UserEntryCards did mount..."')
         this.syncUserEntries()
-        // setInterval( () => { console.log('Default auto syncing started...'); this.syncUserEntries() }, 1000 * 30 )
+        setInterval( () => { console.log('Default auto syncing started...'); this.syncUserEntries() }, 1000 * 10 )
         setInterval( () => { this.updateIfNewPost() }, 1000 * 1 )
         
     }
@@ -105,9 +105,6 @@ export default class UserEntryCards extends Component {
         if (this.props.newPost) {
             console.log('JUST POSTED STATUS: True. Selecting current date ...');
             this.props.forgetNewPost();
-            this.setState({
-                // selectedDate: getToday(),
-            });
             this.syncUserEntries();
         }
     }

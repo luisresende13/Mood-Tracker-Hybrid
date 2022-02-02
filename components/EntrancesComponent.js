@@ -47,13 +47,12 @@ export default class EntrancesScreen extends Component {
             entriesLoading: false,
             entriesSynced: false,
         };
-        // this.selectTodayIfNewEntry = this.selectTodayIfNewEntry.bind(this);
         this.onNextButtonPress = this.onNextButtonPress.bind(this);
         this.forgetNewPost = this.forgetNewPost.bind(this);
     }
     
     componentDidMount() {
-        console.log('"Entries screen component did mount..."')
+        console.log('"Entries" screen component did mount...')
     }
 
     onNextButtonPress(next='next') { 
@@ -62,19 +61,6 @@ export default class EntrancesScreen extends Component {
         }
         return setSelectedDate.bind(this);
     }
-
-    // selectTodayIfNewEntry() {
-    //     if (this.props.route.params) {
-    //         if (this.props.route.params.newPost) {
-    //             console.log('JUST POSTED STATUS: True. Selecting current date ...');
-    //             this.setState({
-    //                 selectedDate: getToday(),
-    //                 entriesSynced: false,
-    //             });
-    //             this.props.navigation.setParams({newPost: false});
-    //         } else console.log('JUST POSTED STATUS: False. Skipping...')
-    //     }
-    // }
 
     forgetNewPost() {
         function forgetNewPost() {
@@ -115,7 +101,6 @@ export default class EntrancesScreen extends Component {
                             userInfo={this.props.route.params.userInfo}
                             newPost={this.props.route.params.newPost}
                             forgetNewPost={this.forgetNewPost()}
-                            // selectedDate={this.state.selectedDate}
                             date={this.state.selectedDate}
                             />
 

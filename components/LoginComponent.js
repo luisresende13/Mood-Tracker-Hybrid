@@ -171,9 +171,10 @@ class LoginScreen extends Component {
   render() {
 
     return(
-      <ImageBackground source={require('../assets/wallpaper.jpg')} style={[styles.login.mainView]}>
-        <View style={{alignContent: 'center', alignItems: 'center'}}>
-          <Text style={{fontSize: 20, fontWeight: 'bold', alignSelf: 'center'}}>Mood Tracker</Text>        
+      <ImageBackground source={require('../assets/wallpaper.jpg')} style={[styles.login.mainView ,{justifyContent: 'space-evenly'}]}>
+        <View style={{alignContent: 'center', alignItems: 'center', flexDirection: 'row'}}>
+        <Text style={{fontSize: 27, fontWeight: 'bold', color: 'white', alignSelf: 'center'}}>Mood Tracker</Text>
+          <Icon name='clock-outline' width={27} height={27} fill='white' animation='pulse' style={{paddingHorizontal: 5, paddingTop: 5}} ></Icon>
         </View>
         <View style={styles.login.card}>
           <Text style={styles.login.cardHeader}>Entrar</Text>
