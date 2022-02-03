@@ -62,6 +62,8 @@ const styles = {
     justifyContent: 'center'
   },
   moodButton: {
+      height: 53,
+      width: 53,
       borderRadius: 30,
       justifyContent: 'center',
       marginColor: 'black',

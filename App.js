@@ -18,11 +18,11 @@ const Stack = createNativeStackNavigator();
 function HomeScreen(props) {
   return(    
     <Stack.Navigator 
-    initialRouteName='Entrances' 
+    initialRouteName='Entrances'
     screenOptions={{
       headerShown: false,
     }}
-    > 
+    >
       <Stack.Screen
       name="Entrances"
       component={EntrancesScreen}
@@ -56,8 +56,8 @@ const mainScreenOptions = ({ route }) => ({
     let iconName;
     if (route.name === 'Home') {
       iconName = focused
-        ? 'book'
-        : 'book-outline';
+        ? 'home'
+        : 'home-outline';
     } else if (route.name === 'Settings') {
       iconName = focused ? 'settings' : 'settings-outline';
     }

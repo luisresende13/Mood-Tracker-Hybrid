@@ -146,12 +146,12 @@ export default class PostEntranceScreen extends Component {
         return this.state.moodButtons.moods.map((item, index) => {
 
             const moodButtonViewStyle = {
-                width: 70,
-                height: 70,
+                width: 65,
+                height: 65,
                 alignItems: 'center',
                 justifyContent: 'center',
-                borderWidth: this.state.selectedMood==item ? 5 : 0,
-                borderRadius: 35,
+                borderWidth: this.state.selectedMood==item ? 3 : 0,
+                borderRadius: 32.5,
                 borderColor: this.state.moodButtons.colors[index]
             }        
             const selColor = this.state.moodButtons.colors[index]
@@ -165,15 +165,9 @@ export default class PostEntranceScreen extends Component {
                     style={[
                         styles.moodButton,
                         this.state.selectedMood==item ? {
-                            height: 50,
-                            width: 50,
                             fontWeight: 'bold',
                             backgroundColor: selColor,
-                            // borderWidth: 2,
-                            // borderColor: this.state.moodButtons.colors[index],
                         } : {
-                            height: 50,
-                            width: 50,
                             fontWeight: null,
                             backgroundColor: selColor
                         }
@@ -342,9 +336,9 @@ export default class PostEntranceScreen extends Component {
                 <ScrollView style={styles2.scrollView}>
                     <View style={styles2.section}>
                             {this.postEntryHeader()}
-                            {this.InputCard('Mood', 'Avaliação', 'activity', {justifyContent: 'space-between'}, this.MoodButtons())}
+                            {this.InputCard('Mood', 'Avaliação', 'smiling-face', {justifyContent: 'space-between'}, this.MoodButtons())}
                             {this.InputCard('Emotions', 'Emoções', 'color-palette', {flexWrap: 'wrap', justifyContent: 'space-evenly'}, this.EmotionButtons)}
-                            {this.InputCard('Jornal', 'Jornal', 'book-open', {flexDirection: 'column'}, this.JornalInput())}
+                            {this.InputCard('Jornal', 'Jornal', 'book', {flexDirection: 'column'}, this.JornalInput())}
                     </View>
                 </ScrollView>  
 

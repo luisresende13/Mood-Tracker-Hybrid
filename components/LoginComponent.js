@@ -31,6 +31,7 @@ class LoginScreen extends Component {
   }
 
   loadingIcon() {
+
     if (this.state.isDataLoading) {
       return  <Icon name='loader-outline' animation='pulse' width={25} height={25}></Icon>
     } else {

@@ -10,7 +10,7 @@ var styles = {
             flexDirection: 'row',
             justifyContent: 'center',
             alignItems: 'center',
-            minHeight: 50,
+            minHeight: 60,
         },
         title: {
             fontSize: 25,
