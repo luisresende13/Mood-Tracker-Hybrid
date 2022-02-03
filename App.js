@@ -1,7 +1,7 @@
 import { Icon } from 'react-native-eva-icons'
 
-import React, { Component } from 'react';0
-import { View, Text, ImageBackground, TextInput, Pressable } from 'react-native';
+import React, { Component } from 'react';
+import { Text, ImageBackground} from 'react-native';
 
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';

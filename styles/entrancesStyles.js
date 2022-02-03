@@ -27,8 +27,6 @@ import { StatusBar } from 'expo-status-bar';
 // }
 // };
 
-var dims = <onDimensionChange />
-
 const styles = {
     mainView: {
         flex: 1,                 

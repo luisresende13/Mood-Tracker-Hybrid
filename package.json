@@ -1,7 +1,7 @@
 {
   "name": "mood-tracker-hybrid",
   "version": "1.0.0",
-  "homepage": "http://luisresende13.github.io/mood-tracker",
+  "homepage": "https://luisresende13.github.io/mood-tracker",
   "scripts": {
     "deploy": "gh-pages -d web-build",
     "predeploy": "expo build:web",

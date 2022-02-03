@@ -1,17 +1,17 @@
 // Module imports
 import React, { Component } from 'react';
-import { View, Text, ImageBackground, Pressable, ScrollView} from 'react-native';
+import { View, Text, ImageBackground, Pressable, ScrollView } from 'react-native';
 import { Icon } from 'react-native-eva-icons'
 
 // Component imports
 import UserEntryCards from './subcomponents/userEntryCards';
 
 // Local imports
-import dateRange from '../shared/dateRange'
-import styles from '../styles/entrancesStyles'
+import dateRange from '../shared/dateRange';
+import styles from '../styles/entrancesStyles';
 
 // cors-midpoint uri (needed to avoid cors' allow-cross-origin error when fetching)
-const corsURI = 'https://morning-journey-78874.herokuapp.com/'
+const corsURI = 'https://morning-journey-78874.herokuapp.com/';
 const appServerURI = 'https://mood-tracker-server.herokuapp.com/'
 
 // Defining pertinent constants

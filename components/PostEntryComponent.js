@@ -28,10 +28,10 @@ styles.text = {fontSize: 14}
 const now = new Date().toString().split(' ')
 const datetime = now[2] + ' ' + now[1] + ' ' + now[3] + ' - ' + now[4].slice(0, 5)
 
-const goodEnergizedEmotions = ['Animado(a)', 'Concentrado(a)', 'Desinibido(a)', 'Motivado(a)', 'Energizado(a)', 'Euforico(a)', 'Emocionado(a)', 'Amor']
-const goodCalmEmotions = ['Alíviado(a)', 'Calmo(a)', 'Confortável', 'Despreocupado(a)', 'Inspirado(a)', 'Orgulhoso(a)', 'Paz', 'Relaxado(a)', 'Satisfeito(a)', 'Seguro(a)']
-const badEnergizedEmotions = ['Agitado(a)', 'Ansioso(a)', 'Triste', 'Decepcionado(a)', 'Depressivo(a)', 'Desesperado(a)', 'Frustrado(a)', 'Insatisfeito(a)', 'Irritado(a)', 'Medo', 'Paranoico(a)', 'Preocupado(a)', 'Impaciente', 'Raiva', 'Revoltado(a)', 'Sobrecarregado(a)', 'Tenso(a)', 'Anti-social', 'Enojado(a)']
-const badCalmEmotions = ['Timido(a)', 'Cansado(a)', 'Confuso(a)', 'Desanimado(a)', 'Vergonha', 'Inseguro(a)', 'Apático(a)', 'Solitário(a)', 'Tedio']
+const goodEnergizedEmotions = ['Animação', 'Concentração', 'Desinibição', 'Motivação', 'Euforia']
+const goodCalmEmotions = ['Alívio', 'Calma', 'Conforto', 'Despreocupação', 'Inspiração', 'Orgulho', 'Paz', 'Relaxamento', 'Satisfação', 'Segurança']
+const badEnergizedEmotions = ['Agitação', 'Ansiosiedade', 'Tristeza', 'Decepção', 'Depressão', 'Desespero', 'Frustração', 'Insatisfação', 'Irritação', 'Medo', 'Paranoia', 'Preocupação', 'Impaciencia', 'Raiva', 'Revolta', 'Sobrecarregado(a)', 'Tensão', 'Nojo']
+const badCalmEmotions = ['Timidez', 'Cansaço', 'Confusão', 'Desanimo', 'Vergonha', 'Insegurança', 'Apátia', 'Solidão', 'Tédio']
 const basicEmotions = [ ...goodEnergizedEmotions, ...goodCalmEmotions, ...badEnergizedEmotions, ...badCalmEmotions]
 const emotionGroups = [goodEnergizedEmotions, goodCalmEmotions, badEnergizedEmotions, badCalmEmotions]
 const emotionGroupsNames = ['Bem & Energizado', 'Bem & Calmo', 'Mal e Energizado', 'Mal & Calmo']
@@ -196,7 +196,7 @@ export default class PostEntranceScreen extends Component {
                 style={ {paddingVertical: 5} }
                 onPress={this.onEmotionButtonPress(emotion)}
                 >
-                    <Text style={[styles.emotionBadge, {backgroundColor: this.state.emotionButtons.isSelectedEmotions[emotion] ? 'steelblue' : 'white' }]}>{emotion}</Text>
+                    <Text style={[styles.emotionBadge, {backgroundColor: this.state.emotionButtons.isSelectedEmotions[emotion] ? 'lightblue' : 'white' }]}>{emotion}</Text>
                 </Pressable>
             ))
         )

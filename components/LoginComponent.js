@@ -18,21 +18,41 @@ class LoginScreen extends Component {
         email: '',    
         username: '',
       },
+      loginMsg: '',
       isUserAuth: false,
       isDataLoading: false,
     }
     this.onChangeText = this.onChangeText.bind(this);
     this.submitButton = this.submitButton.bind(this);
+    this.loginMsg = this.loginMsg.bind(this);
+    this.setLoginMsg = this.setLoginMsg.bind(this);
     this.onSignIn = this.onSignIn.bind(this);
     this.onSignUp = this.onSignUp.bind(this);
   }
 
   loadingIcon() {
     if (this.state.isDataLoading) {
-      return  <Icon name='loader-outline' animation='pulse' width={25} height={25}></Icon>// <Text>Loading...</Text>
+      return  <Icon name='loader-outline' animation='pulse' width={25} height={25}></Icon>
     } else {
-      return <></>
+      return (
+        <>
+          <Icon name='log-in-outline' animation='pulse' width={25} height={25}></Icon>
+        </>
+      )
     }
+  }
+
+  setLoginMsg(msg) {
+    this.setState({loginMsg: msg})
+    setTimeout( () => this.setState({loginMsg: ''}) , 1000 * 8 )
+  }
+
+  loginMsg() {
+      return(
+        <View style={[styles.login.msgBox, this.state.loginMsg ? {} : {backgroundColor: 'transparent', borderColor: 'transparent'} ]}>
+          <Text style={styles.login.msg}>{this.state.loginMsg}</Text>
+        </View>
+      )
   }
 
   onChangeText(textField) {
@@ -47,7 +67,7 @@ class LoginScreen extends Component {
     const signIn = sign == 'signin'
     return(
       <Pressable onPress={signIn ? this.onSignIn : this.onSignUp} style={[styles.login.button]}>
-        <Text style={styles.login.buttonLabel}>{ signIn ? 'Entrar' : 'Cadastrar-se' }</Text>
+        <Text style={styles.login.buttonLabel}>{ signIn ? 'Entrar' : 'Cadastrar' }</Text>
       </Pressable>
     )
   }
@@ -78,27 +98,32 @@ class LoginScreen extends Component {
         if (user.password === info.password) {
           const userInfo = { ...info, username: info.email.split('@')[0]}
           this.setState( {isUserAuth: true, userInfo} )
+          const successMsg = 'Login realizado com sucesso!'
+          this.setLoginMsg(successMsg)
           console.log('SIGNIN STATUS: Sucesso.')
 
         } else {
           const errMsg = 'Senha incorreta.'
-          alert(errMsg) ; console.log('SIGNIN STATUS: ' + errMsg)
+          this.setLoginMsg(errMsg)
+          console.log('SIGNIN STATUS: ' + errMsg);
         }
 
       } else {
-        const errMsg = 'Email não cadastrado.'
-        alert(errMsg) ; console.log('SIGNIN STATUS: ' + errMsg)
+        const errMsg = 'Email não cadastrado!'
+        this.setLoginMsg(errMsg)
+        console.log('SIGNIN STATUS: ' + errMsg)
       }
 
     } catch (error) {
-      alert('Erro no servidor. Tente novamente.')
+      const errMsg = 'Erro no servidor! Tente novamente...'
+      this.setLoginMsg(errMsg)
       console.log('Error catched in fetch GET request for users data at  signin. Printing Error...')
       console.log('SIGNIN STATUS:' + 'Erro capturado. Imprimindo erro...')
       console.log(error);
 
     } finally {
-      console.log('SIGNIN STATUS: Concluido.')
       this.setState({ isDataLoading: false });
+      console.log('SIGNIN STATUS: Concluido.')
       if (this.state.isUserAuth) this.props.authUser(this.state.userInfo)        // Father class component method that authenticates the user and redirects to entrances screen.
     }
   }
@@ -139,11 +164,11 @@ class LoginScreen extends Component {
         const postUserStatus = 'Status: ' + postUserResult.status + ', ' + postUserResult.statusText
 
         if (postUserResult.ok) {
+          const successMsg = 'Cadastro realizado com sucesso!'
+          this.setLoginMsg(successMsg)
           console.log('fetch POST request for user data at signup successful.')
           console.log(postUserStatus)
-          const successMsg = 'Cadastro realizado com sucesso!'
           console.log('SING UP STATUS: ' + successMsg)
-          alert(successMsg)
 
         } else {
           console.log('fetch POST request for user data at signup failed. Throwing error...')
@@ -152,14 +177,15 @@ class LoginScreen extends Component {
 
       } else { // ready to post user info and create new user account.
         const errMsg = 'Email já cadastrado.'
+        this.setLoginMsg(errMsg)
         console.log('SING UP STATUS: ' + errMsg)
-        alert(errMsg)
       }
 
     } catch (error) {
+      const errMsg = 'Erro no servidor, não foi possível realizar o cadastro. Por favor, tente novamente.'
+      this.setLoginMsg(errMsg)
       console.log('SING UP STATUS: Erro capturado. Imprimindo erro...')
       console.log(error);
-      alert('Erro no servidor, não foi possível realizar o cadastro. Por favor, tente novamente.')
 
     } finally {
       this.setState({ isDataLoading: false })
@@ -170,14 +196,19 @@ class LoginScreen extends Component {
 
   render() {
 
+    console.log('Rendering "LoginComponent" screen...')
     return(
       <ImageBackground source={require('../assets/wallpaper.jpg')} style={[styles.login.mainView ,{justifyContent: 'space-evenly'}]}>
-        <View style={{alignContent: 'center', alignItems: 'center', flexDirection: 'row'}}>
-        <Text style={{fontSize: 27, fontWeight: 'bold', color: 'white', alignSelf: 'center'}}>Mood Tracker</Text>
-          <Icon name='clock-outline' width={27} height={27} fill='white' animation='pulse' style={{paddingHorizontal: 5, paddingTop: 5}} ></Icon>
+        
+        <View style={styles.login.titleView}>
+          <Text style={styles.login.title}>Mood Tracker</Text>
+          <Icon name='clock-outline' width={25} height={25} fill='white' animation='pulse' style={styles.login.titleIcon} ></Icon>
         </View>
+
         <View style={styles.login.card}>
-          <Text style={styles.login.cardHeader}>Entrar</Text>
+          <View style={styles.login.cardHeader} >
+            <Text style={styles.login.cardTitle}>Entrar</Text>
+          </View>
           <View style={styles.login.cardSection}>
             <TextInput placeholder='Email' onChangeText={this.onChangeText('email')} style={styles.login.inputField}></TextInput>
             <TextInput placeholder='Senha' onChangeText={this.onChangeText('password')} style={styles.login.inputField}></TextInput>
@@ -186,10 +217,26 @@ class LoginScreen extends Component {
             {this.submitButton('signin')}
             {this.submitButton('signup')}
           </View>
-          <View style={styles.login.cardSection}>
+          <View style={[styles.login.cardSection]}>
             {this.loadingIcon()}
           </View>
+
+          {/* <View style={[styles.login.cardSection, styles.login.loadingView]}>
+          <View style={styles.login.titleView}>
+            <Icon name='heart-outline' animation='pulse' width={25} height={25} style={{paddingHorizontal: 8}}></Icon>
+            <Icon name='heart-outline' animation='pulse' width={25} height={25} style={{paddingHorizontal: 8}}></Icon>
+            <Icon name='heart-outline' animation='pulse' width={25} height={25} style={{paddingHorizontal: 8}}></Icon>
+            <Icon name='heart-outline' animation='pulse' width={25} height={25} style={{paddingHorizontal: 8}}></Icon>
+            <Icon name='heart-outline' animation='pulse' width={25} height={25} style={{paddingHorizontal: 8}}></Icon>
+            <Icon name='heart-outline' animation='pulse' width={25} height={25} style={{paddingHorizontal: 8}}></Icon>
+            <Icon name='heart-outline' animation='pulse' width={25} height={25} style={{paddingHorizontal: 8}}></Icon>
+          </View>
+          </View> */}
+
         </View>
+
+          {this.loginMsg()}
+
       </ImageBackground>
     )
   }

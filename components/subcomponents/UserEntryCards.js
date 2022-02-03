@@ -1,6 +1,6 @@
 // Module import
 import React, { Component } from 'react';
-import { View, Text} from 'react-native';
+import { View, Text, Pressable} from 'react-native';
 import { Icon } from 'react-native-eva-icons'
 
 // Local import
@@ -48,7 +48,9 @@ function LoadEmotions ({entry}) {
         return (
             entry.emotions.map((emotion, index) => {
                 return(
-                    <Text key={index} style={styles.emotionBadge}>{emotion}</Text>
+                    <Pressable style={{paddingVertical: 5, paddingHorizontal: 2}}>
+                        <Text key={index} style={[styles.emotionBadge]}>{emotion}</Text>
+                    </Pressable>
                 )
             })
         )
@@ -69,7 +71,7 @@ function EntryCard({ entry }) {
                     <Text style={styles.text}>{entry.time}</Text>
                 </View>
             </View>
-            <View style={styles.cardRow}>
+            <View style={[styles.cardRow, {flexWrap: 'wrap', justifyContent: 'flex-start'}]}>
                 <LoadEmotions entry={entry} />
             </View>        
             <LoadAddress entry={entry} />

@@ -3,6 +3,7 @@
     "name": "mood-tracker-hybrid",
     "slug": "mood-tracker-hybrid",
     "version": "1.0.0",
+    "homepage": "https://luisresende13.github.io/mood-tracker",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "splash": {
