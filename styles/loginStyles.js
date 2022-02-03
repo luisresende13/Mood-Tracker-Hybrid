@@ -7,9 +7,10 @@ var styles = {
             // paddingHorizontal: Platform.OS != 'web' ? '5%' : '5%',
         },
         titleView: {
+            flexDirection: 'row',
             justifyContent: 'center',
             alignItems: 'center',
-            flexDirection: 'row',
+            minHeight: 50,
         },
         title: {
             fontSize: 25,

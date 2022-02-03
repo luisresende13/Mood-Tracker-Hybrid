@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { Platform } from 'react-native';
+// import { Platform } from 'react-native';
 
 const styles = {
   
@@ -9,22 +9,15 @@ const styles = {
     flex:1,
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    // paddingVertical: '0%',
-    // paddingHorizontal: '0%',
   },
   content: {
     flexGrow: 1,
-    // paddingVertical: '5%',
     paddingBottom: '0%',
     paddingHorizontal: '5%',
     alignSelf: 'stretch',
-    // justifyContent: 'space-between',
     borderColor: 'black',
-    // borderWidth: 3,
-    // backgroundColor: 'blue',
   },
   section: {
-    // flex: 1,
     paddingVertical: '10%',
     paddingHorizontal: '10%',
     justifyContent: 'flex-start',
@@ -32,8 +25,6 @@ const styles = {
     borderBottomWidth: 1,
   },
   contentRow: {
-    // flex: 1,
-    // alignSelf: 'stretch', 
     flexDirection: 'column',
     padding: 10,
     marginTop: 22,
@@ -47,11 +38,9 @@ const styles = {
     paddingBottom: 3,
     paddingLeft: 5,
     fontSize: 19,
-    // textAlign: 'center',
     color: 'white'
   },
   postButtonView: {
-    // flexDirection: 'row',
     height: 60,
     width: 60,
     borderRadius: 30,
@@ -61,21 +50,25 @@ const styles = {
     backgroundColor: 'white',
   },
   postButton: {
-    // flex: 1,
-    // justifyContent: 'center',
-    // alignItems: 'center',
-    // borderColor: 'black',
-    // borderWidth: 3,
-    // backgroundColor: 'blue',
   },
   postButtonLabel: {
-    // alignSelf: 'center',
     fontSize: 45,
     fontWeight: 'bold',
+  },
+  moodButtonView: {
+    width: 65,
+    height: 65,
+    alignItems: 'center',
+    justifyContent: 'center'
   },
   moodButton: {
       borderRadius: 30,
       justifyContent: 'center',
+      marginColor: 'black',
+      marginWidth: 2,
+  },
+  moodButtonBorder: {
+
   },
   date: {
     position: 'relative',
@@ -90,18 +83,15 @@ const styles = {
   jornalText: {
     paddingVertical: 5,
     paddingHorizontal: 10,
-    minHeight:130,
+    minHeight:170,
     width: '100%',
     borderRadius: 20,
     color: 'white',
     fontSize: 14,
   },
   saveButton: {
-    // position: 'absolute',
-    // bottom: 0,
     height: 50,
     width: '100%',
-    // alignSelf: 'center',
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
     justifyContent: 'center',
@@ -118,10 +108,7 @@ const styles = {
 cardRow: {
     flexDirection: 'row',
     paddingVertical: 5,
-    // justifyContent: 'center',
     alignItems: 'center',
-    // backgroundColor: 'blue',  
-    // borderWidth: 2,  
 },
 moodBadge: {
     backgroundColor: 'green',
@@ -130,7 +117,6 @@ moodBadge: {
     width: 130,
     fontSize: 16,
     textAlign: 'center',
-    // left: 5,
 },
 emotionBadge: {
     backgroundColor: 'rgba(1,1,1,0.5)',
@@ -138,7 +124,6 @@ emotionBadge: {
     paddingVertical: 7,
     paddingHorizontal: 12.5,
     marginRight: 6,
-    // width: '100%', //must be removed, badge should have text width
     fontSize: 15,
     textAlign: 'center',
 },

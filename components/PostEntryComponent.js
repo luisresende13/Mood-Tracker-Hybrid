@@ -78,8 +78,8 @@ export default class PostEntranceScreen extends Component {
 
         this.state = {
             moodButtons: {
-            colors: ['red', 'blue', 'darkgrey', 'orange', 'green'],
-            colorsSelected: ['darkred', 'darkblue', 'grey', 'darkorange', 'darkgreen'],
+            colors: ['red', 'blue', 'white', 'gold', 'green'],
+            colorsSelected: ['darkred', 'darkblue', 'grey', 'goldenrod', 'darkgreen'],
             moods: ['Horrível', 'Mal', 'Regular', 'Bem', 'Ótimo'],  
             },
             emotionButtons: {
@@ -141,6 +141,52 @@ export default class PostEntranceScreen extends Component {
         return selectMood
     }
 
+    MoodButtons() {
+
+        return this.state.moodButtons.moods.map((item, index) => {
+
+            const moodButtonViewStyle = {
+                width: 70,
+                height: 70,
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderWidth: this.state.selectedMood==item ? 5 : 0,
+                borderRadius: 35,
+                borderColor: this.state.moodButtons.colors[index]
+            }        
+            const selColor = this.state.moodButtons.colors[index]
+
+            return(
+
+                <View key={'mood '+index} style={moodButtonViewStyle} >
+                    <Pressable
+                    title={item}
+                    onPress={this.onMoodButtonPress(item)}
+                    style={[
+                        styles.moodButton,
+                        this.state.selectedMood==item ? {
+                            height: 50,
+                            width: 50,
+                            fontWeight: 'bold',
+                            backgroundColor: selColor,
+                            // borderWidth: 2,
+                            // borderColor: this.state.moodButtons.colors[index],
+                        } : {
+                            height: 50,
+                            width: 50,
+                            fontWeight: null,
+                            backgroundColor: selColor
+                        }
+                    ]}
+                    >
+                        <Text style={{textAlign: 'center', textAlignVertical: 'center'}}>{item}</Text>
+                    </Pressable>
+                </View>
+
+            )
+        })
+    }
+
     onEmotionButtonPress(emotion) { 
         function selectEmotion () {
             this.setState({
@@ -155,37 +201,6 @@ export default class PostEntranceScreen extends Component {
         }
         selectEmotion = selectEmotion.bind(this);
         return selectEmotion
-    }
-
-    MoodButtons() {
-        return(
-            this.state.moodButtons.moods.map((item, index) => (
-                <View key={'mood '+index} style={{width: 65, height: 65, alignItems: 'center', justifyContent: 'center'}} >
-                    <Pressable
-                    title={item}
-                    onPress={this.onMoodButtonPress(item)}
-                    style={[
-                        styles.moodButton,
-                        this.state.selectedMood==item ? {
-                            height: 60,
-                            width: 60,
-                            fontWeight: 'bold',
-                            backgroundColor: this.state.moodButtons.colorsSelected[index],
-                            borderWidth: 2,
-                            borderColor: this.state.moodButtons.colors[index],
-                        } : {
-                            height: 50,
-                            width: 50,
-                            fontWeight: null,
-                            backgroundColor: this.state.moodButtons.colors[index]
-                        }
-                    ]}
-                    >
-                        <Text style={{textAlign: 'center', textAlignVertical: 'center'}}>{item}</Text>
-                    </Pressable>
-                </View>
-            ))
-        )
     }
 
     EmotionButtons(emotions) {
@@ -299,19 +314,19 @@ export default class PostEntranceScreen extends Component {
             // var postUserEntryResult = await fetch('http://localhost:3000/Users/'+info.username +'/entries', postUserEntryOpts);
 
             if (postUserEntryResult.ok) {
-                // console.log('fetch POST request successful. Printing response status...')
-                // console.log('Status: ' + postUserEntryResult.status + ', ' + postUserEntryResult.statusText)
+                console.log('fetch POST request successful')
+                console.log('Status: ' + postUserEntryResult.status + ', ' + postUserEntryResult.statusText)
                 this.props.navigation.navigate('Entrances', {newPost: true} )    
 
             } else {
-                // console.log('fetch POST request failed. Throwing error status...')
+                console.log('fetch POST request failed. Throwing error...')
                 throw new Error('Status: ' + postUserEntryResult.status + ', ' + postUserEntryResult.statusText)
             }
 
         } catch (error) {
-        //   alert('Erro no servidor, não foi possível adicionar a entrada. Por favor, tente novamente.')
-        //   console.log('Erro capturado:')
-        console.log(error);
+            // alert('Erro no servidor, não foi possível adicionar a entrada. Por favor, tente novamente.')
+            console.log('Erro capturado:')
+            console.log(error);
 
         } finally {
         this.setState({ isLoading: false });

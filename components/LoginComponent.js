@@ -44,7 +44,7 @@ class LoginScreen extends Component {
 
   setLoginMsg(msg) {
     this.setState({loginMsg: msg})
-    setTimeout( () => this.setState({loginMsg: ''}) , 1000 * 8 )
+    setTimeout( () => this.setState({loginMsg: ''}) , 1000 * 5 )
   }
 
   loginMsg() {
@@ -69,6 +69,61 @@ class LoginScreen extends Component {
       <Pressable onPress={signIn ? this.onSignIn : this.onSignUp} style={[styles.login.button]}>
         <Text style={styles.login.buttonLabel}>{ signIn ? 'Entrar' : 'Cadastrar' }</Text>
       </Pressable>
+    )
+  }
+
+  encryptedPassword() {
+    var encPass = ''
+    for (var i=0; i<this.state.userInfo.password.length; i++) {
+      encPass += '*'
+    }
+  return encPass
+}
+
+  LoginScreen() {
+    return(
+      <ImageBackground source={require('../assets/wallpaper.jpg')} style={[styles.login.mainView ,{justifyContent: 'space-evenly'}]}>
+        
+        <View style={styles.login.titleView}>
+          <Text style={styles.login.title}>Mood Tracker</Text>
+          <Icon name='clock-outline' width={25} height={25} fill='white' animation='pulse' style={styles.login.titleIcon} ></Icon>
+        </View>
+
+        <View style={styles.login.card}>
+          <View style={styles.login.cardHeader} >
+            <Text style={styles.login.cardTitle}>Entrar</Text>
+          </View>
+          <View style={styles.login.cardSection}>
+            <TextInput
+            placeholder='Email'
+            onChangeText={this.onChangeText('email')}
+            style={styles.login.inputField}
+            autoComplete='email'
+            importantForAutofill='yes'
+            >
+            </TextInput>
+            <TextInput
+            placeholder='Senha'
+            onChangeText={this.onChangeText('password')}
+            style={styles.login.inputField}
+            // value={this.encryptedPassword()}
+            secureTextEntry={true}
+            autoComplete='password'
+            importantForAutofill='yes'
+            ></TextInput>
+          </View>
+          <View style={styles.login.cardSection}>
+            {this.submitButton('signin')}
+            {this.submitButton('signup')}
+          </View>
+          <View style={[styles.login.cardSection]}>
+            {this.loadingIcon()}
+          </View>
+        </View>
+
+          {this.loginMsg()}
+
+      </ImageBackground>
     )
   }
 
@@ -197,48 +252,8 @@ class LoginScreen extends Component {
   render() {
 
     console.log('Rendering "LoginComponent" screen...')
-    return(
-      <ImageBackground source={require('../assets/wallpaper.jpg')} style={[styles.login.mainView ,{justifyContent: 'space-evenly'}]}>
-        
-        <View style={styles.login.titleView}>
-          <Text style={styles.login.title}>Mood Tracker</Text>
-          <Icon name='clock-outline' width={25} height={25} fill='white' animation='pulse' style={styles.login.titleIcon} ></Icon>
-        </View>
-
-        <View style={styles.login.card}>
-          <View style={styles.login.cardHeader} >
-            <Text style={styles.login.cardTitle}>Entrar</Text>
-          </View>
-          <View style={styles.login.cardSection}>
-            <TextInput placeholder='Email' onChangeText={this.onChangeText('email')} style={styles.login.inputField}></TextInput>
-            <TextInput placeholder='Senha' onChangeText={this.onChangeText('password')} style={styles.login.inputField}></TextInput>
-          </View>
-          <View style={styles.login.cardSection}>
-            {this.submitButton('signin')}
-            {this.submitButton('signup')}
-          </View>
-          <View style={[styles.login.cardSection]}>
-            {this.loadingIcon()}
-          </View>
-
-          {/* <View style={[styles.login.cardSection, styles.login.loadingView]}>
-          <View style={styles.login.titleView}>
-            <Icon name='heart-outline' animation='pulse' width={25} height={25} style={{paddingHorizontal: 8}}></Icon>
-            <Icon name='heart-outline' animation='pulse' width={25} height={25} style={{paddingHorizontal: 8}}></Icon>
-            <Icon name='heart-outline' animation='pulse' width={25} height={25} style={{paddingHorizontal: 8}}></Icon>
-            <Icon name='heart-outline' animation='pulse' width={25} height={25} style={{paddingHorizontal: 8}}></Icon>
-            <Icon name='heart-outline' animation='pulse' width={25} height={25} style={{paddingHorizontal: 8}}></Icon>
-            <Icon name='heart-outline' animation='pulse' width={25} height={25} style={{paddingHorizontal: 8}}></Icon>
-            <Icon name='heart-outline' animation='pulse' width={25} height={25} style={{paddingHorizontal: 8}}></Icon>
-          </View>
-          </View> */}
-
-        </View>
-
-          {this.loginMsg()}
-
-      </ImageBackground>
-    )
+    return this.LoginScreen()
+  
   }
 }
 
