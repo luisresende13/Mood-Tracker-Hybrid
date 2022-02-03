@@ -27,13 +27,15 @@ function HomeScreen(props) {
       name="Entrances"
       component={EntrancesScreen}
       options={{title: 'Suas entradas'}}
-      initialParams={{userInfo: props.route.params.userInfo}}
+      initialParams={{userInfo: props.userInfo}}
+      // initialParams={{userInfo: props.route.params.userInfo}}
       />
       <Stack.Screen
       name="PostEntrance"
       component={PostEntranceScreen}
       options={{title: 'Adicione uma  entrada'}}
-      initialParams={{userInfo: props.route.params.userInfo}}
+      initialParams={{userInfo: props.userInfo}}
+      // initialParams={{userInfo: props.route.params.userInfo}}
       />
     </Stack.Navigator>
   )
@@ -62,7 +64,7 @@ const mainScreenOptions = ({ route }) => ({
       iconName = focused ? 'settings' : 'settings-outline';
     }
     // You can return any component that you like here!
-    return <Icon name={iconName} width={size} height={size} fill='grey'></Icon>
+    return <Icon name={iconName} width={size} height={size} fill='rgb(35,35,35)'></Icon>
   },
 })
 
@@ -89,14 +91,20 @@ class App extends Component {
       return <LoginScreen authUser={this.authUser} />
     } else {
       return (
+
         <NavigationContainer>
-          <Tab.Navigator
-            screenOptions={mainScreenOptions}
-          >
-            <Tab.Screen name="Home" component={HomeScreen} initialParams={{userInfo: this.state.userInfo}}/>
-            <Tab.Screen name="Settings" component={SettingsScreen} initialParams={{userInfo: this.state.userInfo}} />
-          </Tab.Navigator>    
+          <HomeScreen userInfo={this.state.userInfo} />
         </NavigationContainer>
+
+        // <NavigationContainer>
+        //   <Tab.Navigator
+        //     screenOptions={mainScreenOptions}
+        //   >
+        //     <Tab.Screen name="Home" component={HomeScreen} initialParams={{userInfo: this.state.userInfo}}/>
+        //     <Tab.Screen name="Settings" component={SettingsScreen} initialParams={{userInfo: this.state.userInfo}} />
+        //   </Tab.Navigator>    
+        // </NavigationContainer>
+
       );  
     }
   }

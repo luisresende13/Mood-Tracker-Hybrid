@@ -62,13 +62,20 @@ function getToday() {
     return today
 }
 
+function twoDigit(stringNumber) {
+    if (stringNumber.length == 1) {
+        return '0' + stringNumber
+    }
+}
+
 function FormattedTime() {
     // const time = new Date().toString().split(' ')[4]
     var newTime = getTime().slice(0,5)
     var h = parseInt(newTime.slice(0,2))
     var m = parseInt(newTime.slice(3,5))
-    newTime = h > 12 ? ( (h-12).toString().length==1 ? '0'+(h-12) : h-12 ) + ':' +  m + ' PM' : ( h.toString().length==1 ? '0'+ h : h ) + ':' + m + ' AM'
-    return newTime
+    var period = ''
+    if (h > 12) { h-=12; period = 'PM' } else period = 'AM';
+    return twoDigit(h.toString()) + ':' + twoDigit(m.toString()) + ' ' + period
 }
 
 export default class PostEntranceScreen extends Component {
@@ -78,7 +85,8 @@ export default class PostEntranceScreen extends Component {
 
         this.state = {
             moodButtons: {
-            colors: ['red', 'blue', 'white', 'gold', 'green'],
+            // colors: ['red', 'blue', 'bisque', 'khaki', 'forestgreen'],
+            colors: ['#ff3333', '#0099cc', '#ffffff', '#ffff33', '#00b300'],
             colorsSelected: ['darkred', 'darkblue', 'grey', 'goldenrod', 'darkgreen'],
             moods: ['Horrível', 'Mal', 'Regular', 'Bem', 'Ótimo'],  
             },
@@ -93,8 +101,8 @@ export default class PostEntranceScreen extends Component {
             emotions: [],
             address: '',
 
-            startTime: FormattedTime(),
-            selectedEntry: 'Mood',
+            startTime: getTime(),
+            selectedEntry: 'Avaliação',
             isLoading: false,
         };
 
@@ -231,11 +239,10 @@ export default class PostEntranceScreen extends Component {
         return setSelected
     }
 
-    inputSection(section, inputStyle, inputs) {
-        // if (this.state.isEntrySelected[section]) {
-        if (this.state.selectedEntry === section) {
+    inputSection(sectionName, inputStyle, inputs) {
+        if (this.state.selectedEntry === sectionName) {
 
-            if (section == 'Emotions') {
+            if (sectionName == 'Emoções') {
                 return this.state.emotionButtons.emotionGroups.map((emotions, index) => (
                     <View style={{width: '100%', alignItems: 'center'}}>
                         <Text style={{fontSize: 15, color: 'white', paddingVertical: 11}}>{emotionGroupsNames[index]}</Text>
@@ -259,15 +266,15 @@ export default class PostEntranceScreen extends Component {
 
     }
 
-    InputCard(section, sectionName, icon, inputStyle, inputs) {
+    InputCard(sectionName, icon, inputStyle, inputs) {
         return(
             <View style={[styles2.card]}>
-                <Pressable style={styles2.cardRow}  onPress={this.setSelectedEntry(section)}>
+                <Pressable style={styles2.cardRow}  onPress={this.setSelectedEntry(sectionName)}>
                     <Icon name={icon} fill='rgba(255,255,255,0.75)' height={25} width={25} style={styles2.entryIcon}/>
                     <Text style={styles.entryTitle}> {sectionName} </Text>
                 </Pressable>
 
-                {this.inputSection(section=section, inputStyle=inputStyle, inputs=inputs)}  
+                {this.inputSection(sectionName=sectionName, inputStyle=inputStyle, inputs=inputs)}  
 
             </View>
         )
@@ -285,7 +292,7 @@ export default class PostEntranceScreen extends Component {
                 address: this.state.address,
                 date: getToday(),
                 startTime: this.state.startTime,
-                endTime: FormattedTime(),
+                endTime: getTime(),
                 star: this.state.star,
             }
             this.postNewEntryAsync(newEntry)
@@ -336,9 +343,9 @@ export default class PostEntranceScreen extends Component {
                 <ScrollView style={styles2.scrollView}>
                     <View style={styles2.section}>
                             {this.postEntryHeader()}
-                            {this.InputCard('Mood', 'Avaliação', 'smiling-face', {justifyContent: 'space-between'}, this.MoodButtons())}
-                            {this.InputCard('Emotions', 'Emoções', 'color-palette', {flexWrap: 'wrap', justifyContent: 'space-evenly'}, this.EmotionButtons)}
-                            {this.InputCard('Jornal', 'Jornal', 'book', {flexDirection: 'column'}, this.JornalInput())}
+                            {this.InputCard('Avaliação', 'smiling-face', {justifyContent: 'space-between'}, this.MoodButtons())}
+                            {this.InputCard('Emoções', 'checkmark-square-outline', {flexWrap: 'wrap', justifyContent: 'space-evenly'}, this.EmotionButtons)}
+                            {this.InputCard('Jornal', 'book', {flexDirection: 'column'}, this.JornalInput())}
                     </View>
                 </ScrollView>  
 

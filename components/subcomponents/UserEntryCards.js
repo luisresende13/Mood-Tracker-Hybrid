@@ -11,13 +11,10 @@ const corsURI = 'https://morning-journey-78874.herokuapp.com/'
 const appServerURI = 'https://mood-tracker-server.herokuapp.com/'
 
 // Defining mood colors schema
-const moodColors = {'Horrível': 'red', 'Mal': 'blue', 'Regular': 'lightblue', 'Bem': 'orange', 'Ótimo': 'green'};
+const moodColors = {'Horrível': '#ff3333', 'Mal': '#0099cc', 'Regular': '#ffffff', 'Bem': '#ffff33', 'Ótimo': '#00b300'};
 const monthDict = {'Jan': '01', 'Feb': '02', 'Mar': '03', 'Apr': '04', 'May': '05', 'Jun': '06', 'Jul': '07', 'Ago': '08', 'Sep': '09', 'Oct': '10', 'Nov': '11', 'Dec': '12'}
 
-
-// Defining pertinent functions
-
-function MoodCardHeader({entry}) {
+function MoodHeader({entry}) {
     return(
         <View style={[styles.cardRow, styles.spaceBetween]}>
             <View style={{flexDirection: 'row', alignItems: 'center'}}>
@@ -25,8 +22,8 @@ function MoodCardHeader({entry}) {
                 { entry.star ? <Icon name='star' fill='gold' width={27} height={27} style={{paddingLeft: 15, paddingBottom: 2}} ></Icon> : <></> }
             </View>
             <View style={[styles.cardRow]}>
-                <Icon name='edit' height={18} width={18} fill='rgba(255,255,255,0.75)' style={styles.icon} />
-                <Text style={styles.text}>{entry.startTime}</Text>
+                <Icon name='edit' height={18} width={18} fill='rgba(255,255,255,0.65)' style={{paddingRight: 8}} />
+                <Text style={styles.text}>{entry.startTime.slice(0,5)}</Text>
             </View>
         </View>
 
@@ -81,12 +78,30 @@ function Jornal ({entry}) {
 function EntryCard({ entry }) {
     return (
         <View key={entry._id} style={styles.card}>
-            <MoodCardHeader entry={entry} />
+            <MoodHeader entry={entry} />
             <Emotions entry={entry} />
             <Address entry={entry} />
             <Jornal entry={entry} />
         </View>
     );
+}
+
+function EmptyCard() {
+    return (
+        <View style={[styles.card, {alignItems: 'center', justifyContent: 'center', fontSize: 16, height: 120}]}>
+            <Icon name='inbox' fill='rgba(255,255,255,0.3)' width={25} height={25} ></Icon>
+            <Text style={{fontSize: 16, color: 'white'}}> Nenhuma entrada encontrada. </Text>
+            <Text style={{fontSize: 16, color: 'white'}}> Pressione aqui para adicionar uma a este dia! </Text>
+        </View>
+    );
+}
+
+function CardsLoadingMessage() {
+    return(
+        <View style={[styles.card, {alignItems: 'center', justifyContent: 'center', height: 120}]}>
+            <Icon name='sync-outline' fill='rgba(0,0,0,0.3)' width={25} height={25} ></Icon>
+        </View>
+    )
 }
 
 export default class UserEntryCards extends Component {
@@ -96,7 +111,7 @@ export default class UserEntryCards extends Component {
         this.state = {
             date: this.props.date,
             userEntries: [],
-            entriesSyncing: false,
+            isEntriesSyncing: false,
             newPost: this.props.newPost,
         };
         this.syncUserEntries = this.syncUserEntries.bind(this);
@@ -112,16 +127,30 @@ export default class UserEntryCards extends Component {
 
     updateIfNewPost () {
         if (this.props.newPost) {
-            console.log('JUST POSTED STATUS: True. Selecting current date ...');
+            console.log('JUST POSTED WARNING: POSTED. Selecting current date ...');
             this.props.forgetNewPost();
             this.syncUserEntries();
         }
     }
 
+    UserEntryCardsList() {
+
+        const selDateEntries = this.state.userEntries.filter( (entry) => entry.date === this.props.date )
+        if (selDateEntries.length) {
+            return selDateEntries.map(entry => <EntryCard entry={entry} />)
+        
+        } else if (this.state.isEntriesSyncing) {    
+            return <CardsLoadingMessage />
+
+        } else {
+            return <EmptyCard />
+        }
+    }
+    
     async syncUserEntries() {
 
         console.log('SYNC ENTRIES STATUS: Started...')
-        this.setState({ entriesSyncing: true });
+        this.setState({ isEntriesSyncing: true });
     
         try {
 
@@ -146,13 +175,13 @@ export default class UserEntryCards extends Component {
                 console.log(error);
 
         } finally {
-            this.setState({ entriesSyncing: false });
+            this.setState({ isEntriesSyncing: false });
             console.log('SYNC ENTRIES STATUS: Finished.')
         }    
     }
 
     render() {
         console.log('"Rendering UserEntryCards subcomponent..."')
-        return this.state.userEntries.filter( (entry) => entry.date === this.props.date ).map(entry => <EntryCard entry={entry} />)
+        return this.UserEntryCardsList()
     }
 }

@@ -16,7 +16,7 @@ const appServerURI = 'https://mood-tracker-server.herokuapp.com/'
 // Defining pertinent constants
 const monthDict = {'Jan': '01', 'Feb': '02', 'Mar': '03', 'Apr': '04', 'May': '05', 'Jun': '06', 'Jul': '07', 'Ago': '08', 'Sep': '09', 'Oct': '10', 'Nov': '11', 'Dec': '12'}
 const monthSigs = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dec']
-
+const englishWeekDayMap = {'Mon': 'Seg', 'Tue': 'Ter', 'Wed': 'Qua', 'Thu': 'Qui', 'Fri': 'Sex', 'Sat': 'Sab', 'Sun': 'Dom'}
 // Defining pertinent functions
 function Today() {
     const now = Date().toString().split(' ')
@@ -34,15 +34,28 @@ function getTime() {
     // const time = new Date().toLocaleTimeString()
     return time
 }
-function formatDate(date) {
+function formatDate(selDate) {
+    
+    var ymd = selDate.split('-')
+    const yesterday = getNextDate(Today(), 'previous')
+    const englishWeekDay = new Date(ymd[0], ymd[1], ymd[2]).toString().split(' ')[0]
+    const weekDay = englishWeekDayMap[englishWeekDay]
+    var prefix = ''
 
-    var ymd = date.split('-')
+    if (selDate === Today()) prefix = 'Hoje, '
+    else if (selDate === yesterday) prefix = 'Ontem, '
+    else prefix = weekDay + ', '
+    
     for (var i=0; i<12; i++) {
         if (monthDict[ monthSigs[i] ] == ymd[1]) {
-            return ymd[2] + ', ' + monthSigs[i]
+            return prefix + oneDigit(ymd[2]) + '° ' + monthSigs[i]
         }
     }
 
+}
+function oneDigit(stringNumber) {
+    if (stringNumber[0] == '0') return stringNumber.slice(1, stringNumber.length)
+    else return stringNumber
 }
 
 
@@ -73,13 +86,6 @@ export default class EntrancesScreen extends Component {
         return setSelectedDate.bind(this);
     }
 
-    selectedDateTitle() {
-        const selDate = this.state.selectedDate
-        const yesterday = getNextDate(Today(), 'previous')
-        const dayBeforeYesterday = getNextDate(yesterday, 'previous')
-        return ( selDate === Today() ? 'Hoje  ' : ( selDate === yesterday ? 'Ontem  ' : '' ) )
-    }
-
     forgetNewPost() {
         function forgetNewPost() {
             this.props.navigation.setParams({newPost: false});
@@ -105,13 +111,14 @@ export default class EntrancesScreen extends Component {
                                 <Pressable onPress={ this.onNextButtonPress('previous') }>
                                     <Icon name='arrow-back' width={35} height={35} fill='white' />
                                 </Pressable>
-                                <Text style={styles.sectionTitle}> { 'Suas entradas  •  ' + this.selectedDateTitle() + formatDate(this.state.selectedDate) } </Text>                                
+                                <Text style={styles.sectionTitle}> { 'Suas entradas  •  ' + formatDate(this.state.selectedDate) } </Text>                                
                                 { !isToday ? (
-                                    <Pressable onPress={ this.onNextButtonPress() }>
+                                    <Pressable onPress={ this.onNextButtonPress('next') }>
                                         <Icon name='arrow-forward' width={35} height={35} fill='white' />
                                     </Pressable>   
                                 ) : (
-                                    <View></View>
+                                    // <></>
+                                    <View style={{height: 35, width: 35}}></View>
                                 )}
                             </View>
 

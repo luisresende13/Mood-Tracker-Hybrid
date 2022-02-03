@@ -118,7 +118,8 @@ const styles = {
         paddingHorizontal: 12,
         },
     entryIcon: {
-        paddingRight: 30,
+        paddingRight: 0,
+        borderWidth: 1,
         },
     
 };

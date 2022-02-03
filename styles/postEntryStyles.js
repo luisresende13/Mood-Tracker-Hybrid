@@ -35,10 +35,12 @@ const styles = {
 
   },
   entryTitle: {
-    paddingBottom: 3,
-    paddingLeft: 5,
+    // height: 25,
+    paddingVertical: 3,
+    paddingLeft: 4,
     fontSize: 19,
-    color: 'white'
+    color: 'white',
+    // borderWidth: 1,s
   },
   postButtonView: {
     height: 60,
@@ -89,7 +91,7 @@ const styles = {
     width: '100%',
     borderRadius: 20,
     color: 'white',
-    fontSize: 14,
+    fontSize: 16,
   },
   saveButton: {
     height: 50,
