@@ -14,15 +14,26 @@ const appServerURI = 'https://mood-tracker-server.herokuapp.com/'
 const moodColors = {'Horrível': 'red', 'Mal': 'blue', 'Regular': 'lightblue', 'Bem': 'orange', 'Ótimo': 'green'};
 const monthDict = {'Jan': '01', 'Feb': '02', 'Mar': '03', 'Apr': '04', 'May': '05', 'Jun': '06', 'Jul': '07', 'Ago': '08', 'Sep': '09', 'Oct': '10', 'Nov': '11', 'Dec': '12'}
 
+
 // Defining pertinent functions
 
-function Today() {
-    const now = Date().toString().split(' ')
-    const today = [ now[3], monthDict[now[1]], now[2] ].join('-')
-    return today
+function MoodCardHeader({entry}) {
+    return(
+        <View style={[styles.cardRow, styles.spaceBetween]}>
+            <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                <Text style={[styles.moodBadge, {backgroundColor: moodColors[entry.mood]}]}>{entry.mood}</Text>
+                { entry.star ? <Icon name='star' fill='gold' width={27} height={27} style={{paddingLeft: 15, paddingBottom: 2}} ></Icon> : <></> }
+            </View>
+            <View style={[styles.cardRow]}>
+                <Icon name='edit' height={18} width={18} fill='rgba(255,255,255,0.75)' style={styles.icon} />
+                <Text style={styles.text}>{entry.startTime}</Text>
+            </View>
+        </View>
+
+    )
 }
 
-function LoadAddress ({entry}) {
+function Address ({entry}) {
     if (entry.address) {
         return(
             <View style={styles.cardRow}>
@@ -35,24 +46,18 @@ function LoadAddress ({entry}) {
     }
 }
 
-function Loadjornal ({entry}) {
-    if (entry.jornal) {
-        return <Text style={styles.textBadge}>{entry.jornal}</Text>
-    } else {
-        return <></>
-    }
-}
-
-function LoadEmotions ({entry}) {
+function Emotions ({entry}) {
     if (entry.emotions.length>0) {
         return (
-            entry.emotions.map((emotion, index) => {
-                return(
-                    <Pressable style={{paddingVertical: 5, paddingHorizontal: 2}}>
-                        <Text key={index} style={[styles.emotionBadge]}>{emotion}</Text>
-                    </Pressable>
-                )
-            })
+            <View style={[styles.cardRow, {flexWrap: 'wrap', justifyContent: 'flex-start'}]}>
+                { entry.emotions.map((emotion, index) => {
+                    return(
+                        <Pressable style={{paddingVertical: 5, paddingHorizontal: 2}}>
+                            <Text key={index} style={[styles.emotionBadge]}>{emotion}</Text>
+                        </Pressable>
+                    )
+                })}
+            </View>
         )
     } else {
         return (
@@ -61,23 +66,25 @@ function LoadEmotions ({entry}) {
     }
 }
 
+function Jornal ({entry}) {
+    if (entry.jornal) {
+        return(
+            <View style={styles.cardRow}>    
+                <Text style={styles.textBadge}>{entry.jornal}</Text>
+            </View>
+        )
+    } else {
+        return <></>
+    }
+}
+
 function EntryCard({ entry }) {
     return (
-        <View key={entry._id} style={styles.card}>                
-            <View style={[styles.cardRow, styles.spaceBetween]}>
-                <Text style={[styles.moodBadge, {backgroundColor: moodColors[entry.mood]}]}>{entry.mood}</Text>
-                <View style={[styles.cardRow]}>
-                    <Icon name='edit' height={18} width={18} fill='rgba(255,255,255,0.75)' style={styles.icon} />
-                    <Text style={styles.text}>{entry.time}</Text>
-                </View>
-            </View>
-            <View style={[styles.cardRow, {flexWrap: 'wrap', justifyContent: 'flex-start'}]}>
-                <LoadEmotions entry={entry} />
-            </View>        
-            <LoadAddress entry={entry} />
-            <View style={styles.cardRow}>
-                <Loadjornal entry={entry} />
-            </View>
+        <View key={entry._id} style={styles.card}>
+            <MoodCardHeader entry={entry} />
+            <Emotions entry={entry} />
+            <Address entry={entry} />
+            <Jornal entry={entry} />
         </View>
     );
 }

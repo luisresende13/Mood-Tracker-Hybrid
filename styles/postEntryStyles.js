@@ -90,7 +90,7 @@ const styles = {
   jornalText: {
     paddingVertical: 5,
     paddingHorizontal: 10,
-    minHeight:100,
+    minHeight:130,
     width: '100%',
     borderRadius: 20,
     color: 'white',

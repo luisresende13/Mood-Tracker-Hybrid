@@ -37,7 +37,7 @@ const styles = {
         height: 60,
         width: 60,
         borderRadius: 30,
-        bottom: '0%',
+        bottom: '2%',
         alignSelf: 'center',
         backgroundColor: 'rgba(0,0,0,1)',
         justifyContent: 'center',  
