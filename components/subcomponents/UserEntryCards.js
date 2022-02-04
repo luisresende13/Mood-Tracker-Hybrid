@@ -1,5 +1,5 @@
 // Module import
-import React, { Component } from 'react';
+import React, { Component, useState } from 'react';
 import { View, Text, Pressable} from 'react-native';
 import { Icon } from 'react-native-eva-icons'
 
@@ -31,11 +31,23 @@ function MoodHeader({entry}) {
 }
 
 function Address ({entry}) {
+
+    const [isCollapsed, setIsCollapsed] = useState(1);
+
+    // const onAddressPress = (event) => {
+
+    //     console.log('isCollapsed: ' + isCollapsed)
+    //     var ping = isCollapsed ? 0 : 1
+    //     setIsCollapsed( ping )
+    // }
+
     if (entry.address) {
         return(
             <View style={styles.cardRow}>
-                <Icon name='pin' height={16} width={16} fill='rgba(255,255,255,0.75)' style={styles.icon} />
-                <Text style={styles.text}>{entry.address}</Text>
+                <Text numberOfLines={ isCollapsed } onPress={ () => { setIsCollapsed( isCollapsed ? 0 : 1 ) }} style={styles.text}>
+                    <Icon name='pin' height={16} width={16} fill='rgba(255,255,255,0.75)' style={{marginRight: 10}} />
+                    {entry.address}
+                </Text>
             </View>        
         )
     } else {
