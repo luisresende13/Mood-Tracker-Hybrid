@@ -1,10 +1,29 @@
-import React, {useState, Component} from 'react';
+import React, {useState, Component, useEffect} from 'react';
 import { View, Text, ImageBackground, Pressable, ScrollView } from 'react-native';
 import { TextInput} from 'react-native-gesture-handler';
 import { Icon } from 'react-native-eva-icons'
 
 import styles from '../styles/postEntryStyles'
 import styles2 from '../styles/entrancesStyles'
+
+// Geolocation dependencies
+import API_KEY from './subcomponents/MapsAPI'
+
+import * as Location from 'expo-location';
+Location.setGoogleApiKey(API_KEY.GoogleMapsGeocodingAPIKey)
+//Location Response Object
+// Object {
+//   "city": "Stockholm",
+//   "country": "Sweden",
+//   "district": "Stockholm City",
+//   "isoCountryCode": "SE",
+//   "name": "Gustav Adolfs torg",
+//   "postalCode": "111 52",
+//   "region": "Stockholm",
+//   "street": "Gustav Adolfs torg",
+//   "subregion": "Stockholm",
+//   "timezone": "Europe/Stockholm",
+// }
 
 // cors-midpoint uri (needed to avoid cors' allow-cross-origin error when fetching)
 const corsURI = 'https://morning-journey-78874.herokuapp.com/'
@@ -32,9 +51,9 @@ const goodEnergizedEmotions = ['Animação', 'Concentração', 'Desinibição', 
 const goodCalmEmotions = ['Alívio', 'Calma', 'Conforto', 'Despreocupação', 'Inspiração', 'Orgulho', 'Paz', 'Relaxamento', 'Satisfação', 'Segurança']
 const badEnergizedEmotions = ['Agitação', 'Ansiosiedade', 'Tristeza', 'Decepção', 'Depressão', 'Desespero', 'Frustração', 'Insatisfação', 'Irritação', 'Medo', 'Paranoia', 'Preocupação', 'Impaciencia', 'Raiva', 'Revolta', 'Sobrecarregado(a)', 'Tensão', 'Nojo']
 const badCalmEmotions = ['Timidez', 'Cansaço', 'Confusão', 'Desanimo', 'Vergonha', 'Insegurança', 'Apátia', 'Solidão', 'Tédio']
-const basicEmotions = [ ...goodEnergizedEmotions, ...goodCalmEmotions, ...badEnergizedEmotions, ...badCalmEmotions]
-const emotionGroups = [goodEnergizedEmotions, goodCalmEmotions, badEnergizedEmotions, badCalmEmotions]
-const emotionGroupsNames = ['Bem & Energizado', 'Bem & Calmo', 'Mal e Energizado', 'Mal & Calmo']
+const basicEmotions = [ ...goodEnergizedEmotions, ...goodCalmEmotions, ...badEnergizedEmotions, ...badCalmEmotions ]
+const emotionGroups = [ goodEnergizedEmotions, goodCalmEmotions, badEnergizedEmotions, badCalmEmotions ]
+const emotionGroupsNames = [ 'Bem & Energizado', 'Bem & Calmo', 'Mal e Energizado', 'Mal & Calmo' ]
 var isSelectedEmotions = {}
 for (var i=0; i<basicEmotions.length; i++){
 isSelectedEmotions[basicEmotions[i]] = false
@@ -78,6 +97,10 @@ function FormattedTime() {
     return twoDigit(h.toString()) + ':' + twoDigit(m.toString()) + ' ' + period
 }
 
+function formattedAddress(addressObj) {
+    return addressObj.street + ', ' + addressObj.streetNumber + ' - ' + addressObj.district + ', ' + addressObj.subregion + '. ' + addressObj.region + '.'
+}
+
 export default class PostEntranceScreen extends Component {
   
     constructor(props) {
@@ -85,7 +108,6 @@ export default class PostEntranceScreen extends Component {
 
         this.state = {
             moodButtons: {
-            // colors: ['red', 'blue', 'bisque', 'khaki', 'forestgreen'],
             colors: ['#ff3333', '#0099cc', '#ffffff', '#ffff33', '#00b300'],
             colorsSelected: ['darkred', 'darkblue', 'grey', 'goldenrod', 'darkgreen'],
             moods: ['Horrível', 'Mal', 'Regular', 'Bem', 'Ótimo'],  
@@ -104,6 +126,10 @@ export default class PostEntranceScreen extends Component {
             startTime: getTime(),
             selectedEntry: 'Avaliação',
             isLoading: false,
+
+            locationServiceEnabled: null,
+            userCoordinates: null,
+            userCurrentAddress: null,
         };
 
         this.onSaveButtonPress = this.onSaveButtonPress.bind(this);
@@ -118,6 +144,93 @@ export default class PostEntranceScreen extends Component {
         this.JornalInput = this.JornalInput.bind(this);
         this.postNewEntryAsync = this.postNewEntryAsync.bind(this);
     }
+
+    componentDidMount() {
+        console.log('PostEntryScreen component did mount. Fetching user position...')
+        this.checkIfLocationEnabled();
+        this.getCurrentLocation();
+    }
+    
+    // Check if device has location services enabled
+    async checkIfLocationEnabled () {
+        
+        try{
+        console.log('GEOCODING PROCESS: CHECKING IF USER HAS SERVICES ENABLED.' )
+        let enabled = await Location.hasServicesEnabledAsync();
+    
+        if (!enabled) {
+            console.log('GEOCODING PROCESS: CHECKED! USER DOES NOT HAVE SERVICES ENABLED.' )
+            Alert.alert(
+            'Location Service not enabled',
+            'Please enable your location services to continue',
+            [{ text: 'OK' }],
+            { cancelable: false }
+        );
+        } else {
+            console.log('GEOCODING PROCESS: CHECKED! USER HAS SERVICES ENABLED:' + enabled )
+            this.setState({LocationServiceEnabled: enabled});
+        }
+        } catch(error) {
+        console.log("GEOCODING PROCESS: ERROR IN SERVICES PERMISSION CHECK! COULD'NT CHECK IF USER HAS SERVICES ENABLED.")
+    
+        } finally {
+        console.log("GEOCODING PROCESS: FINISHED!")
+        }
+    };
+    
+    // Check for permission, get current user position and use reverse geocoding for user coordinates
+    async getCurrentLocation() {
+    
+        try {
+            console.log('GEOCODING PROCESS: REQUEST PERMISSION ASYNC...')
+            let { status } = await Location.requestPermissionsAsync();
+            // let { status } = await Location.requestForegroundPermissionsAsync()
+        
+            if (status !== 'granted') {
+                console.log('GEOCODING PROCESS: PERMISSION NOT GRANTED!')
+                Alert.alert(
+                    'Permission not granted',
+                    'Allow the app to use location service.',
+                    [{ text: 'OK' }],
+                    { cancelable: false }
+                );
+
+            } else {
+                console.log('GEOCODING PROCESS: PERMISSION GRANTED!')
+            }
+        
+            console.log('GEOCODING PROCESS: GETTING CURRENT USER POSITION ASYNC...')
+            let { coords } = await Location.getCurrentPositionAsync();
+            
+            if (coords) {   
+                const { latitude, longitude } = coords;
+                this.setState({userCoordinates: coords})
+                console.log(`GEOCODING PROCESS: CURRENT USER POSITION FOUND... Latitude: ${latitude}, Logitude: ${longitude}`)
+                console.log('GEOCODING PROCESS: REVERSE GEOCODE ASYNC...')  
+                let response = await Location.reverseGeocodeAsync({ latitude, longitude });
+        
+                if (response) {
+                    this.setState({userCurrentAddress: response})
+                    console.log('GEOCODING PROCESS: REVERSE GEOCODE SUCCESSFUL! LOGGING RESPONSE...')  
+                    console.log(response)
+
+                } else {
+                    console.log('GEOCODING PROCESS: REVERSE GEOCODE FAILED! LOGGING RESPONSE...')  
+                    console.log(response)
+                }
+        
+            } else {
+                console.log(`GEOCODING PROCESS: USER POSITION NOT FOUND! UNABLE TO PROCEED TO REVERSE GEOCODING...`)
+            }
+    
+        } catch (error) {
+            console.log('GEOCODING PROCESS: ERROR IN USER POSITION REQUEST! LOGGING ERROR...')
+            console.log(error)
+        
+        } finally {
+          console.log('GEOCODING PROCESS: USER POSITION REQUEST FINISHED.')
+        }
+    };
 
     postEntryHeader() {
         return(
@@ -150,7 +263,7 @@ export default class PostEntranceScreen extends Component {
     }
 
     MoodButtons() {
-
+        
         return this.state.moodButtons.moods.map((item, index) => {
 
             const moodButtonViewStyle = {
@@ -165,7 +278,6 @@ export default class PostEntranceScreen extends Component {
             const selColor = this.state.moodButtons.colors[index]
 
             return(
-
                 <View key={'mood '+index} style={moodButtonViewStyle} >
                     <Pressable
                     title={item}
@@ -184,7 +296,6 @@ export default class PostEntranceScreen extends Component {
                         <Text style={{textAlign: 'center', textAlignVertical: 'center'}}>{item}</Text>
                     </Pressable>
                 </View>
-
             )
         })
     }
@@ -289,7 +400,7 @@ export default class PostEntranceScreen extends Component {
                 jornal: this.state.jornalEntry,
                 mood: this.state.selectedMood,
                 emotions: this.state.emotionButtons.basicEmotions.filter( emotion => this.state.emotionButtons.isSelectedEmotions[emotion] ) ,
-                address: this.state.address,
+                address: formattedAddress(this.state.userCurrentAddress[1]),
                 date: getToday(),
                 startTime: this.state.startTime,
                 endTime: getTime(),

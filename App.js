@@ -1,6 +1,6 @@
 import { Icon } from 'react-native-eva-icons'
 
-import React, { Component } from 'react';
+import React, { Component, useState, useEffect } from 'react';
 import { Text, ImageBackground} from 'react-native';
 
 import { NavigationContainer } from '@react-navigation/native';
@@ -15,8 +15,10 @@ import LoginScreen from './components/LoginComponent'
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
-function HomeScreen(props) {
-  return(    
+const HomeScreen = (props) => {
+
+  console.log('Returning "HomeScreen" Component...')
+  return(
     <Stack.Navigator 
     initialRouteName='Entrances'
     screenOptions={{
@@ -38,7 +40,7 @@ function HomeScreen(props) {
       // initialParams={{userInfo: props.route.params.userInfo}}
       />
     </Stack.Navigator>
-  )
+  )  
 }
 
 function SettingsScreen() {
@@ -49,24 +51,24 @@ function SettingsScreen() {
   )
 }
 
-const mainScreenOptions = ({ route }) => ({
-  headerShown: false,
-  tabBarActiveTintColor: 'tomato',
-  tabBarInactiveTintColor: 'gray',
-  tabBarHideOnKeyboard: true,
-  tabBarIcon: ({ focused, color, size }) => {
-    let iconName;
-    if (route.name === 'Home') {
-      iconName = focused
-        ? 'home'
-        : 'home-outline';
-    } else if (route.name === 'Settings') {
-      iconName = focused ? 'settings' : 'settings-outline';
-    }
-    // You can return any component that you like here!
-    return <Icon name={iconName} width={size} height={size} fill='rgb(35,35,35)'></Icon>
-  },
-})
+// const mainScreenOptions = ({ route }) => ({
+//   headerShown: false,
+//   tabBarActiveTintColor: 'tomato',
+//   tabBarInactiveTintColor: 'gray',
+//   tabBarHideOnKeyboard: true,
+//   tabBarIcon: ({ focused, color, size }) => {
+//     let iconName;
+//     if (route.name === 'Home') {
+//       iconName = focused
+//         ? 'home'
+//         : 'home-outline';
+//     } else if (route.name === 'Settings') {
+//       iconName = focused ? 'settings' : 'settings-outline';
+//     }
+//     // You can return any component that you like here!
+//     return <Icon name={iconName} width={size} height={size} fill='rgb(35,35,35)'></Icon>
+//   },
+// })
 
 class App extends Component {
 
@@ -89,6 +91,7 @@ class App extends Component {
 
     if (!this.state.isUserAuth) {
       return <LoginScreen authUser={this.authUser} />
+
     } else {
       return (
 

@@ -87,18 +87,19 @@ function EntryCard({ entry }) {
 }
 
 function EmptyCard() {
+    const textStyle = {fontSize: 16, color: 'white', marginTop: 7}
     return (
-        <View style={[styles.card, {alignItems: 'center', justifyContent: 'center', fontSize: 16, height: 120}]}>
+        <View style={[styles.card, {alignItems: 'center', justifyContent: 'center', fontSize: 16, height: 145}]}>
             <Icon name='inbox' fill='rgba(255,255,255,0.3)' width={25} height={25} ></Icon>
-            <Text style={{fontSize: 16, color: 'white'}}> Nenhuma entrada encontrada. </Text>
-            <Text style={{fontSize: 16, color: 'white'}}> Pressione aqui para adicionar uma a este dia! </Text>
+            <Text style={textStyle}> Nenhuma entrada encontrada. </Text>
+            <Text style={textStyle}> Pressione aqui para adicionar uma a este dia! </Text>
         </View>
     );
 }
 
 function CardsLoadingMessage() {
     return(
-        <View style={[styles.card, {alignItems: 'center', justifyContent: 'center', height: 120}]}>
+        <View style={[styles.card, {alignItems: 'center', justifyContent: 'center', height: 145}]}>
             <Icon name='sync-outline' fill='rgba(0,0,0,0.3)' width={25} height={25} ></Icon>
         </View>
     )
@@ -120,7 +121,7 @@ export default class UserEntryCards extends Component {
     componentDidMount() {
         console.log('"Subcomponent UserEntryCards did mount..."')
         this.syncUserEntries()
-        setInterval( () => { console.log('Default auto syncing started...'); this.syncUserEntries() }, 1000 * 10 )
+        // setInterval( () => { console.log('Default auto syncing started...'); this.syncUserEntries() }, 1000 * 10 )
         setInterval( () => { this.updateIfNewPost() }, 1000 * 1 )
         
     }
