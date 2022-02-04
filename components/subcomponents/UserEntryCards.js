@@ -86,14 +86,14 @@ function EntryCard({ entry }) {
     );
 }
 
-function EmptyCard() {
+function EmptyCard(props) {
     const textStyle = {fontSize: 16, color: 'white', marginTop: 7}
     return (
-        <View style={[styles.card, {alignItems: 'center', justifyContent: 'center', fontSize: 16, height: 145}]}>
+        <Pressable onPress={ () => props.navigation.navigate( 'PostEntrance', {} ) } style={[styles.card, {alignItems: 'center', justifyContent: 'center', fontSize: 16, height: 145}]}>
             <Icon name='inbox' fill='rgba(255,255,255,0.3)' width={25} height={25} ></Icon>
             <Text style={textStyle}> Nenhuma entrada encontrada. </Text>
             <Text style={textStyle}> Pressione aqui para adicionar uma a este dia! </Text>
-        </View>
+        </Pressable>
     );
 }
 
@@ -144,7 +144,7 @@ export default class UserEntryCards extends Component {
             return <CardsLoadingMessage />
 
         } else {
-            return <EmptyCard />
+            return <EmptyCard navigation={this.props.navigation} />
         }
     }
     

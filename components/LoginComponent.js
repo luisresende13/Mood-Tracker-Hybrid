@@ -28,6 +28,7 @@ class LoginScreen extends Component {
     this.setLoginMsg = this.setLoginMsg.bind(this);
     this.onSignIn = this.onSignIn.bind(this);
     this.onSignUp = this.onSignUp.bind(this);
+    
   }
 
   loadingIcon() {

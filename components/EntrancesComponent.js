@@ -73,22 +73,11 @@ export default class EntrancesScreen extends Component {
             entriesSynced: false,
         };
         this.onNextButtonPress = this.onNextButtonPress.bind(this);
-        this.forgetNewPost = this.forgetNewPost.bind(this);
+        this.forgetNewPost = this.forgetNewPost.bind(this);         
     }
     
     componentDidMount() {
-        console.log('"Entries" screen component did mount...')
-
-        navigator.geolocation.getCurrentPosition(
-            position => {
-              console.log('LOGGING USER POSITION USING NAVIGATOR OBJECT...')
-              console.log(position)
-            },
-            error => {
-              console.log('ERROR GETTING USER POSITION USING NAVIGATOR OBJECT.')
-            }
-          );
-      
+        console.log('"Entries" screen component did mount...')      
     }
 
     onNextButtonPress(next='next') { 
@@ -134,7 +123,8 @@ export default class EntrancesScreen extends Component {
                                 )}
                             </View>
 
-                            <UserEntryCards 
+                            <UserEntryCards
+                            navigation = {this.props.navigation}
                             userInfo={this.props.route.params.userInfo}
                             newPost={this.props.route.params.newPost}
                             forgetNewPost={this.forgetNewPost()}

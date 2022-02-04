@@ -11,19 +11,6 @@ import API_KEY from './subcomponents/MapsAPI'
 
 import * as Location from 'expo-location';
 Location.setGoogleApiKey(API_KEY.GoogleMapsGeocodingAPIKey)
-//Location Response Object
-// Object {
-//   "city": "Stockholm",
-//   "country": "Sweden",
-//   "district": "Stockholm City",
-//   "isoCountryCode": "SE",
-//   "name": "Gustav Adolfs torg",
-//   "postalCode": "111 52",
-//   "region": "Stockholm",
-//   "street": "Gustav Adolfs torg",
-//   "subregion": "Stockholm",
-//   "timezone": "Europe/Stockholm",
-// }
 
 // cors-midpoint uri (needed to avoid cors' allow-cross-origin error when fetching)
 const corsURI = 'https://morning-journey-78874.herokuapp.com/'
@@ -42,7 +29,6 @@ styles.emotionBadge = {
 
 styles.text = {fontSize: 14}
 
-
 // Date() => wed jan 91 2022 07:46:57 ...
 const now = new Date().toString().split(' ')
 const datetime = now[2] + ' ' + now[1] + ' ' + now[3] + ' - ' + now[4].slice(0, 5)
@@ -58,8 +44,21 @@ var isSelectedEmotions = {}
 for (var i=0; i<basicEmotions.length; i++){
 isSelectedEmotions[basicEmotions[i]] = false
 }
-// Array(basicEmotions.length).fill(false)
 
+const monthNameMap = {
+    '01': 'Janeiro',
+    '02': 'Fevereiro',
+    '03': 'Março',
+    '04': 'Abril',
+    '05': 'Maio',
+    '06': 'Junho',
+    '07': 'Julho',
+    '08': 'Agosto',
+    '09': 'Setembro',
+    '10': 'Outubro',
+    '11': 'Novembro',
+    '12': 'Dezembro',
+}
 
 function convertMonthSig(monthSig) {
     const monthSigs = ['Jan', 'Feb', 'Mar', 'Apr', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -75,7 +74,7 @@ function getTime() {
     return time
 }
 
-function getToday() {
+function Today() {
     const now = Date().toString().split(' ')
     const today = [ now[3], convertMonthSig(now[1]), now[2] ].join('-')
     return today
@@ -87,6 +86,11 @@ function twoDigit(stringNumber) {
     }
 }
 
+function oneDigit(stringNumber) {
+    if (stringNumber[0] == '0') return stringNumber.slice(1, stringNumber.length)
+    else return stringNumber
+}
+
 function FormattedTime() {
     // const time = new Date().toString().split(' ')[4]
     var newTime = getTime().slice(0,5)
@@ -94,7 +98,13 @@ function FormattedTime() {
     var m = parseInt(newTime.slice(3,5))
     var period = ''
     if (h > 12) { h-=12; period = 'PM' } else period = 'AM';
-    return twoDigit(h.toString()) + ':' + twoDigit(m.toString()) + ' ' + period
+    return twoDigit( h.toString() ) + ':' + twoDigit( m.toString() ) + ' ' + period
+}
+
+function formatPostEntryDatetimeTitle(date, time) {
+    const ymd = date.split('-')
+    const m = monthNameMap[ ymd[1] ]
+    return oneDigit( ymd[2] ) + ' ' + m + ' ' + ymd[0] + ' - ' + time.slice(0,5)
 }
 
 function formattedAddress(addressObj) {
@@ -124,6 +134,7 @@ export default class PostEntranceScreen extends Component {
             address: '',
 
             startTime: getTime(),
+            date: Today(),
             selectedEntry: 'Avaliação',
             isLoading: false,
 
@@ -238,8 +249,8 @@ export default class PostEntranceScreen extends Component {
                 <Pressable onPress={() => {this.props.navigation.goBack()}}  style={styles.postButton}>
                     <Icon name='arrow-back' fill='white' height={30} width={30}/>
                 </Pressable>
-                <View style={[styles2.emotionBadge, {flexDirection: 'row'}]}>
-                    <Text > {datetime} </Text>
+                <View style={[styles2.emotionBadge, {flexDirection: 'row', alignItems: 'center'}]}>
+                    <Text > { formatPostEntryDatetimeTitle(this.state.date, this.state.startTime) } </Text>
                     <Icon name='edit' fill='rgba(75,75,75,1)' height={20} width={20}/>
                 </View>
                 <Pressable onPress={() => {this.setState({star: !this.state.star})}}  style={styles.postButton}>
@@ -401,7 +412,7 @@ export default class PostEntranceScreen extends Component {
                 mood: this.state.selectedMood,
                 emotions: this.state.emotionButtons.basicEmotions.filter( emotion => this.state.emotionButtons.isSelectedEmotions[emotion] ) ,
                 address: formattedAddress(this.state.userCurrentAddress[1]),
-                date: getToday(),
+                date: Today(),
                 startTime: this.state.startTime,
                 endTime: getTime(),
                 star: this.state.star,
