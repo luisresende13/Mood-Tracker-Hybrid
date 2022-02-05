@@ -2,13 +2,21 @@ import { StatusBar } from 'expo-status-bar';
 // import { Platform } from 'react-native';
 
 const styles = {
-  
+  mainView: {
+    flex: 1,                 
+    marginTop: StatusBar.currentHeight,
+  },
   entrances: {
     marginTop: StatusBar.currentHeight,
     borderWidth: 0,
     flex:1,
     justifyContent: 'space-between',
     alignItems: 'flex-start',
+  },
+  scrollView: {
+    // paddingHorizontal: Platform.OS != 'web' ? '5%' : '5%',
+    width: '100%',
+    alignSelf: 'center',
   },
   content: {
     flexGrow: 1,
@@ -18,11 +26,11 @@ const styles = {
     borderColor: 'black',
   },
   section: {
-    paddingVertical: '10%',
-    paddingHorizontal: '10%',
-    justifyContent: 'flex-start',
-    borderTopWidth: 1,
+    width: 350,
+    paddingVertical: '16%',
     borderBottomWidth: 1,
+    borderColor: 'rgba(155,155,155,0.3)',
+    alignSelf: 'center',
   },
   contentRow: {
     flexDirection: 'column',
@@ -35,12 +43,14 @@ const styles = {
 
   },
   entryTitle: {
-    // height: 25,
     paddingVertical: 3,
     paddingLeft: 4,
     fontSize: 19,
     color: 'white',
-    // borderWidth: 1,s
+  },
+  entryIcon: {
+    paddingRight: 0,
+    borderWidth: 1,
   },
   postButtonView: {
     height: 60,
@@ -50,8 +60,6 @@ const styles = {
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'white',
-  },
-  postButton: {
   },
   postButtonLabel: {
     fontSize: 45,
@@ -70,9 +78,6 @@ const styles = {
       justifyContent: 'center',
       marginColor: 'black',
       marginWidth: 2,
-  },
-  moodButtonBorder: {
-
   },
   date: {
     position: 'relative',
@@ -107,23 +112,33 @@ const styles = {
     paddingVertical: 5,
     paddingHorizontal: 10,
     borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.3)',
-},
-cardRow: {
-    flexDirection: 'row',
-    paddingVertical: 5,
-    alignItems: 'center',
-},
-moodBadge: {
-    backgroundColor: 'green',
-    borderRadius: 30,
-    paddingVertical: 6,
-    width: 130,
-    fontSize: 16,
-    textAlign: 'center',
-},
-emotionBadge: {
-    backgroundColor: 'rgba(1,1,1,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.2)',
+  },
+  cardRow: {
+      flexDirection: 'row',
+      paddingVertical: 5,
+      alignItems: 'center',
+  },
+  moodBadge: {
+      backgroundColor: 'green',
+      borderRadius: 30,
+      paddingVertical: 6,
+      width: 130,
+      fontSize: 16,
+      textAlign: 'center',
+  },
+  emotionBadge: {
+      backgroundColor: 'rgba(1,1,1,0.5)',
+      borderRadius: 30,
+      paddingVertical: 7,
+      paddingHorizontal: 12.5,
+      marginRight: 6,
+      fontSize: 15,
+      textAlign: 'center',
+  },
+  entryCardEmotionBadge: {
+    fontFamily: 'sans-serif',
+    backgroundColor: 'aliceblue',
     borderRadius: 30,
     paddingVertical: 7,
     paddingHorizontal: 12.5,

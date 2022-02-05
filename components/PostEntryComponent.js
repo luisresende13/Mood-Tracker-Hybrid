@@ -1,49 +1,49 @@
-import React, {useState, Component, useEffect} from 'react';
+import React, { Component } from 'react';
 import { View, Text, ImageBackground, Pressable, ScrollView } from 'react-native';
 import { TextInput} from 'react-native-gesture-handler';
 import { Icon } from 'react-native-eva-icons'
 
 import styles from '../styles/postEntryStyles'
-import styles2 from '../styles/entrancesStyles'
 
-// Geolocation dependencies
-import API_KEY from './subcomponents/MapsAPI'
-
+// Geolocation dependencies and APIs
 import * as Location from 'expo-location';
-Location.setGoogleApiKey(API_KEY.GoogleMapsGeocodingAPIKey)
+import GoogleMapsAPI from './subcomponents/GoogleMapsAPI'
+Location.setGoogleApiKey(GoogleMapsAPI.GoogleMapsGeocodingAPIKey)
+
+/// Weather API
+import OpenWeatherMapAPI from './subcomponents/OpenWeatherMapAPI';
 
 // cors-midpoint uri (needed to avoid cors' allow-cross-origin error when fetching)
 const corsURI = 'https://morning-journey-78874.herokuapp.com/'
 const appServerURI = 'https://mood-tracker-server.herokuapp.com/'
 
-styles.emotionBadge = {
-    backgroundColor: 'rgba(1,1,1,0.5)',
-    borderRadius: 30,
-    paddingVertical: 7,
-    paddingHorizontal: 12.5,
-    marginRight: 6,
-    // width: '100%', //must be removed, badge should have text width
-    fontSize: 15,
-    textAlign: 'center',
-}
-
-styles.text = {fontSize: 14}
-
 // Date() => wed jan 91 2022 07:46:57 ...
 const now = new Date().toString().split(' ')
 const datetime = now[2] + ' ' + now[1] + ' ' + now[3] + ' - ' + now[4].slice(0, 5)
 
+// Mood configs
+const moodColors = ['#ff3333', '#0099cc', '#ffffff', '#ffff33', '#00b300']
+const moods = ['Horrível', 'Mal', 'Regular', 'Bem', 'Ótimo']
+
+// Emotion configs
+const emotionGroupsNames = [ 'Bem & Energizado', 'Bem & Calmo', 'Mal e Energizado', 'Mal & Calmo' ]
+
 const goodEnergizedEmotions = ['Animação', 'Concentração', 'Desinibição', 'Motivação', 'Euforia']
 const goodCalmEmotions = ['Alívio', 'Calma', 'Conforto', 'Despreocupação', 'Inspiração', 'Orgulho', 'Paz', 'Relaxamento', 'Satisfação', 'Segurança']
-const badEnergizedEmotions = ['Agitação', 'Ansiosiedade', 'Tristeza', 'Decepção', 'Depressão', 'Desespero', 'Frustração', 'Insatisfação', 'Irritação', 'Medo', 'Paranoia', 'Preocupação', 'Impaciencia', 'Raiva', 'Revolta', 'Sobrecarregado(a)', 'Tensão', 'Nojo']
+const badEnergizedEmotions = ['Agitação', 'Ansiedade', 'Tristeza', 'Decepção', 'Depressão', 'Desespero', 'Frustração', 'Insatisfação', 'Irritação', 'Medo', 'Paranoia', 'Preocupação', 'Impaciencia', 'Raiva', 'Revolta', 'Sobrecarregado(a)', 'Tensão', 'Nojo']
 const badCalmEmotions = ['Timidez', 'Cansaço', 'Confusão', 'Desanimo', 'Vergonha', 'Insegurança', 'Apátia', 'Solidão', 'Tédio']
+
 const basicEmotions = [ ...goodEnergizedEmotions, ...goodCalmEmotions, ...badEnergizedEmotions, ...badCalmEmotions ]
 const emotionGroups = [ goodEnergizedEmotions, goodCalmEmotions, badEnergizedEmotions, badCalmEmotions ]
-const emotionGroupsNames = [ 'Bem & Energizado', 'Bem & Calmo', 'Mal e Energizado', 'Mal & Calmo' ]
+
 var isSelectedEmotions = {}
-for (var i=0; i<basicEmotions.length; i++){
-isSelectedEmotions[basicEmotions[i]] = false
+for ( let emotion of basicEmotions){
+    isSelectedEmotions[emotion] = false
 }
+
+// Date config
+const monthSigs = ['Jan', 'Feb', 'Mar', 'Apr', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dec']
+const months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12']
 
 const monthNameMap = {
     '01': 'Janeiro',
@@ -60,11 +60,17 @@ const monthNameMap = {
     '12': 'Dezembro',
 }
 
+// Functions
+
 function convertMonthSig(monthSig) {
-    const monthSigs = ['Jan', 'Feb', 'Mar', 'Apr', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dec']
-    const months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12']
     const thisMonth = months[monthSigs.indexOf(monthSig)]
     return thisMonth
+}
+
+function Today() {
+    const now = Date().toString().split(' ')
+    const today = [ now[3], convertMonthSig(now[1]), now[2] ].join('-')
+    return today
 }
 
 function getTime() {
@@ -74,31 +80,9 @@ function getTime() {
     return time
 }
 
-function Today() {
-    const now = Date().toString().split(' ')
-    const today = [ now[3], convertMonthSig(now[1]), now[2] ].join('-')
-    return today
-}
-
-function twoDigit(stringNumber) {
-    if (stringNumber.length == 1) {
-        return '0' + stringNumber
-    }
-}
-
 function oneDigit(stringNumber) {
     if (stringNumber[0] == '0') return stringNumber.slice(1, stringNumber.length)
     else return stringNumber
-}
-
-function FormattedTime() {
-    // const time = new Date().toString().split(' ')[4]
-    var newTime = getTime().slice(0,5)
-    var h = parseInt(newTime.slice(0,2))
-    var m = parseInt(newTime.slice(3,5))
-    var period = ''
-    if (h > 12) { h-=12; period = 'PM' } else period = 'AM';
-    return twoDigit( h.toString() ) + ':' + twoDigit( m.toString() ) + ' ' + period
 }
 
 function formatPostEntryDatetimeTitle(date, time) {
@@ -117,25 +101,18 @@ export default class PostEntranceScreen extends Component {
         super(props);
 
         this.state = {
-            moodButtons: {
-            colors: ['#ff3333', '#0099cc', '#ffffff', '#ffff33', '#00b300'],
-            colorsSelected: ['darkred', 'darkblue', 'grey', 'goldenrod', 'darkgreen'],
-            moods: ['Horrível', 'Mal', 'Regular', 'Bem', 'Ótimo'],  
-            },
-            emotionButtons: {
-                isSelectedEmotions: isSelectedEmotions,
-                basicEmotions: basicEmotions,
-                emotionGroups: emotionGroups,
-            },
-            star: false,
-            selectedMood: null,
-            jornalEntry: '',    
-            emotions: [],
-            address: '',
 
-            startTime: getTime(),
             date: Today(),
+            startTime: getTime(),
+            star: false,
+            selectedMood: '',
+            emotions: [],
+            jornalEntry: '',    
+            address: null,
+            weather: null,
+
             selectedEntry: 'Avaliação',
+            isSelectedEmotions: isSelectedEmotions,
             isLoading: false,
 
             locationServiceEnabled: null,
@@ -157,20 +134,61 @@ export default class PostEntranceScreen extends Component {
     }
 
     componentDidMount() {
-        console.log('PostEntryScreen component did mount. Fetching user position...')
+        console.log('PostEntryScreen component did mount. Fetching user position and weather data...')
         this.checkIfLocationEnabled();
         this.getCurrentLocation();
     }
     
+    async fetchWeather() {
+        if (this.state.userCoordinates) {
+
+            try {
+                console.log('FETCH WEATHER STATUS: STARTED...!')
+                const coords = this.state.userCoordinates
+                const lat = coords.latitude
+                const lng = coords.longitude
+                
+                await fetch(
+                    `http://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lng}&APPID=${OpenWeatherMapAPI.KEY}&units=metric`
+                )
+                .then(res => {
+                    const resStatus = 'Status: ' + res.status + ', Status Text: ' + res.statusText
+                    if (!res.ok) 
+                        throw new Error(resStatus)
+                    else {
+                        return res.json()
+                    }
+                })
+                .then(json => {
+                    this.setState({weather: json})
+                    console.log('FETCH WEATHER STATUS: SUCCESSFUL!')
+                    console.log('Fetch weather response:')
+                    console.log(json);
+                });
+          
+            } catch(error) {
+                console.log('FETCH WEATHER STATUS: ERROR! LOGGING ERROR...')
+                console.log(error)
+    
+            } finally {
+                console.log('FETCH WEATHER STATUS: FINISHED!')    
+            }
+
+        } else {
+            console.log('FETCH WEATHER STATUS: UNABLE TO START! USER POSITION NOT AVAILABLE.')
+        }
+
+    }
+
     // Check if device has location services enabled
     async checkIfLocationEnabled () {
-        
+    
         try{
-        console.log('GEOCODING PROCESS: CHECKING IF USER HAS SERVICES ENABLED.' )
+        console.log('GEOCODING PROCESS (CHECK): CHECKING IF USER HAS SERVICES ENABLED.' )
         let enabled = await Location.hasServicesEnabledAsync();
     
         if (!enabled) {
-            console.log('GEOCODING PROCESS: CHECKED! USER DOES NOT HAVE SERVICES ENABLED.' )
+            console.log('GEOCODING PROCESS (CHECK): CHECKED! USER DOES NOT HAVE SERVICES ENABLED.' )
             Alert.alert(
             'Location Service not enabled',
             'Please enable your location services to continue',
@@ -178,14 +196,14 @@ export default class PostEntranceScreen extends Component {
             { cancelable: false }
         );
         } else {
-            console.log('GEOCODING PROCESS: CHECKED! USER HAS SERVICES ENABLED:' + enabled )
+            console.log('GEOCODING PROCESS (CHECK): CHECKED! USER HAS LOCATION SERVICES ENABLED.')
             this.setState({LocationServiceEnabled: enabled});
         }
         } catch(error) {
-        console.log("GEOCODING PROCESS: ERROR IN SERVICES PERMISSION CHECK! COULD'NT CHECK IF USER HAS SERVICES ENABLED.")
+        console.log("GEOCODING PROCESS (CHECK): ERROR IN SERVICES PERMISSION CHECK! COULD'NT CHECK IF USER HAS SERVICES ENABLED.")
     
         } finally {
-        console.log("GEOCODING PROCESS: FINISHED!")
+        console.log("GEOCODING PROCESS (CHECK): FINISHED!")
         }
     };
     
@@ -193,12 +211,12 @@ export default class PostEntranceScreen extends Component {
     async getCurrentLocation() {
     
         try {
-            console.log('GEOCODING PROCESS: REQUEST PERMISSION ASYNC...')
+            console.log('GEOCODING PROCESS (PERMISSION): REQUEST PERMISSION ASYNC...')
             let { status } = await Location.requestPermissionsAsync();
             // let { status } = await Location.requestForegroundPermissionsAsync()
         
             if (status !== 'granted') {
-                console.log('GEOCODING PROCESS: PERMISSION NOT GRANTED!')
+                console.log('GEOCODING PROCESS (PERMISSION): PERMISSION NOT GRANTED!')
                 Alert.alert(
                     'Permission not granted',
                     'Allow the app to use location service.',
@@ -207,31 +225,30 @@ export default class PostEntranceScreen extends Component {
                 );
 
             } else {
-                console.log('GEOCODING PROCESS: PERMISSION GRANTED!')
+                console.log('GEOCODING PROCESS (PERMISSION): PERMISSION GRANTED!')
             }
         
-            console.log('GEOCODING PROCESS: GETTING CURRENT USER POSITION ASYNC...')
+            console.log('GEOCODING PROCESS (REQUEST): GETTING CURRENT USER POSITION ASYNC...')
             let { coords } = await Location.getCurrentPositionAsync();
             
             if (coords) {   
                 const { latitude, longitude } = coords;
                 this.setState({userCoordinates: coords})
-                console.log(`GEOCODING PROCESS: CURRENT USER POSITION FOUND... Latitude: ${latitude}, Logitude: ${longitude}`)
-                console.log('GEOCODING PROCESS: REVERSE GEOCODE ASYNC...')  
+                console.log(`GEOCODING PROCESS (REQUEST): CURRENT USER POSITION FOUND... Latitude: ${latitude}, Logitude: ${longitude}`)
+                console.log('GEOCODING PROCESS (REVERSE GEOCODING): REVERSE GEOCODE ASYNC...')  
                 let response = await Location.reverseGeocodeAsync({ latitude, longitude });
         
                 if (response) {
                     this.setState({userCurrentAddress: response})
-                    console.log('GEOCODING PROCESS: REVERSE GEOCODE SUCCESSFUL! LOGGING RESPONSE...')  
-                    console.log(response)
+                    console.log('GEOCODING PROCESS (REVERSE GEOCODING): REVERSE GEOCODE SUCCESSFUL! UPDATING STATE...')  
 
                 } else {
-                    console.log('GEOCODING PROCESS: REVERSE GEOCODE FAILED! LOGGING RESPONSE...')  
+                    console.log('GEOCODING PROCESS (REVERSE GEOCODING): REVERSE GEOCODE FAILED! LOGGING RESPONSE...')  
                     console.log(response)
                 }
         
             } else {
-                console.log(`GEOCODING PROCESS: USER POSITION NOT FOUND! UNABLE TO PROCEED TO REVERSE GEOCODING...`)
+                console.log(`GEOCODING PROCESS (REVERSE GEOCODING): USER POSITION NOT FOUND! UNABLE TO PROCEED TO REVERSE GEOCODING...`)
             }
     
         } catch (error) {
@@ -239,18 +256,19 @@ export default class PostEntranceScreen extends Component {
             console.log(error)
         
         } finally {
-          console.log('GEOCODING PROCESS: USER POSITION REQUEST FINISHED.')
+            console.log('GEOCODING PROCESS: USER POSITION REQUEST FINISHED. PROCEEDING TO FETCH WEATHER DATA...')
+            this.fetchWeather();
         }
     };
 
     postEntryHeader() {
         return(
-            <View style={[styles2.cardRow, {justifyContent: 'space-between'}]}>
+            <View style={[styles.cardRow, {justifyContent: 'space-between'}]}>
                 <Pressable onPress={() => {this.props.navigation.goBack()}}  style={styles.postButton}>
                     <Icon name='arrow-back' fill='white' height={30} width={30}/>
                 </Pressable>
-                <View style={[styles2.emotionBadge, {flexDirection: 'row', alignItems: 'center'}]}>
-                    <Text > { formatPostEntryDatetimeTitle(this.state.date, this.state.startTime) } </Text>
+                <View style={[styles.entryCardEmotionBadge, {flexDirection: 'row', alignItems: 'center'}]}>
+                    <Text> { formatPostEntryDatetimeTitle(this.state.date, this.state.startTime) } </Text>
                     <Icon name='edit' fill='rgba(75,75,75,1)' height={20} width={20}/>
                 </View>
                 <Pressable onPress={() => {this.setState({star: !this.state.star})}}  style={styles.postButton}>
@@ -261,7 +279,6 @@ export default class PostEntranceScreen extends Component {
     }
 
     onMoodButtonPress(item) {
-        // alert(e)
         function selectMood() {
             if (this.state.selectedMood==item) {
                 this.setState({selectedMood: null})
@@ -275,8 +292,9 @@ export default class PostEntranceScreen extends Component {
 
     MoodButtons() {
         
-        return this.state.moodButtons.moods.map((item, index) => {
+        return moods.map((item, index) => {
 
+            const selColor = moodColors[index]
             const moodButtonViewStyle = {
                 width: 65,
                 height: 65,
@@ -284,9 +302,8 @@ export default class PostEntranceScreen extends Component {
                 justifyContent: 'center',
                 borderWidth: this.state.selectedMood==item ? 3 : 0,
                 borderRadius: 32.5,
-                borderColor: this.state.moodButtons.colors[index]
+                borderColor: selColor,
             }        
-            const selColor = this.state.moodButtons.colors[index]
 
             return(
                 <View key={'mood '+index} style={moodButtonViewStyle} >
@@ -314,12 +331,9 @@ export default class PostEntranceScreen extends Component {
     onEmotionButtonPress(emotion) { 
         function selectEmotion () {
             this.setState({
-                emotionButtons: {
-                    ...this.state.emotionButtons,
-                    isSelectedEmotions: {
-                        ...this.state.emotionButtons.isSelectedEmotions,
-                        [emotion]: !this.state.emotionButtons.isSelectedEmotions[emotion]
-                    }
+                isSelectedEmotions: {
+                    ...this.state.isSelectedEmotions,
+                    [emotion]: !this.state.isSelectedEmotions[emotion]
                 }
             })
         }
@@ -335,7 +349,7 @@ export default class PostEntranceScreen extends Component {
                 style={ {paddingVertical: 5} }
                 onPress={this.onEmotionButtonPress(emotion)}
                 >
-                    <Text style={[styles.emotionBadge, {backgroundColor: this.state.emotionButtons.isSelectedEmotions[emotion] ? 'lightblue' : 'white' }]}>{emotion}</Text>
+                    <Text style={[styles.emotionBadge, {backgroundColor: this.state.isSelectedEmotions[emotion] ? 'lightblue' : 'white' }]}>{emotion}</Text>
                 </Pressable>
             ))
         )
@@ -343,13 +357,13 @@ export default class PostEntranceScreen extends Component {
 
     JornalInput() {
         return(
-        <TextInput multiline 
-            placeholder='Today was...' 
-            style={styles.jornalText}
-            onChangeText={text => this.setState({jornalEntry: text})}
-            value={this.state.jornalEntry}
-            >
-        </TextInput>
+            <TextInput multiline 
+                placeholder='Today was...' 
+                style={styles.jornalText}
+                onChangeText={text => this.setState({jornalEntry: text})}
+                value={this.state.jornalEntry}
+                >
+            </TextInput>
         )
     }
 
@@ -363,19 +377,18 @@ export default class PostEntranceScreen extends Component {
 
     inputSection(sectionName, inputStyle, inputs) {
         if (this.state.selectedEntry === sectionName) {
-
             if (sectionName == 'Emoções') {
-                return this.state.emotionButtons.emotionGroups.map((emotions, index) => (
+                return emotionGroups.map((emotions, index) => (
                     <View style={{width: '100%', alignItems: 'center'}}>
                         <Text style={{fontSize: 15, color: 'white', paddingVertical: 11}}>{emotionGroupsNames[index]}</Text>
-                        <View key={index} style={[styles2.cardRow, inputStyle]}>
+                        <View key={index} style={[styles.cardRow, inputStyle]}>
                             {inputs(emotions)}
                         </View>
                     </View>
                 ))
             } else {
                 return(
-                    <View style={[styles2.cardRow, inputStyle]}>
+                    <View style={[styles.cardRow, inputStyle]}>
                         {inputs}
                     </View>
                 )    
@@ -385,14 +398,13 @@ export default class PostEntranceScreen extends Component {
                 <></>
             )
         }
-
     }
 
     InputCard(sectionName, icon, inputStyle, inputs) {
         return(
-            <View style={[styles2.card]}>
-                <Pressable style={styles2.cardRow}  onPress={this.setSelectedEntry(sectionName)}>
-                    <Icon name={icon} fill='rgba(255,255,255,0.75)' height={25} width={25} style={styles2.entryIcon}/>
+            <View style={[styles.card]}>
+                <Pressable style={styles.cardRow}  onPress={this.setSelectedEntry(sectionName)}>
+                    <Icon name={icon} fill='rgba(255,255,255,0.75)' height={25} width={25} style={styles.entryIcon}/>
                     <Text style={styles.entryTitle}> {sectionName} </Text>
                 </Pressable>
 
@@ -410,7 +422,7 @@ export default class PostEntranceScreen extends Component {
             const newEntry = {
                 jornal: this.state.jornalEntry,
                 mood: this.state.selectedMood,
-                emotions: this.state.emotionButtons.basicEmotions.filter( emotion => this.state.emotionButtons.isSelectedEmotions[emotion] ) ,
+                emotions: basicEmotions.filter( emotion => this.state.isSelectedEmotions[emotion] ) ,
                 address: formattedAddress(this.state.userCurrentAddress[1]),
                 date: Today(),
                 startTime: this.state.startTime,
@@ -447,23 +459,22 @@ export default class PostEntranceScreen extends Component {
             }
 
         } catch (error) {
-            // alert('Erro no servidor, não foi possível adicionar a entrada. Por favor, tente novamente.')
             console.log('Erro capturado:')
             console.log(error);
 
         } finally {
-        this.setState({ isLoading: false });
-        }
-
+            this.setState({ isLoading: false });
+        
     }
+}
   
     render() {
         console.log('Rendering "Post Entry" screen...')
 
         return(
-            <ImageBackground source={require('../assets/wallpaper.jpg')} style={styles2.mainView}>
-                <ScrollView style={styles2.scrollView}>
-                    <View style={styles2.section}>
+            <ImageBackground source={require('../assets/wallpaper.jpg')} style={styles.mainView}>
+                <ScrollView style={styles.scrollView}>
+                    <View style={styles.section}>
                             {this.postEntryHeader()}
                             {this.InputCard('Avaliação', 'smiling-face', {justifyContent: 'space-between'}, this.MoodButtons())}
                             {this.InputCard('Emoções', 'checkmark-square-outline', {flexWrap: 'wrap', justifyContent: 'space-evenly'}, this.EmotionButtons)}

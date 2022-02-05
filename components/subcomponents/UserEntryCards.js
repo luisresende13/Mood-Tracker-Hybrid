@@ -45,7 +45,7 @@ function Address ({entry}) {
         return(
             <View style={styles.cardRow}>
                 <Text numberOfLines={ isCollapsed } onPress={ () => { setIsCollapsed( isCollapsed ? 0 : 1 ) }} style={styles.text}>
-                    <Icon name='pin' height={16} width={16} fill='rgba(255,255,255,0.75)' style={{marginRight: 10}} />
+                    <Icon name='pin' height={16} width={16} fill='rgba(255,255,255,0.75)' style={{marginRight: 7}} />
                     {entry.address}
                 </Text>
             </View>        
