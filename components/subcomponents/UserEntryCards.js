@@ -12,7 +12,6 @@ const appServerURI = 'https://mood-tracker-server.herokuapp.com/'
 
 // Defining mood colors schema
 const moodColors = {'Horrível': '#ff3333', 'Mal': '#0099cc', 'Regular': '#ffffff', 'Bem': '#ffff33', 'Ótimo': '#00b300'};
-const monthDict = {'Jan': '01', 'Feb': '02', 'Mar': '03', 'Apr': '04', 'May': '05', 'Jun': '06', 'Jul': '07', 'Ago': '08', 'Sep': '09', 'Oct': '10', 'Nov': '11', 'Dec': '12'}
 
 function MoodHeader({entry}) {
     return(
@@ -32,15 +31,7 @@ function MoodHeader({entry}) {
 
 function Address ({entry}) {
 
-    const [isCollapsed, setIsCollapsed] = useState(1);
-
-    // const onAddressPress = (event) => {
-
-    //     console.log('isCollapsed: ' + isCollapsed)
-    //     var ping = isCollapsed ? 0 : 1
-    //     setIsCollapsed( ping )
-    // }
-
+    const [isCollapsed, setIsCollapsed] = useState( 1 );
     if (entry.address) {
         return(
             <View style={styles.cardRow}>
@@ -61,8 +52,8 @@ function Emotions ({entry}) {
             <View style={[styles.cardRow, {flexWrap: 'wrap', justifyContent: 'flex-start'}]}>
                 { entry.emotions.map((emotion, index) => {
                     return(
-                        <Pressable style={{paddingVertical: 5, paddingHorizontal: 2}}>
-                            <Text key={index} style={[styles.emotionBadge]}>{emotion}</Text>
+                        <Pressable key={'emotion-' + emotion} style={{paddingVertical: 5, paddingHorizontal: 2}}>
+                            <Text style={[styles.emotionBadge]}>{emotion}</Text>
                         </Pressable>
                     )
                 })}
@@ -75,10 +66,10 @@ function Emotions ({entry}) {
     }
 }
 
-function Jornal ({entry}) {
+function Jornal({ entry }) {
     if (entry.jornal) {
         return(
-            <View style={styles.cardRow}>    
+            <View style={styles.cardRow}>
                 <Text style={styles.textBadge}>{entry.jornal}</Text>
             </View>
         )
@@ -89,7 +80,7 @@ function Jornal ({entry}) {
 
 function EntryCard({ entry }) {
     return (
-        <View key={entry._id} style={styles.card}>
+        <View style={styles.card}>
             <MoodHeader entry={entry} />
             <Emotions entry={entry} />
             <Address entry={entry} />
@@ -133,8 +124,8 @@ export default class UserEntryCards extends Component {
     componentDidMount() {
         console.log('"Subcomponent UserEntryCards did mount..."')
         this.syncUserEntries()
+        setInterval( () => { this.updateIfNewPost() }, 1000 * 2 )
         // setInterval( () => { console.log('Default auto syncing started...'); this.syncUserEntries() }, 1000 * 10 )
-        setInterval( () => { this.updateIfNewPost() }, 1000 * 1 )
         
     }
 
@@ -147,10 +138,11 @@ export default class UserEntryCards extends Component {
     }
 
     UserEntryCardsList() {
-
+        
         const selDateEntries = this.state.userEntries.filter( (entry) => entry.date === this.props.date )
+
         if (selDateEntries.length) {
-            return selDateEntries.map(entry => <EntryCard entry={entry} />)
+            return selDateEntries.map( entry => <EntryCard key={'entry-card-' + entry.startTime} entry={entry} />)
         
         } else if (this.state.isEntriesSyncing) {    
             return <CardsLoadingMessage />
@@ -172,9 +164,10 @@ export default class UserEntryCards extends Component {
 
             if (UsersResult.ok) {
                 const users = await UsersResult.json();
-                const user = users.filter((user) => user.username === this.props.userInfo.username)[0]
+                const user = users.filter((user) => user.email === this.props.userInfo.email)[0]
                 console.log('fetch GET request for user entries successful.')
                 console.log(usersStatus)
+
                 this.setState({userEntries: user['entries'].reverse(), entriesSynced: true})  
                 console.log('SYNC ENTRIES STATUS: Successful.')
 
@@ -194,7 +187,7 @@ export default class UserEntryCards extends Component {
     }
 
     render() {
-        console.log('"Rendering UserEntryCards subcomponent..."')
+        console.log('"Rendering "UserEntryCards" subcomponent..."')
         return this.UserEntryCardsList()
     }
 }

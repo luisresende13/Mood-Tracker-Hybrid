@@ -160,10 +160,10 @@ export default class PostEntranceScreen extends Component {
                     }
                 })
                 .then(json => {
-                    this.setState({weather: json})
                     console.log('FETCH WEATHER STATUS: SUCCESSFUL!')
                     console.log('Fetch weather response:')
                     console.log(json);
+                    this.setState({weather: json})
                 });
           
             } catch(error) {
@@ -345,6 +345,7 @@ export default class PostEntranceScreen extends Component {
         return(
             emotions.map( emotion => (
                 <Pressable
+                key={'emotion-' + emotion}
                 title={emotion}
                 style={ {paddingVertical: 5} }
                 onPress={this.onEmotionButtonPress(emotion)}
@@ -379,7 +380,7 @@ export default class PostEntranceScreen extends Component {
         if (this.state.selectedEntry === sectionName) {
             if (sectionName == 'Emoções') {
                 return emotionGroups.map((emotions, index) => (
-                    <View style={{width: '100%', alignItems: 'center'}}>
+                    <View key={'emotion-group-' + index} style={{width: '100%', alignItems: 'center'}}>
                         <Text style={{fontSize: 15, color: 'white', paddingVertical: 11}}>{emotionGroupsNames[index]}</Text>
                         <View key={index} style={[styles.cardRow, inputStyle]}>
                             {inputs(emotions)}
@@ -446,7 +447,7 @@ export default class PostEntranceScreen extends Component {
                 body: JSON.stringify( newEntry ),
             }
             var postUserEntryResult = await fetch( corsURI + appServerURI + 'Users/' + info.username + '/entries', postUserEntryOpts);
-            // var postUserEntryResult = await fetch('http://localhost:3000/Users/'+info.username +'/entries', postUserEntryOpts);
+            // var postUserEntryResult = await fetch('http://localhost:3000/Users/' + info.username + '/entries', postUserEntryOpts);
 
             if (postUserEntryResult.ok) {
                 console.log('fetch POST request successful')
@@ -464,7 +465,6 @@ export default class PostEntranceScreen extends Component {
 
         } finally {
             this.setState({ isLoading: false });
-        
     }
 }
   
@@ -473,6 +473,7 @@ export default class PostEntranceScreen extends Component {
 
         return(
             <ImageBackground source={require('../assets/wallpaper.jpg')} style={styles.mainView}>
+
                 <ScrollView style={styles.scrollView}>
                     <View style={styles.section}>
                             {this.postEntryHeader()}

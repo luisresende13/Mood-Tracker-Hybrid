@@ -118,7 +118,6 @@ export default class EntrancesScreen extends Component {
                                         <Icon name='arrow-forward' width={35} height={35} fill='white' />
                                     </Pressable>   
                                 ) : (
-                                    // <></>
                                     <View style={{height: 35, width: 35}}></View>
                                 )}
                             </View>

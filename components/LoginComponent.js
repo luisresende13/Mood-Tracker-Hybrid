@@ -4,8 +4,78 @@ import React, { Component } from 'react';
 import { View, Text, ImageBackground, TextInput, Pressable } from 'react-native';
 import styles from '../styles/loginStyles'
 
+// App server connection settings
 const corsURI = 'https://morning-journey-78874.herokuapp.com/'
 const appServerURI = 'https://mood-tracker-server.herokuapp.com/'
+
+// Email Validation settings
+
+// const Verifier = require('email-verifier')
+const emailVerification_APIKEY = "at_TPKXmSQnStekLzTbstLO9GyHvd7or"
+// let verifier = new Verifier(emailVerification_APIKEY);
+const emailVerification_APIURI = (emailAddress) => `https://emailverification.whoisxmlapi.com/api/v2?apiKey=${emailVerification_APIKEY}&emailAddress=${emailAddress}`
+const falseParams = ['validateDNS', 'checkCatchAll', 'checkFree', 'checkDisposable']
+function appendValueToUri(uri, params, value) {
+  for (let param of params) {
+    uri += '&' + param + '=' + value
+  }
+  return uri
+}
+
+async function validateEmail(email) {
+
+  console.log('EMAIL VERIFICATION STATUS: Fetching email verification api...')
+
+  try {
+
+    var uri = emailVerification_APIURI(email)
+    uri = appendValueToUri(uri, falseParams, '0')
+    var emailStatus = {ok: false, status: 'Email não verificado.'}
+    const apiResp = await fetch( uri , { method: 'GET' } )
+  
+    if (apiResp.ok) {
+  
+      console.log('EMAIL VERIFICATION STATUS: Api fetch request successful.')
+      const apiRespJson = await apiResp.json()
+  
+      if ( apiRespJson.formatCheck=='false' ) {
+        emailStatus.status = 'Email inválido.'
+      } else if ( apiRespJson.smtpCheck=='false' ) {
+        emailStatus.status = 'Email não existe.'
+      } else {
+        emailStatus = {ok: true, status: 'Email válido.'}
+      }
+      
+      return emailStatus
+  
+    } else {
+      console.log('EMAIL VERIFICATION STATUS: Api fetch request failed. Throwing error...')
+      throw new Error('Status: ' + apiResp.status + ', Status Text: ' + apiResp.statusText)
+    }  
+
+  } finally {
+    console.log('EMAIL VERIFICATION STATUS: Concluído')
+
+  }
+  // Use the email verification api using its module...
+  // verifier.verify(email, (err, data) => {
+  //   if (err) throw err;
+  //   console.log(data);
+  // });
+}
+
+function validatePassword(password) {
+  console.log('VALIDATING PASSWORD FOR SIGNUP...')
+
+  const hasMinLength = password.length > 6
+  var res
+  if (!hasMinLength) {
+    res = {ok: false, status: 'A senha deve ter no mínimo 6 caractéres.'}
+  } else {
+    res = {ok: true, status: 'Senha válida.'}
+  }
+  return res
+}
 
 class LoginScreen extends Component {
 
@@ -15,7 +85,7 @@ class LoginScreen extends Component {
     this.state = {
       userInfo: {
         password: '',
-        email: '',    
+        email: '',
         username: '',
       },
       loginMsg: '',
@@ -28,19 +98,13 @@ class LoginScreen extends Component {
     this.setLoginMsg = this.setLoginMsg.bind(this);
     this.onSignIn = this.onSignIn.bind(this);
     this.onSignUp = this.onSignUp.bind(this);
-    
   }
 
-  loadingIcon() {
-
+  LoginIcon() {  
     if (this.state.isDataLoading) {
-      return  <Icon name='loader-outline' animation='pulse' width={25} height={25}></Icon>
+      return <Icon name='loader-outline' animation='pulse' width={25} height={25}></Icon>
     } else {
-      return (
-        <>
-          <Icon name='log-in-outline' animation='pulse' width={25} height={25}></Icon>
-        </>
-      )
+      return <Icon name='log-in-outline' animation='pulse' width={25} height={25}></Icon>
     }
   }
 
@@ -79,10 +143,10 @@ class LoginScreen extends Component {
     for (var i=0; i<this.state.userInfo.password.length; i++) {
       encPass += '*'
     }
-  return encPass
-}
+    return encPass
+  }
 
-  LoginScreen() {
+  LoginScreen = () => {
     return(
       <ImageBackground source={require('../assets/wallpaper.jpg')} style={[styles.login.mainView ,{justifyContent: 'space-evenly'}]}>
         
@@ -106,9 +170,8 @@ class LoginScreen extends Component {
             </TextInput>
             <TextInput
             placeholder='Senha'
-            onChangeText={this.onChangeText('password')}
             style={styles.login.inputField}
-            // value={this.encryptedPassword()}
+            onChangeText={this.onChangeText('password')}
             secureTextEntry={true}
             autoComplete='password'
             importantForAutofill='yes'
@@ -119,11 +182,11 @@ class LoginScreen extends Component {
             {this.submitButton('signup')}
           </View>
           <View style={[styles.login.cardSection]}>
-            {this.loadingIcon()}
+            {this.LoginIcon()}
           </View>
         </View>
 
-          {this.loginMsg()}
+        {this.loginMsg()}
 
       </ImageBackground>
     )
@@ -192,8 +255,19 @@ class LoginScreen extends Component {
     this.setState({ isDataLoading: true });
     
     try {
-      var UsersResult = await fetch( corsURI + appServerURI + 'Users', { method: 'GET' } );
-      
+
+      var postUserResult = {ok: false}
+
+      // Validating email and password
+      const emailValidation = await validateEmail(info.email)
+      console.log('SING UP STATUS: ' + emailValidation.status)
+      if (!emailValidation.ok) {
+          this.setLoginMsg(emailValidation.status)
+          return
+      }
+
+      // Checking if email is already registerd
+      var UsersResult = await fetch( corsURI + appServerURI + 'Users', { method: 'GET' } );  
       const reqStatus = 'Status: ' + UsersResult.status + ', ' + UsersResult.statusText
       if (UsersResult.ok) {
         console.log('fetch GET request for users data at signup successful.')
@@ -205,9 +279,17 @@ class LoginScreen extends Component {
 
       const Users = await UsersResult.json();
       const User = Users.filter((user) => user.email === info.email)[0]
-      var postUserResult = {ok: false}
       if ( !User ) {
 
+        // Validating Password
+        const passwordCheck = validatePassword(info.password)
+        if (!passwordCheck.ok) {
+          console.log('SING UP STATUS: ' + passwordCheck.status)
+          this.setLoginMsg(passwordCheck.status)
+          return
+      }
+
+        // Registering new user by posting user identification to database
         info.username = info.email.split('@')[0]
         const postUserOpts = { 
           method: 'POST',
@@ -232,7 +314,7 @@ class LoginScreen extends Component {
           throw new Error(postUserStatus)
         }
 
-      } else { // ready to post user info and create new user account.
+      } else {
         const errMsg = 'Email já cadastrado.'
         this.setLoginMsg(errMsg)
         console.log('SING UP STATUS: ' + errMsg)
