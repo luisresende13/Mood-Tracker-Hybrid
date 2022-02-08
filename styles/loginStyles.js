@@ -13,13 +13,15 @@ var styles = {
             minHeight: 60,
         },
         title: {
-            fontSize: 25,
+            fontSize: 30,
             fontWeight: 'bold',
             color: 'white',
             alignSelf: 'center',
         },
         titleIcon: {
-            paddingLeft: 6,
+            width: 30,
+            height: 30,
+            marginLeft: 6,
             paddingTop: 3,
         },
         card: {
@@ -65,6 +67,7 @@ var styles = {
             height: 40,
             width: '100%',
             textAlign: 'center',
+            alignItems: 'center',
             justifyContent: 'center',
             borderWidth: 1,
             borderRadius: 5,

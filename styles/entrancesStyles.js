@@ -56,7 +56,6 @@ const styles = {
         borderBottomWidth: 1,
         borderColor: 'rgba(155,155,155,0.3)',
         alignSelf: 'center',
-
     },
     sectionTitle: {
         paddingVertical: 7.5,
@@ -86,28 +85,29 @@ const styles = {
         textAlign: 'center',
     },
     emotionBadge: {
-        fontFamily: 'sans-serif',
-        backgroundColor: 'aliceblue',
-        borderRadius: 30,
-        paddingVertical: 7,
+        // fontFamily: 'sans-serif',
+        backgroundColor: 'ghostwhite',
+        borderRadius: 18,
+        paddingVertical: 6,
         paddingHorizontal: 12.5,
         marginRight: 6,
         fontSize: 15,
         textAlign: 'center',
     },
     textBadge: {
-        fontFamily: 'sans-serif',
-        backgroundColor: 'aliceblue',
-        borderRadius: 20,
-        paddingVertical: 4,
-        paddingHorizontal: 10,
+        backgroundColor: 'ghostwhite',
+        borderRadius: 17,
+        paddingTop: 5,
+        paddingBottom: 8,
+        paddingHorizontal: 11,
         width: '100%',
-        fontSize: 14,
+        fontSize: 15,
         lineHeight: 22,
         textAlign: 'left',
-    },
+        textAlignVertical: 'top',
+},
     text: {
-        fontFamily: 'sans-serif',
+        // fontFamily: 'sans-serif',
         fontSize: 14,
         color: 'white'
     },
@@ -116,12 +116,11 @@ const styles = {
     },
     icon: {
         paddingHorizontal: 12,
-        },
+    },
     entryIcon: {
         paddingRight: 0,
         borderWidth: 1,
-        },
-    
+    }    
 };
 
 export default styles;

@@ -1,19 +1,40 @@
-import { Icon } from 'react-native-eva-icons'
-
-import React, { Component, useState, useEffect } from 'react';
-import { Text, ImageBackground} from 'react-native';
+import React, { Component } from 'react';
+import { View, Text, Button, ImageBackground} from 'react-native';
 
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+// import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 //import { createDrawerNavigator } from '@react-navigation/drawer';
 
+// Custom Components
 import EntrancesScreen from './components/EntrancesComponent';
 import PostEntranceScreen from './components/PostEntryComponent';
 import LoginScreen from './components/LoginComponent'
 
-const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
+// const Tab = createBottomTabNavigator();
+
+// const EntrancesScreen = (props) => (
+//   <View style={styles.app.background}>
+//   <Button title='Tela de entradas. Clique para postar...' onPress={() => props.navigation.navigate('PostEntrance') }>
+//     <Text></Text>
+//   </Button>
+//   </View>
+// )
+
+// const PostEntranceScreen = (props) => (
+//   <View style={styles.app.background}>
+//   <Button title='Tela de postar entradas. Clique para voltar...' onPress={() => props.navigation.navigate('Entrances') }>
+//   </Button>
+//   </View>
+// )
+
+// const LoginScreen = (props) => (
+//   <View style={styles.app.background}>
+//   <Button title='Clique para entrar' onPress={() => props.authUser({username: 'example', password: 'example', email: 'email@example.com'})}>
+//   </Button>
+//   </View>
+// )
 
 const HomeScreen = (props) => {
 
@@ -70,7 +91,7 @@ function SettingsScreen() {
 //   },
 // })
 
-class App extends Component {
+export default class App extends Component {
 
   constructor(props) {
     super(props);
@@ -79,6 +100,7 @@ class App extends Component {
       isUserAuth: false,
       userInfo: null,
     };
+
     this.authUser = this.authUser.bind(this);
   }
 
@@ -111,6 +133,14 @@ class App extends Component {
       );  
     }
   }
-} 
+}
 
-export default App;
+const styles = {
+  app: {
+    background: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center'  
+    }
+  }
+}

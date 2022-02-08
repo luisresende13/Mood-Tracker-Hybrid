@@ -4,15 +4,15 @@ import { View, Text, ImageBackground, Pressable, ScrollView } from 'react-native
 import { Icon } from 'react-native-eva-icons'
 
 // Component imports
-import UserEntryCards from './subcomponents/userEntryCards';
+import UserEntryCards from './subcomponents/UserEntryCards';
 
 // Local imports
 import dateRange from '../shared/dateRange';
 import styles from '../styles/entrancesStyles';
 
 // cors-midpoint uri (needed to avoid cors' allow-cross-origin error when fetching)
-const corsURI = 'https://morning-journey-78874.herokuapp.com/';
-const appServerURI = 'https://mood-tracker-server.herokuapp.com/'
+// const corsURI = 'https://morning-journey-78874.herokuapp.com/';
+// const appServerURI = 'https://mood-tracker-server.herokuapp.com/'
 
 // Defining pertinent constants
 const monthDict = {'Jan': '01', 'Feb': '02', 'Mar': '03', 'Apr': '04', 'May': '05', 'Jun': '06', 'Jul': '07', 'Ago': '08', 'Sep': '09', 'Oct': '10', 'Nov': '11', 'Dec': '12'}

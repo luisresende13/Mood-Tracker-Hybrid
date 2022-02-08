@@ -1,9 +1,8 @@
 {
   "expo": {
-    "name": "mood-tracker-hybrid",
-    "slug": "mood-tracker-hybrid",
+    "name": "mood-tracker-app",
+    "slug": "mood-tracker-app",
     "version": "1.0.0",
-    "homepage": "https://luisresende13.github.io/mood-tracker",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "splash": {
@@ -25,8 +24,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
       },
-      "package": "com.luisresende13.moodtrackerhybrid",
-      "versionCode": 1
+      "package": "com.luisresende13.moodtrackerapp"
     },
     "web": {
       "favicon": "./assets/favicon.png"

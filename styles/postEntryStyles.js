@@ -50,7 +50,6 @@ const styles = {
   },
   entryIcon: {
     paddingRight: 0,
-    borderWidth: 1,
   },
   postButtonView: {
     height: 60,
@@ -91,8 +90,9 @@ const styles = {
   },
   jornalText: {
     paddingVertical: 5,
-    paddingHorizontal: 10,
-    minHeight:170,
+    paddingHorizontal: 12,
+    flex: 1,
+    textAlignVertical: 'top',
     width: '100%',
     borderRadius: 20,
     color: 'white',
@@ -106,6 +106,10 @@ const styles = {
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'white'
+  },
+  saveButtonLabel: {
+    fontWeight:'bold',
+    fontSize: 19
   },
   card: {
     marginTop: '5%',
@@ -130,11 +134,12 @@ const styles = {
   emotionBadge: {
       backgroundColor: 'rgba(1,1,1,0.5)',
       borderRadius: 30,
-      paddingVertical: 7,
+      paddingVertical: 6,
       paddingHorizontal: 12.5,
-      marginRight: 6,
       fontSize: 15,
       textAlign: 'center',
+      marginVertical: 5,
+      marginHorizontal: 5
   },
   entryCardEmotionBadge: {
     fontFamily: 'sans-serif',
@@ -145,8 +150,11 @@ const styles = {
     marginRight: 6,
     fontSize: 15,
     textAlign: 'center',
-},
-
+  },
+  datetimeTitle: {
+    fontSize: 16,
+    marginRight: 3,
+  },
 }
 
 export default styles;

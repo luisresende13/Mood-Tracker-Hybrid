@@ -1,11 +1,11 @@
 import { Icon } from 'react-native-eva-icons'
 
 import React, { Component } from 'react';
-import { View, Text, ImageBackground, TextInput, Pressable } from 'react-native';
+import { View, Text, ImageBackground, TextInput, Pressable, Platform } from 'react-native';
 import styles from '../styles/loginStyles'
 
 // App server connection settings
-const corsURI = 'https://morning-journey-78874.herokuapp.com/'
+const corsURI = Platform.OS == 'web' ? 'https://morning-journey-78874.herokuapp.com/' : ''
 const appServerURI = 'https://mood-tracker-server.herokuapp.com/'
 
 // Email Validation settings
@@ -102,9 +102,9 @@ class LoginScreen extends Component {
 
   LoginIcon() {  
     if (this.state.isDataLoading) {
-      return <Icon name='loader-outline' animation='pulse' width={25} height={25}></Icon>
+      return <Icon name='loader-outline' animation='pulse' fill='#000000' width={30} height={30} />
     } else {
-      return <Icon name='log-in-outline' animation='pulse' width={25} height={25}></Icon>
+      return <Icon name='log-in-outline' animation='pulse' fill='#000000' width={30} height={30} />
     }
   }
 
@@ -151,8 +151,9 @@ class LoginScreen extends Component {
       <ImageBackground source={require('../assets/wallpaper.jpg')} style={[styles.login.mainView ,{justifyContent: 'space-evenly'}]}>
         
         <View style={styles.login.titleView}>
+          {/* <View style={styles.login.titleIcon}></View> */}
           <Text style={styles.login.title}>Mood Tracker</Text>
-          <Icon name='clock-outline' width={25} height={25} fill='white' animation='pulse' style={styles.login.titleIcon} ></Icon>
+          {/* <Icon name='clock' width={25} height={25} fill='white' animation='pulse' style={styles.login.titleIcon} /> */}
         </View>
 
         <View style={styles.login.card}>
@@ -162,17 +163,19 @@ class LoginScreen extends Component {
           <View style={styles.login.cardSection}>
             <TextInput
             placeholder='Email'
-            onChangeText={this.onChangeText('email')}
+            textContentType='emailAddress'
             style={styles.login.inputField}
+            onChangeText={this.onChangeText('email')}
             autoComplete='email'
             importantForAutofill='yes'
             >
             </TextInput>
             <TextInput
             placeholder='Senha'
+            textContentType='password'
+            secureTextEntry={true}
             style={styles.login.inputField}
             onChangeText={this.onChangeText('password')}
-            secureTextEntry={true}
             autoComplete='password'
             importantForAutofill='yes'
             ></TextInput>
@@ -200,13 +203,15 @@ class LoginScreen extends Component {
 
     try {
 
-      var UsersResult = await fetch(corsURI + appServerURI + 'Users', { method: 'GET' });
-      const UsersStatus = 'Status: ' + UsersResult.status + ', ' + UsersResult.statusText
+      var UsersResult = await fetch( corsURI + appServerURI + 'Users', { method: 'GET' });
+      const UsersStatus = 'Status: ' + UsersResult.status + ', ' + 'Status Text: ' + UsersResult.statusText
       if (UsersResult.ok) {
         console.log('fetch GET request for users data at signin successful.');
         console.log(UsersStatus)
       } else {
-        console.log('fetch GET request for users data at signin failed. Throwing error...')
+        console.log('fetch GET request for users data at signin failed. Printing fetch response...')
+        console.log(JSON.stringify(UsersResult))
+        console.log('Throwing error...')
         throw new Error(UsersStatus)
       }
 

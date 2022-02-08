@@ -1,13 +1,14 @@
 // Module import
 import React, { Component, useState } from 'react';
-import { View, Text, Pressable} from 'react-native';
+import { View, Text, Pressable, Platform } from 'react-native';
 import { Icon } from 'react-native-eva-icons'
 
 // Local import
 import styles from '../../styles/entrancesStyles'
 
-// cors-midpoint uri (needed to avoid cors' allow-cross-origin error when fetching)
-const corsURI = 'https://morning-journey-78874.herokuapp.com/'
+// cors-midpoint uri (needed to avoid cors' allow-cross-origin error when fetching in web platforms)
+const corsURI = Platform.OS == 'web' ? 'https://morning-journey-78874.herokuapp.com/' : ''
+// App server connection uri
 const appServerURI = 'https://mood-tracker-server.herokuapp.com/'
 
 // Defining mood colors schema
@@ -18,10 +19,10 @@ function MoodHeader({entry}) {
         <View style={[styles.cardRow, styles.spaceBetween]}>
             <View style={{flexDirection: 'row', alignItems: 'center'}}>
                 <Text style={[styles.moodBadge, {backgroundColor: moodColors[entry.mood]}]}>{entry.mood}</Text>
-                { entry.star ? <Icon name='star' fill='gold' width={27} height={27} style={{paddingLeft: 15, paddingBottom: 2}} ></Icon> : <></> }
+                { entry.star ? <Icon name='star' fill='gold' width={27} height={27} style={{marginLeft: 12}} /> : <></> }
             </View>
             <View style={[styles.cardRow]}>
-                <Icon name='edit' height={18} width={18} fill='rgba(255,255,255,0.65)' style={{paddingRight: 8}} />
+                <Icon name='edit' height={18} width={18} fill='rgba(255,255,255,0.75)' style={{marginRight: 6}} />
                 <Text style={styles.text}>{entry.startTime.slice(0,5)}</Text>
             </View>
         </View>
@@ -36,7 +37,7 @@ function Address ({entry}) {
         return(
             <View style={styles.cardRow}>
                 <Text numberOfLines={ isCollapsed } onPress={ () => { setIsCollapsed( isCollapsed ? 0 : 1 ) }} style={styles.text}>
-                    <Icon name='pin' height={16} width={16} fill='rgba(255,255,255,0.75)' style={{marginRight: 7}} />
+                    <Icon name='pin' height={17} width={17} fill='rgba(255,255,255,0.75)' style={{marginRight: 5, top: 2}} />
                     {entry.address}
                 </Text>
             </View>        
@@ -49,7 +50,7 @@ function Address ({entry}) {
 function Emotions ({entry}) {
     if (entry.emotions.length>0) {
         return (
-            <View style={[styles.cardRow, {flexWrap: 'wrap', justifyContent: 'flex-start'}]}>
+            <View style={[styles.cardRow, {flexWrap: 'wrap', justifyContent: 'flex-start', paddingTop: 2, PaddingBottom: 0}]}>
                 { entry.emotions.map((emotion, index) => {
                     return(
                         <Pressable key={'emotion-' + emotion} style={{paddingVertical: 5, paddingHorizontal: 2}}>
@@ -70,7 +71,11 @@ function Jornal({ entry }) {
     if (entry.jornal) {
         return(
             <View style={styles.cardRow}>
-                <Text style={styles.textBadge}>{entry.jornal}</Text>
+                
+                <Text style={styles.textBadge}>
+                    <Icon name='book-open' height={20} width={20} fill='rgba(0,0,0,0.25)' style={{top: 4, left: 1, marginRight: 6}} />
+                    {entry.jornal}
+                </Text>
             </View>
         )
     } else {
@@ -93,7 +98,7 @@ function EmptyCard(props) {
     const textStyle = {fontSize: 16, color: 'white', marginTop: 7}
     return (
         <Pressable onPress={ () => props.navigation.navigate( 'PostEntrance', {} ) } style={[styles.card, {alignItems: 'center', justifyContent: 'center', fontSize: 16, height: 145}]}>
-            <Icon name='inbox' fill='rgba(255,255,255,0.3)' width={25} height={25} ></Icon>
+            <Icon name='inbox' fill='rgba(255,255,255,0.3)' width={25} height={25} />
             <Text style={textStyle}> Nenhuma entrada encontrada. </Text>
             <Text style={textStyle}> Pressione aqui para adicionar uma a este dia! </Text>
         </Pressable>
@@ -103,7 +108,7 @@ function EmptyCard(props) {
 function CardsLoadingMessage() {
     return(
         <View style={[styles.card, {alignItems: 'center', justifyContent: 'center', height: 145}]}>
-            <Icon name='sync-outline' fill='rgba(0,0,0,0.3)' width={25} height={25} ></Icon>
+            <Icon name='sync-outline' fill='rgba(0,0,0,0.3)' width={25} height={25} />
         </View>
     )
 }
@@ -124,7 +129,7 @@ export default class UserEntryCards extends Component {
     componentDidMount() {
         console.log('"Subcomponent UserEntryCards did mount..."')
         this.syncUserEntries()
-        setInterval( () => { this.updateIfNewPost() }, 1000 * 2 )
+        setInterval( () => { this.updateIfNewPost() }, 1000 * 5 )
         // setInterval( () => { console.log('Default auto syncing started...'); this.syncUserEntries() }, 1000 * 10 )
         
     }
@@ -138,11 +143,10 @@ export default class UserEntryCards extends Component {
     }
 
     UserEntryCardsList() {
-        
         const selDateEntries = this.state.userEntries.filter( (entry) => entry.date === this.props.date )
 
         if (selDateEntries.length) {
-            return selDateEntries.map( entry => <EntryCard key={'entry-card-' + entry.startTime} entry={entry} />)
+            return selDateEntries.map( entry => <EntryCard key={'entry-card-'+entry.startTime} entry={entry} />)
         
         } else if (this.state.isEntriesSyncing) {    
             return <CardsLoadingMessage />
