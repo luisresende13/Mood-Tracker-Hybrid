@@ -133,7 +133,7 @@ export default class EntrancesScreen extends Component {
 
                 </ScrollView>
 
-                <Pressable onPress={() => { this.props.navigation.navigate( 'PostEntrance', {} )} }  style={[styles.postButton]}>
+                <Pressable onPress={() => { this.props.navigation.navigate( 'PostEntrance', {currentEntry: 'new'} )} }  style={[styles.postButton]}>
                         <Icon name='plus-circle' width={72} height={72} fill='white' style={styles.postButtonLabel}/>
                 </Pressable>
   

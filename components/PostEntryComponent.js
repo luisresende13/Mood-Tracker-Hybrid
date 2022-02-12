@@ -108,6 +108,7 @@ export default class PostEntranceScreen extends Component {
             
             date: Today(),
             startTime: getTime(),
+            endTime: null,
             star: false,
             selectedMood: '',
             emotions: [],
@@ -120,14 +121,16 @@ export default class PostEntranceScreen extends Component {
             isSelectedEmotions: isSelectedEmotions,
             isLoading: false,
             isFetchingLocationOrWeather: false,
+            editCheck: false,
 
             locationServiceEnabled: null,
             userCoordinates: null,
-            userAddressList: [],
 
             loginMsg: '',
         };
 
+        this.onComponentDidMount = this.onComponentDidMount.bind(this);
+        this.fillEntryIfEdit = this.fillEntryIfEdit.bind(this);
         this.onSaveButtonPress = this.onSaveButtonPress.bind(this);
         this.saveButton = this.saveButton.bind(this);
         this.EmotionButtons = this.EmotionButtons.bind(this);
@@ -143,12 +146,59 @@ export default class PostEntranceScreen extends Component {
     }
 
     componentDidMount() {
-        this.setState({isFetchingLocationOrWeather: true})
-        console.log('PostEntryScreen component did mount. Fetching user position and weather data...')
-        this.checkIfLocationEnabled();
-        this.getCurrentLocation();
+        this.onComponentDidMount()
     }
     
+    onComponentDidMount() {
+        console.log('"PostEntryComponent" did mount.')
+        this.fillEntryIfEdit()
+    }
+
+    fillEntryIfEdit() {
+        if (this.props.route.params.currentEntry !== 'new') {
+
+            if (this.state.editCheck) {
+            console.log('EDIT MODE SKIPPED. ALREADY INITIALIZED.')
+            return
+            }
+
+            const currentEntry = this.props.route.params.currentEntry
+            console.log('INITIALIZING EDIT MODE! FILLING ENTRY FOR ID: ' + currentEntry._id)
+
+            var isSelectedEmotionsNew = {}
+            for ( let emotion of basicEmotions){
+                if (currentEntry.emotions.indexOf(emotion) != -1) {
+                    isSelectedEmotionsNew[emotion] = true
+                } else {
+                    isSelectedEmotionsNew[emotion] = false
+                }
+            }            
+
+            const oldEntry = {
+                startTime: currentEntry.startTime,
+                endTime: currentEntry.endTime,
+                date: currentEntry.date,
+                star: currentEntry.star,
+                isMoodUnmarked: false,
+                selectedMood: currentEntry.mood,
+                isSelectedEmotions: isSelectedEmotionsNew,
+                jornalEntry: currentEntry.jornal,
+                address: currentEntry.address,
+                weather: currentEntry.weather,
+                
+                editCheck: true,
+            }
+            this.setState(oldEntry)
+            console.log('EDIT MODE INITIALIZED SUCCESSFULLY!')
+
+        } else {
+            console.log('INITIATING NEW BLANK ENTRY! FETCHING LOCATION AND WEATHER DATA...')
+            this.setState({isFetchingLocationOrWeather: true})
+            this.checkIfLocationEnabled();
+            this.getCurrentLocation();
+            }
+    }
+
     postEntryHeader() {
         return(
             <View style={[styles.cardRow, {justifyContent: 'space-between'}]}>
@@ -306,7 +356,7 @@ export default class PostEntranceScreen extends Component {
           </View>
         )
     }
-  
+
     setLoginMsg(msg) {
         this.setState({loginMsg: msg})
         setTimeout( () => this.setState({loginMsg: ''}) , 1000 * 5 )
@@ -320,15 +370,23 @@ export default class PostEntranceScreen extends Component {
 
         } else {
             try {
+
+                if (this.props.route.params.currentEntry === 'new') {
+                    this.setState({
+                        endTime: getTime(),
+                        date: Today(),
+                    })
+                }
+
                 const newEntry = {
                     startTime: this.state.startTime,
-                    endTime: getTime(),
-                    date: Today(),
+                    endTime: this.state.endTime,
+                    date: this.state.date,
                     star: this.state.star,
                     mood: this.state.selectedMood,
-                    emotions: basicEmotions.filter( emotion => this.state.isSelectedEmotions[emotion] ) ,
+                    emotions: basicEmotions.filter( emotion => this.state.isSelectedEmotions[emotion] ),
                     jornal: this.state.jornalEntry,
-                    address: formattedAddress(this.state.address),
+                    address: this.state.address,
                     weather: this.state.weather,
                 }
                 this.postNewEntryAsync(newEntry)
@@ -362,17 +420,17 @@ export default class PostEntranceScreen extends Component {
     async postNewEntryAsync(newEntry) {
         this.setState({ isLoading: true });
         var info = this.props.route.params.userInfo;
-
+        const editMode = this.props.route.params.currentEntry !== 'new'
         try {
             var postUserEntryResult = {ok: false, status: '999', statusText: 'Not fetched yet.'}
             const postUserEntryOpts = { 
-                method: 'POST',
+                method: editMode? 'PUT' : 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify( newEntry ),
             }
-            postUserEntryResult = await fetch( corsURI + appServerURI + 'Users/' + info.username + '/entries', postUserEntryOpts);
+            postUserEntryResult = await fetch( corsURI + appServerURI + 'Users/' + info.username + '/entries' + (editMode ? '/'+this.props.route.params.currentEntry._id : ''), postUserEntryOpts);
             // var postUserEntryResult = await fetch('http://localhost:3000/Users/' + info.username + '/entries', postUserEntryOpts);
 
             if (postUserEntryResult.ok) {
@@ -504,7 +562,7 @@ export default class PostEntranceScreen extends Component {
                 let response = await Location.reverseGeocodeAsync({ latitude, longitude });
         
                 if (response) {
-                    this.setState({userAddressList: response, address: response[0]})
+                    this.setState({ address: formattedAddress(response[0]) })
                     console.log('GEOCODING PROCESS (REVERSE GEOCODING): REVERSE GEOCODE SUCCESSFUL! UPDATING STATE...')  
 
                 } else {

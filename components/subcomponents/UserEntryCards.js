@@ -109,21 +109,10 @@ function Jornal({ entry }) {
     }
 }
 
-function EntryCard({ entry }) {
-    return (
-        <View style={styles.card}>
-            <MoodHeader entry={entry} />
-            <Emotions entry={entry} />
-            <Address entry={entry} />
-            <Jornal entry={entry} />
-        </View>
-    );
-}
-
 function EmptyCard(props) {
     const textStyle = {fontSize: 16, color: 'white', marginTop: 7}
     return (
-        <Pressable onPress={ () => props.navigation.navigate( 'PostEntrance', {} ) } style={[styles.card, {alignItems: 'center', justifyContent: 'center', fontSize: 16, height: 145}]}>
+        <Pressable onPress={ () => props.navigation.navigate( 'PostEntrance', {currentEntry: 'new'} ) } style={[styles.card, {alignItems: 'center', justifyContent: 'center', fontSize: 16, height: 145}]}>
             <Icon name='inbox' fill='rgba(255,255,255,0.3)' width={25} height={25} />
             <Text style={textStyle}> Nenhuma entrada encontrada. </Text>
             <Text style={textStyle}> Pressione aqui para adicionar uma a este dia! </Text>
@@ -146,17 +135,24 @@ export default class UserEntryCards extends Component {
         this.state = {
             date: this.props.date,
             userEntries: [],
+            selectedEntryId: null,
             isEntriesSyncing: false,
+            isDeleteLoading: false,
             newPost: this.props.newPost,
         };
+        this.EntryCard = this.EntryCard.bind(this);
+        this.onEntryCardPress = this.onEntryCardPress.bind(this);
+        this.EditEntryButtons = this.EditEntryButtons.bind(this);
+        this.editUserEntry = this.editUserEntry.bind(this);
+        this.deleteUserEntry = this.deleteUserEntry.bind(this);
         this.syncUserEntries = this.syncUserEntries.bind(this);
     }
 
     componentDidMount() {
         console.log('"Subcomponent UserEntryCards did mount..."')
         this.syncUserEntries()
-        setInterval( () => { this.updateIfNewPost() }, 1000 * 5 )
-        // setInterval( () => { console.log('Default auto syncing started...'); this.syncUserEntries() }, 1000 * 10 )
+        setInterval( () => { this.updateIfNewPost() }, 1000 * 2 )
+        setInterval( () => { console.log('Default auto syncing started...'); this.syncUserEntries() }, 1000 * 10 )
         
     }
 
@@ -168,11 +164,64 @@ export default class UserEntryCards extends Component {
         }
     }
 
+    EditEntryButtons(props) {
+        const buttonLabels = ['Editar', 'Excluir']
+        const [isButtonPressed, setIsButtonPressed] = useState({
+            'Editar': false,
+            'Excluir': false,
+            'Mover': false,
+        })
+        const onEditButtonPress = {'Excluir': this.deleteUserEntry, 'Editar': this.editUserEntry, 'Mover': () => {console.log('Mover entrada...')}}
+        const editButtonLoading = {'Excluir': this.state.isDeleteLoading, 'Editar': false, 'Mover': false}
+
+        if (this.state.selectedEntryId == props.entryId) {
+            return(
+                <View style={styles.editButtonsView}>
+                    {buttonLabels.map( (buttonLabel, index) => (
+                        <Pressable
+                        key={`èdit-${buttonLabel}-${props.entryId}`}
+                        style={[styles.editButton,  {backgroundColor: isButtonPressed[buttonLabel] ? (buttonLabel=='Excluir' ? '#000f' : '#fff2'): '#0000', borderColor: buttonLabel=='Excluir' ? 'red' : 'white' }]}
+                        disabled={ editButtonLoading[buttonLabel] | this.state.isEntriesSyncing }
+                        onPress={ onEditButtonPress[buttonLabel] }
+                        onPressIn={() => setIsButtonPressed({ ...isButtonPressed, [buttonLabel]: !isButtonPressed[buttonLabel] })}
+                        onPressOut={() => setIsButtonPressed({ ...isButtonPressed, [buttonLabel]: !isButtonPressed[buttonLabel] })}
+                        >
+                            <Text style={[styles.editButtonLabel, {color: buttonLabel=='Excluir' ? 'red' : 'white' }]}>{buttonLabel}</Text>                    
+                        </Pressable>
+                    ))}
+            </View>
+            )
+        } else {
+            return null
+        }
+    }
+
+    onEntryCardPress(entryId) {
+        function setSelectedEntryId() {
+            this.setState({ selectedEntryId: this.state.selectedEntryId === entryId ? null : entryId })
+        }
+        return setSelectedEntryId.bind(this);
+    }
+
+    EntryCard({ entry }) {
+        return (
+            <Pressable onPress={this.onEntryCardPress(entry._id)} style={styles.card}>
+                <MoodHeader entry={entry} />
+                <Emotions entry={entry} />
+                <Address entry={entry} />
+                <Jornal entry={entry} />
+
+                <this.EditEntryButtons entryId={entry._id}/>
+
+            </Pressable>
+        );
+    }    
+
     UserEntryCardsList() {
         const selDateEntries = this.state.userEntries.filter( (entry) => entry.date === this.props.date )
 
         if (selDateEntries.length) {
-            return selDateEntries.map( entry => <EntryCard key={'entry-card-'+entry.startTime} entry={entry} />)
+            return selDateEntries.map( entry => <this.EntryCard key={'entry-card-'+entry.startTime} entry={entry} />)
         
         } else if (this.state.isEntriesSyncing) {    
             return <CardsLoadingMessage />
@@ -181,7 +230,49 @@ export default class UserEntryCards extends Component {
             return <EmptyCard navigation={this.props.navigation} />
         }
     }
+
+    editUserEntry() {
+        const currentEntry = this.state.userEntries.filter( (entry) => entry._id == this.state.selectedEntryId )[0]
+        this.props.navigation.navigate('PostEntrance', {currentEntry: currentEntry })
+    }
+
+    async deleteUserEntry() {
+
+        console.log('DELETE USER ENTRY STATUS: Started...')
+        this.setState({ isDeleteLoading: true });
+
+        // prompt()
+
+        try {
+            var UsersResult = {ok: false, status: 999}
+            UsersResult = await fetch( corsURI + appServerURI + 'Users/' + this.props.userInfo.username + '/entries/' + this.state.selectedEntryId, { method: 'DELETE' });
+            // var UsersResult = await fetch( 'https://localhost:3000/' + 'Users/' + this.props.userInfo.username + '/entries/' + this.state.selectedEntryId, { method: 'DELETE' });
+            const usersStatus =  'Status: ' + UsersResult.status + ', ' + UsersResult.statusText
+
+            if (UsersResult.ok) {
+                // const users = await UsersResult.json();
+                console.log('fetch DELETE request for user entry successful.')
+                console.log(usersStatus)
+
+                console.log('DELETE USER ENTRY STATUS: Successful.')
+
+            } else {
+                console.log( new Error('"fetch" DELETE request for user entry failed. Throwing error...') )
+                throw new Error(usersStatus)
+            }
     
+        } catch (error) {
+                console.log('DELETE USER ENTRY STATUS: Error captured. Printing error...')
+                console.log(error);
+
+        } finally {
+            this.setState({ isDeleteLoading: false });
+            console.log('DELETE USER ENTRY STATUS: FINISHED. Proceeding to sync user entries...')
+            if (UsersResult.ok) {this.syncUserEntries()}
+        }    
+
+    }
+
     async syncUserEntries() {
 
         console.log('SYNC ENTRIES STATUS: Started...')

@@ -82,7 +82,7 @@ const styles = {
         borderRadius: 30,
         paddingVertical: 6,
         width: 130,
-        fontSize: 16,
+        fontSize: 15,
         textAlign: 'center',
     },
     emotionBadge: {
@@ -92,7 +92,7 @@ const styles = {
         paddingVertical: 6,
         paddingHorizontal: 12.5,
         marginRight: 6,
-        fontSize: 15,
+        fontSize: 14,
         textAlign: 'center',
     },
     textBadge: {
@@ -121,7 +121,28 @@ const styles = {
     entryIcon: {
         paddingRight: 0,
         borderWidth: 1,
-    }    
+    },
+    editButtonsView: {
+        flexDirection: 'row',
+        height: 55,
+        paddingBottom: 5,
+        alignItems: 'flex-end',
+        justifyContent: 'space-between'
+    },
+    editButton: {
+        height: 37,
+        width: 102,
+        borderWidth: 1,
+        borderColor: 'aliceblue',
+        borderRadius: 19,
+        alignItems: 'center',
+        justifyContent: 'center'
+    },
+    editButtonLabel: {
+        fontSize: 15,
+        fontWeight: '400',
+        color: 'white',
+    },
 };
 
 export default styles;
