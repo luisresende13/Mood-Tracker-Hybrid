@@ -21,7 +21,8 @@ function openWeatherMapIconsURI (icon) {
 }
 
 // Defining mood colors schema
-const moodColors = {'Horrível': '#ff3333', 'Mal': '#0099cc', 'Regular': 'lightblue', 'Bem': '#ffff33', 'Ótimo': '#00b300'};
+// const moodColors = ['#ff3333', '#0099cc', '#add8e6', '#ffff33', '#00cc00']
+const moodColors = {'Horrível': '#ff3333', 'Mal': '#0099cc', 'Regular': '#add8e6', 'Bem': '#ffff33', 'Ótimo': '#00cc00'};
 
 
 

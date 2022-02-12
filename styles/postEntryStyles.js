@@ -87,15 +87,14 @@ const styles = {
     width: 65,
     height: 65,
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
+    borderWidth: 1,
   },
   moodButton: {
-      height: 53,
-      width: 53,
-      borderRadius: 30,
-      justifyContent: 'center',
-      marginColor: 'black',
-      marginWidth: 2,
+    width: 65,
+    height: 65,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   date: {
     position: 'relative',

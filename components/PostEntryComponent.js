@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
 import { View, Text, ImageBackground, Pressable, ScrollView, Platform, TextInput, ActivityIndicator } from 'react-native';
+
 import { Icon } from 'react-native-eva-icons'
+import VectorIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import styles from '../styles/postEntryStyles'
 
@@ -19,12 +21,14 @@ const now = new Date().toString().split(' ')
 const datetime = now[2] + ' ' + now[1] + ' ' + now[3] + ' - ' + now[4].slice(0, 5)
 
 // Mood configs
-const moodColors = ['#ff3333', '#0099cc', 'lightblue', '#ffff33', '#00b300']
 const moods = ['Horrível', 'Mal', 'Regular', 'Bem', 'Ótimo']
+const moodColorsHEX = ['#ff3333', '#0099cc', '#add8e6', '#ffff33', '#00cc00']
+const moodColorsRGBA = ['rgba(255, 51, 51, 1)', 'rgba(0, 153, 204, 1)', 'rgba(173, 216, 230, 1)', 'rgba(255, 255, 51, 1)', 'rgba(0, 204, 0, 1)']
+const moodColorsTransp = (alpha) => [`rgba(255, 51, 51, ${alpha})`, `rgba(0, 153, 204, ${alpha})`, `rgba(173, 216, 230, ${alpha})`, `rgba(255, 255, 51, ${alpha})`, `rgba(0, 204, 0, ${alpha})`]
+const moodIcons = ['emoticon-dead', 'emoticon-sad', 'emoticon-neutral', 'emoticon-happy', 'emoticon-excited']
 
 // Emotion configs
 const emotionGroupsNames = [ 'Bem & Calmo', 'Bem & Energizado', 'Mal & Calmo', 'Mal e Energizado' ]
-
 const goodEnergizedEmotions = ['Animação', 'Concentração', 'Desinibição', 'Motivação', 'Euforia']
 const goodCalmEmotions = ['Alívio', 'Calma', 'Conforto', 'Despreocupação', 'Inspiração', 'Orgulho', 'Paz', 'Relaxamento', 'Satisfação', 'Segurança', 'Criatividade']
 const badEnergizedEmotions = ['Inquietação', 'Ansiedade', 'Desespero', 'Frustração', 'Insatisfação', 'Irritação', 'Medo', 'Preocupação', 'Impaciência', 'Sobrecarregado(a)', 'Tensão']
@@ -112,6 +116,7 @@ export default class PostEntranceScreen extends Component {
             weather: null,
 
             selectedEntry: 'Avaliação',
+            isMoodUnmarked: true,
             isSelectedEmotions: isSelectedEmotions,
             isLoading: false,
             isFetchingLocationOrWeather: false,
@@ -164,9 +169,9 @@ export default class PostEntranceScreen extends Component {
     onMoodButtonPress(item) {
         function selectMood() {
             if (this.state.selectedMood==item) {
-                this.setState({selectedMood: null})
+                this.setState({selectedMood: null, isMoodUnmarked: true})
             } else {
-                this.setState({selectedMood: item})
+                this.setState({selectedMood: item, isMoodUnmarked: false})
             }
         }
         selectMood = selectMood.bind(this);
@@ -176,36 +181,18 @@ export default class PostEntranceScreen extends Component {
     MoodButtons() {
         
         return moods.map((item, index) => {
-
-            const selColor = moodColors[index]
-            const moodButtonViewStyle = {
-                width: 65,
-                height: 65,
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderWidth: this.state.selectedMood==item ? 3 : 0,
-                borderRadius: 32.5,
-                borderColor: selColor,
-            }        
-
+       
+            const selected = this.state.selectedMood == item
+            const unmarked = this.state.isMoodUnmarked
+            const selColor = moodColorsRGBA[index]
             return(
-                <View key={'mood '+index} style={moodButtonViewStyle} >
-                    <Pressable
-                    title={item}
+                <View key={'mood '+index} style={styles.moodButton} >
+                    <VectorIcon
+                    name={moodIcons[index]}
+                    size={unmarked ? 52 : (selected ? 57 : 50) }
+                    color={ unmarked ? selColor : (selected ? selColor : moodColorsTransp(0.5)[index]) }
                     onPress={this.onMoodButtonPress(item)}
-                    style={[
-                        styles.moodButton,
-                        this.state.selectedMood==item ? {
-                            fontWeight: 'bold',
-                            backgroundColor: selColor,
-                        } : {
-                            fontWeight: null,
-                            backgroundColor: selColor
-                        }
-                    ]}
-                    >
-                        <Text style={{textAlign: 'center', textAlignVertical: 'center'}}>{item}</Text>
-                    </Pressable>
+                    />
                 </View>
             )
         })
