@@ -77,7 +77,7 @@ const styles = {
         alignItems: 'center',
     },
     moodBadge: {
-        fontFamily: 'sans-serif',
+        // fontFamily: 'sans-serif',
         backgroundColor: 'green',
         borderRadius: 30,
         paddingVertical: 6,

@@ -1,6 +1,6 @@
 // Module import
 import React, { Component, useState } from 'react';
-import { View, Text, Pressable, Platform, Image } from 'react-native';
+import { Platform, View, Text, Pressable, Image } from 'react-native';
 import { Icon } from 'react-native-eva-icons'
 
 // Local import
@@ -12,20 +12,39 @@ const appServerURI = 'https://mood-tracker-server.herokuapp.com/'
 
 // OpenWeatherMap API weather icons URI:
 function openWeatherMapIconsURI (icon) {
-    return `http://openweathermap.org/img/wn/${icon}@2x.png`
+    if (Platform.OS === 'android') {
+        return `http://openweathermap.org/img/wn/${icon}@2x.png`
+
+    } else if (Platform.OS === 'web') {
+        return `https://openweathermap.org/img/wn/${icon}@2x.png`
+    }
 }
 
 // Defining mood colors schema
-const moodColors = {'Horrível': '#ff3333', 'Mal': '#0099cc', 'Regular': '#ffffff', 'Bem': '#ffff33', 'Ótimo': '#00b300'};
+const moodColors = {'Horrível': '#ff3333', 'Mal': '#0099cc', 'Regular': 'lightblue', 'Bem': '#ffff33', 'Ótimo': '#00b300'};
+
+
 
 function MoodHeader({entry}) {
     return(
         <View style={ [styles.cardRow, styles.spaceBetween] }>
             <View style={ [{flexDirection: 'row', alignItems: 'center'} ] }>
                 <Text style={[styles.moodBadge, {backgroundColor: moodColors[entry.mood]}]}>{entry.mood}</Text>
-                { entry.star ? <Icon name='star' fill='gold' width={27} height={27} style={{marginLeft: 12}} /> : <></> }
-                { entry.weather ? <Image source={openWeatherMapIconsURI(entry.weather.weather.icon)} style={{width: 40, height: 40, marginLeft: 8}} /> : <></> }
-                { entry.weather ? <Text style={{fontSize: 14, fontWeight: '500', color:'#fffc', marginLeft: 3}}> { entry.weather.main.temp.toString().slice(0,2) + ' °C' } </Text> : <></> }
+                    { entry.star ? (
+                    <View style={{height: 30, width: 42, alignItems: 'flex-end', justifyContent: 'center'}}>
+                        <Icon name='star' fill='gold' width={28} height={28} style={{}} />
+                    </View>
+                    ) : <></> }                    
+                    { entry.weather ? (
+                        <View style={{height: 30, width: 50, alignItems: 'flex-end', justifyContent: 'center'}}>
+                            <Image source={{uri: openWeatherMapIconsURI(entry.weather.weather.icon)}} style={{width: 40, height: 40}} />
+                        </View>
+                    ) : <></> }                    
+                    { entry.weather ? (
+                        <View style={{height: 30, width: 40, alignItems: 'flex-end', justifyContent: 'center'}}>
+                            <Text style={{fontSize: 14, fontWeight: '500', color:'#fffd'}}> { entry.weather.main.temp.toString().slice(0,2) + '°C' } </Text>
+                        </View>
+                    ) : <></> }                
                 
             </View>
             <View style={[styles.cardRow]}>
@@ -60,9 +79,9 @@ function Emotions ({entry}) {
             <View style={[styles.cardRow, {flexWrap: 'wrap', justifyContent: 'flex-start', paddingTop: 2, PaddingBottom: 0}]}>
                 { entry.emotions.map((emotion, index) => {
                     return(
-                        <Pressable key={'emotion-' + emotion} style={{paddingVertical: 5, paddingHorizontal: 2}}>
+                        <View key={'emotion-' + emotion} style={{paddingVertical: 5, paddingHorizontal: 2}}>
                             <Text style={[styles.emotionBadge]}>{emotion}</Text>
-                        </Pressable>
+                        </View>
                     )
                 })}
             </View>
@@ -78,7 +97,6 @@ function Jornal({ entry }) {
     if (entry.jornal) {
         return(
             <View style={styles.cardRow}>
-                
                 <Text style={styles.textBadge}>
                     <Icon name='book-open' height={20} width={20} fill='rgba(0,0,0,0.25)' style={{top: 4, left: 1, marginRight: 6}} />
                     {entry.jornal}
