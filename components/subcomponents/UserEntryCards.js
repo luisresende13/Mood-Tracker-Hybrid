@@ -1,6 +1,6 @@
 // Module import
 import React, { Component, useState } from 'react';
-import { View, Text, Pressable, Platform } from 'react-native';
+import { View, Text, Pressable, Platform, Image } from 'react-native';
 import { Icon } from 'react-native-eva-icons'
 
 // Local import
@@ -8,18 +8,25 @@ import styles from '../../styles/entrancesStyles'
 
 // cors-midpoint uri (needed to avoid cors' allow-cross-origin error when fetching in web platforms)
 const corsURI = Platform.OS == 'web' ? 'https://morning-journey-78874.herokuapp.com/' : ''
-// App server connection uri
 const appServerURI = 'https://mood-tracker-server.herokuapp.com/'
+
+// OpenWeatherMap API weather icons URI:
+function openWeatherMapIconsURI (icon) {
+    return `http://openweathermap.org/img/wn/${icon}@2x.png`
+}
 
 // Defining mood colors schema
 const moodColors = {'Horrível': '#ff3333', 'Mal': '#0099cc', 'Regular': '#ffffff', 'Bem': '#ffff33', 'Ótimo': '#00b300'};
 
 function MoodHeader({entry}) {
     return(
-        <View style={[styles.cardRow, styles.spaceBetween]}>
-            <View style={{flexDirection: 'row', alignItems: 'center'}}>
+        <View style={ [styles.cardRow, styles.spaceBetween] }>
+            <View style={ [{flexDirection: 'row', alignItems: 'center'} ] }>
                 <Text style={[styles.moodBadge, {backgroundColor: moodColors[entry.mood]}]}>{entry.mood}</Text>
                 { entry.star ? <Icon name='star' fill='gold' width={27} height={27} style={{marginLeft: 12}} /> : <></> }
+                { entry.weather ? <Image source={openWeatherMapIconsURI(entry.weather.weather.icon)} style={{width: 40, height: 40, marginLeft: 8}} /> : <></> }
+                { entry.weather ? <Text style={{fontSize: 14, fontWeight: '500', color:'#fffc', marginLeft: 3}}> { entry.weather.main.temp.toString().slice(0,2) + ' °C' } </Text> : <></> }
+                
             </View>
             <View style={[styles.cardRow]}>
                 <Icon name='edit' height={18} width={18} fill='rgba(255,255,255,0.75)' style={{marginRight: 6}} />

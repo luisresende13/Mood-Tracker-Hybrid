@@ -30,7 +30,7 @@ import { StatusBar } from 'expo-status-bar';
 const styles = {
     mainView: {
         flex: 1,                 
-        marginTop: StatusBar.currentHeight,
+        // marginTop: StatusBar.currentHeight,
     },
     postButton: {
         position: 'absolute',
@@ -47,8 +47,9 @@ const styles = {
     },
     scrollView: {
         // paddingHorizontal: Platform.OS != 'web' ? '5%' : '5%',
+        height: '100%',
         width: '100%',
-        alignSelf: 'center',
+        // alignSelf: 'center',
     },
     section: {
         width: 350,
@@ -86,7 +87,7 @@ const styles = {
     },
     emotionBadge: {
         // fontFamily: 'sans-serif',
-        backgroundColor: 'ghostwhite',
+        backgroundColor: 'aliceblue',
         borderRadius: 18,
         paddingVertical: 6,
         paddingHorizontal: 12.5,
@@ -95,7 +96,7 @@ const styles = {
         textAlign: 'center',
     },
     textBadge: {
-        backgroundColor: 'ghostwhite',
+        backgroundColor: 'aliceblue',
         borderRadius: 17,
         paddingTop: 5,
         paddingBottom: 8,

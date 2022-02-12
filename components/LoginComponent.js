@@ -1,7 +1,10 @@
+// import Icon from 'react-native-vector-icons/FontAwesome';
+// import { Ionicons } from '@expo/vector-icons';
 import { Icon } from 'react-native-eva-icons'
+// import { WiDaySunny } from "weather-icons-react";
 
 import React, { Component } from 'react';
-import { View, Text, ImageBackground, TextInput, Pressable, Platform } from 'react-native';
+import { View, Text, ImageBackground, TextInput, Pressable, Platform, ActivityIndicator } from 'react-native';
 import styles from '../styles/loginStyles'
 
 // App server connection settings
@@ -102,9 +105,9 @@ class LoginScreen extends Component {
 
   LoginIcon() {  
     if (this.state.isDataLoading) {
-      return <Icon name='loader-outline' animation='pulse' fill='#000000' width={30} height={30} />
+      return <ActivityIndicator color='#000000' />
     } else {
-      return <Icon name='log-in-outline' animation='pulse' fill='#000000' width={30} height={30} />
+      return <Icon name='log-in-outline' animation='pulse' fill='#000' width={30} height={30} />
     }
   }
 
@@ -132,18 +135,10 @@ class LoginScreen extends Component {
   submitButton(sign) {
     const signIn = sign == 'signin'
     return(
-      <Pressable onPress={signIn ? this.onSignIn : this.onSignUp} style={[styles.login.button]}>
+      <Pressable disabled={this.state.isDataLoading} onPress={signIn ? this.onSignIn : this.onSignUp} style={[styles.login.button]}>
         <Text style={styles.login.buttonLabel}>{ signIn ? 'Entrar' : 'Cadastrar' }</Text>
       </Pressable>
     )
-  }
-
-  encryptedPassword() {
-    var encPass = ''
-    for (var i=0; i<this.state.userInfo.password.length; i++) {
-      encPass += '*'
-    }
-    return encPass
   }
 
   LoginScreen = () => {
@@ -195,13 +190,29 @@ class LoginScreen extends Component {
     )
   }
 
+  isInputEmpty() {
+    if (!this.state.userInfo.email) {
+      const errMsg = 'Insira um endereço de email.'
+      this.setLoginMsg(errMsg)
+      console.log('SIGNIN STATUS: ' + errMsg)
+      return true
+    } else if (!this.state.userInfo.password) {
+      const errMsg = 'Insira uma senha.'
+      this.setLoginMsg(errMsg)
+      console.log('SIGNIN STATUS: ' + errMsg)
+      return true
+    } else return false
+  }
+
   async onSignIn() {
 
-    console.log('SIGNIN STATUS: started...')
+    console.log('SIGNIN STATUS: Started...')
     var info = this.state.userInfo;
     this.setState({ isDataLoading: true });
 
     try {
+
+      if (this.isInputEmpty()) return
 
       var UsersResult = await fetch( corsURI + appServerURI + 'Users', { method: 'GET' });
       const UsersStatus = 'Status: ' + UsersResult.status + ', ' + 'Status Text: ' + UsersResult.statusText
@@ -242,7 +253,7 @@ class LoginScreen extends Component {
     } catch (error) {
       const errMsg = 'Erro no servidor! Tente novamente...'
       this.setLoginMsg(errMsg)
-      console.log('Error catched in fetch GET request for users data at  signin. Printing Error...')
+      console.log('Error catched in fetch GET request for users data at signin. Printing Error...')
       console.log('SIGNIN STATUS:' + 'Erro capturado. Imprimindo erro...')
       console.log(error);
 
@@ -262,6 +273,7 @@ class LoginScreen extends Component {
     try {
 
       var postUserResult = {ok: false}
+      if (this.isInputEmpty()) return
 
       // Validating email and password
       const emailValidation = await validateEmail(info.email)
@@ -326,7 +338,7 @@ class LoginScreen extends Component {
       }
 
     } catch (error) {
-      const errMsg = 'Erro no servidor, não foi possível realizar o cadastro. Por favor, tente novamente.'
+      const errMsg = 'Erro no servidor, tente novamente...'
       this.setLoginMsg(errMsg)
       console.log('SING UP STATUS: Erro capturado. Imprimindo erro...')
       console.log(error);

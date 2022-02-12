@@ -106,8 +106,8 @@ export default class EntrancesScreen extends Component {
             <ImageBackground source={require('../assets/wallpaper.jpg')} style={[styles.mainView]}>
                 
                 <ScrollView style={styles.scrollView}>
-                        <View style={styles.section}>
-                            
+
+                        <View style={styles.section}>        
                             <View style={[styles.cardRow, {justifyContent: 'space-between'}]}>
                                 <Pressable onPress={ this.onNextButtonPress('previous') }>
                                     <Icon name='arrow-back' width={35} height={35} fill='white' />
@@ -129,8 +129,8 @@ export default class EntrancesScreen extends Component {
                             forgetNewPost={this.forgetNewPost()}
                             date={this.state.selectedDate}
                             />
-
                         </View>
+
                 </ScrollView>
 
                 <Pressable onPress={() => { this.props.navigation.navigate( 'PostEntrance', {} )} }  style={[styles.postButton]}>

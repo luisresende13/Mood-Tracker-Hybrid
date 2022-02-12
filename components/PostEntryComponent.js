@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
-import { View, Text, ImageBackground, Pressable, ScrollView, Platform, TextInput } from 'react-native';
-// import { TextInput } from 'react-native-gesture-handler';
+import { View, Text, ImageBackground, Pressable, ScrollView, Platform, TextInput, ActivityIndicator } from 'react-native';
 import { Icon } from 'react-native-eva-icons'
 
 import styles from '../styles/postEntryStyles'
@@ -24,15 +23,16 @@ const moodColors = ['#ff3333', '#0099cc', 'lightblue', '#ffff33', '#00b300']
 const moods = ['Horrível', 'Mal', 'Regular', 'Bem', 'Ótimo']
 
 // Emotion configs
-const emotionGroupsNames = [ 'Bem & Energizado', 'Bem & Calmo', 'Mal e Energizado', 'Mal & Calmo' ]
+const emotionGroupsNames = [ 'Bem & Calmo', 'Bem & Energizado', 'Mal & Calmo', 'Mal e Energizado' ]
 
 const goodEnergizedEmotions = ['Animação', 'Concentração', 'Desinibição', 'Motivação', 'Euforia']
-const goodCalmEmotions = ['Alívio', 'Calma', 'Conforto', 'Despreocupação', 'Inspiração', 'Orgulho', 'Paz', 'Relaxamento', 'Satisfação', 'Segurança']
-const badEnergizedEmotions = ['Agitação', 'Ansiedade', 'Tristeza', 'Decepção', 'Depressão', 'Desespero', 'Frustração', 'Insatisfação', 'Irritação', 'Medo', 'Paranoia', 'Preocupação', 'Impaciencia', 'Raiva', 'Revolta', 'Sobrecarregado(a)', 'Tensão', 'Nojo']
-const badCalmEmotions = ['Timidez', 'Cansaço', 'Confusão', 'Desanimo', 'Vergonha', 'Insegurança', 'Apátia', 'Solidão', 'Tédio']
+const goodCalmEmotions = ['Alívio', 'Calma', 'Conforto', 'Despreocupação', 'Inspiração', 'Orgulho', 'Paz', 'Relaxamento', 'Satisfação', 'Segurança', 'Criatividade']
+const badEnergizedEmotions = ['Inquietação', 'Ansiedade', 'Desespero', 'Frustração', 'Insatisfação', 'Irritação', 'Medo', 'Preocupação', 'Impaciência', 'Sobrecarregado(a)', 'Tensão']
+const badCalmEmotions = ['Depressão', 'Timidez', 'Cansaço', 'Tristeza','Confusão', 'Desanimo', 'Vergonha', 'Insegurança', 'Apátia', 'Solidão', 'Tédio']
+// const badEnergizedEmotions = ['Agitação', 'Ansiedade', 'Tristeza', 'Decepção', 'Depressão', 'Desespero', 'Frustração', 'Insatisfação', 'Irritação', 'Medo', 'Paranoia', 'Preocupação', 'Impaciencia', 'Raiva', 'Revolta', 'Sobrecarregado(a)', 'Tensão', 'Nojo']
 
-const basicEmotions = [ ...goodEnergizedEmotions, ...goodCalmEmotions, ...badEnergizedEmotions, ...badCalmEmotions ]
-const emotionGroups = [ goodEnergizedEmotions, goodCalmEmotions, badEnergizedEmotions, badCalmEmotions ]
+const emotionGroups = [ goodCalmEmotions.sort(), goodEnergizedEmotions.sort(), badCalmEmotions.sort(), badEnergizedEmotions.sort() ]
+const basicEmotions = [ ...emotionGroups[0], ...emotionGroups[1], ...emotionGroups[2], ...emotionGroups[3] ]
 
 var isSelectedEmotions = {}
 for ( let emotion of basicEmotions){
@@ -93,6 +93,8 @@ function formattedAddress(addressObj) {
     return addressObj.street + ', ' + addressObj.streetNumber + ' - ' + addressObj.district + ', ' + addressObj.subregion + '. ' + addressObj.region + ', ' + addressObj.isoCountryCode + '.'
 }
 
+// Default export: PostEntranceScreen class component
+
 export default class PostEntranceScreen extends Component {
   
     constructor(props) {
@@ -106,8 +108,8 @@ export default class PostEntranceScreen extends Component {
             selectedMood: '',
             emotions: [],
             jornalEntry: '',    
-            address: {},
-            weather: {},
+            address: null,
+            weather: null,
 
             selectedEntry: 'Avaliação',
             isSelectedEmotions: isSelectedEmotions,
@@ -117,15 +119,18 @@ export default class PostEntranceScreen extends Component {
             locationServiceEnabled: null,
             userCoordinates: null,
             userAddressList: [],
+
+            loginMsg: '',
         };
 
         this.onSaveButtonPress = this.onSaveButtonPress.bind(this);
+        this.saveButton = this.saveButton.bind(this);
         this.EmotionButtons = this.EmotionButtons.bind(this);
         this.MoodButtons = this.MoodButtons.bind(this);
         this.postEntryHeader = this.postEntryHeader.bind(this);
         this.onEmotionButtonPress = this.onEmotionButtonPress.bind(this);
         this.onMoodButtonPress = this.onMoodButtonPress.bind(this);
-        this.inputSection = this.inputSection.bind(this);
+        this.inputCardBody = this.inputCardBody.bind(this);
         this.setSelectedEntry = this.setSelectedEntry.bind(this);
         this.InputCard = this.InputCard.bind(this);
         this.JornalInput = this.JornalInput.bind(this);
@@ -139,138 +144,6 @@ export default class PostEntranceScreen extends Component {
         this.getCurrentLocation();
     }
     
-    async fetchWeather() {
-
-        try {
-
-            if (this.state.userCoordinates) {
-
-                console.log('FETCH WEATHER STATUS: STARTED...!')
-                const coords = this.state.userCoordinates
-                const lat = coords.latitude
-                const lng = coords.longitude
-                
-                await fetch(
-                    `http://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lng}&APPID=${OpenWeatherMapAPI.KEY}&units=metric`
-                )
-                .then(res => {
-                    const resStatus = 'Status: ' + res.status + ', Status Text: ' + res.statusText
-                    if (!res.ok) 
-                        throw new Error(resStatus)
-                    else {
-                        return res.json()
-                    }
-                })
-                .then(json => {
-                    // console.log('Fetch weather response:')
-                    // console.log(json);
-                    console.log('FETCH WEATHER STATUS: SUCCESSFUL!')
-                    this.setState({weather: json})
-                });
-          
-            } else {
-                console.log('FETCH WEATHER STATUS: UNABLE TO START! USER POSITION NOT AVAILABLE.')
-            }
-
-        } catch(error) {
-            console.log('FETCH WEATHER STATUS: ERROR! LOGGING ERROR...')
-            console.log(error)
-
-        } finally {
-            console.log('FETCH WEATHER STATUS: FINISHED!')    
-            this.setState({isFetchingLocationOrWeather: false})
-        }
-    }
-
-    // Check if device has location services enabled
-    async checkIfLocationEnabled () {
-
-        if ( !this.state.LocationServiceEnabled ) {
-            try{
-                console.log('GEOCODING PROCESS (CHECK): CHECKING IF USER HAS SERVICES ENABLED.' )
-                let enabled = await Location.hasServicesEnabledAsync();
-            
-                if (!enabled) {
-                    console.log('GEOCODING PROCESS (CHECK): CHECKED! USER DOES NOT HAVE SERVICES ENABLED.' )
-                    Alert.alert(
-                        'Location Service not enabled',
-                        'Please enable your location services to continue',
-                        [{ text: 'OK' }],
-                        { cancelable: false }
-                    )
-                } else {
-                    console.log('GEOCODING PROCESS (CHECK): CHECKED! USER HAS LOCATION SERVICES ENABLED.')
-                    this.setState({LocationServiceEnabled: enabled});
-                }
-
-            } catch(error) {
-                console.log("GEOCODING PROCESS (CHECK): ERROR IN SERVICES PERMISSION CHECK! COULD'NT CHECK IF USER HAS SERVICES ENABLED.")
-            
-            } finally {
-                console.log("GEOCODING PROCESS (CHECK): FINISHED!")
-            }
-        
-        } else {
-                console.log("GEOCODING PROCESS (CHECK): SKIPPING! USER ALREADY GRANTED PERMISSION.")
-        } 
-
-    };
-    
-    // Check for permission, get current user position and use reverse geocoding for user coordinates
-    async getCurrentLocation() {
-    
-        try {
-            console.log('GEOCODING PROCESS (PERMISSION): REQUEST PERMISSION ASYNC...')
-            // let { status } = await Location.requestPermissionsAsync();
-            let { status } = await Location.requestForegroundPermissionsAsync()
-            // let { status } = await Location.requestBackgroundPermissionsAsync()
-        
-            if (status !== 'granted') {
-                console.log('GEOCODING PROCESS (PERMISSION): PERMISSION NOT GRANTED!')
-                Alert.alert(
-                    'Permission not granted',
-                    'Allow the app to use location service.',
-                    [{ text: 'OK' }],
-                    { cancelable: false }
-                );
-
-            } else {
-                console.log('GEOCODING PROCESS (PERMISSION): PERMISSION GRANTED!')
-            }
-        
-            console.log('GEOCODING PROCESS (REQUEST): GETTING CURRENT USER POSITION ASYNC...')
-            let { coords } = await Location.getCurrentPositionAsync();
-            
-            if (coords) {   
-                const { latitude, longitude } = coords;
-                this.setState({userCoordinates: coords})
-                console.log(`GEOCODING PROCESS (REQUEST): CURRENT USER POSITION FOUND... Latitude: ${latitude}, Logitude: ${longitude}`)
-                console.log('GEOCODING PROCESS (REVERSE GEOCODING): REVERSE GEOCODE ASYNC...')  
-                let response = await Location.reverseGeocodeAsync({ latitude, longitude });
-        
-                if (response) {
-                    this.setState({userAddressList: response, address: response[0]})
-                    console.log('GEOCODING PROCESS (REVERSE GEOCODING): REVERSE GEOCODE SUCCESSFUL! UPDATING STATE...')  
-
-                } else {
-                    console.log('GEOCODING PROCESS (REVERSE GEOCODING): REVERSE GEOCODE FAILED! LOGGING RESPONSE...')  
-                    console.log(response)
-                }
-        
-            } else {
-                console.log(`GEOCODING PROCESS (REVERSE GEOCODING): USER POSITION NOT FOUND! UNABLE TO PROCEED TO REVERSE GEOCODING...`)
-            }
-    
-        } catch (error) {
-            console.log('GEOCODING PROCESS: ERROR IN USER POSITION REQUEST! LOGGING ERROR...')
-            console.log(error)
-        
-        } finally {
-            console.log('GEOCODING PROCESS: USER POSITION REQUEST FINISHED. PROCEEDING TO FETCH WEATHER DATA...')
-            this.fetchWeather()
-        }
-    };
-
     postEntryHeader() {
         return(
             <View style={[styles.cardRow, {justifyContent: 'space-between'}]}>
@@ -360,7 +233,7 @@ export default class PostEntranceScreen extends Component {
                 style={ {} }
                 onPress={this.onEmotionButtonPress(emotion)}
                 >
-                    <Text style={[styles.emotionBadge, {backgroundColor: this.state.isSelectedEmotions[emotion] ? 'lightblue' : 'white' }]}>{emotion}</Text>
+                    <Text style={[styles.emotionBadge, {backgroundColor: this.state.isSelectedEmotions[emotion] ? 'lightblue' : 'aliceblue' }]}>{emotion}</Text>
                 </Pressable>
             ))
         )
@@ -371,10 +244,10 @@ export default class PostEntranceScreen extends Component {
             <TextInput
             multiline
             scrollEnabled
-            placeholder='Today was...' 
+            placeholder='Escreva aqui...'
+            placeholderTextColor='rgba(255,255,255,0.6)'
             onChangeText={text => this.setState({jornalEntry: text})}
             value={this.state.jornalEntry}
-            // numberOfLines={3}
             style={styles.jornalText}
             >
             </TextInput>
@@ -389,7 +262,7 @@ export default class PostEntranceScreen extends Component {
         return setSelected
     }
 
-    inputSection(sectionName, cardBodyStyle, inputs) {
+    inputCardBody(sectionName, cardBodyStyle, inputs) {
         if (this.state.selectedEntry === sectionName) {
             if (sectionName == 'Emoções') {
                 return emotionGroups.map((emotions, index) => (
@@ -415,43 +288,88 @@ export default class PostEntranceScreen extends Component {
     }
 
     InputCard(sectionName, icon, cardBodyStyle, inputs) {
+
+        if (sectionName !== 'Jornal') {
+            return(
+                <Pressable style={[styles.card]} onPress={this.setSelectedEntry(sectionName)} >
+                    <View style={styles.cardRow}  >
+                        <Icon name={icon} fill='rgba(255,255,255,0.75)' height={28} width={28} style={styles.entryIcon} />
+                        <Text style={styles.entryTitle}> {sectionName} </Text>
+                    </View>    
+                    {this.inputCardBody(sectionName=sectionName, cardBodyStyle=cardBodyStyle, inputs=inputs)}  
+                </Pressable>   
+            )
+        } else {
+            return(
+                <View style={[styles.card]} >
+                    <Pressable style={styles.cardRow} onPress={this.setSelectedEntry(sectionName)} >
+                        <Icon name={icon} fill='rgba(255,255,255,0.75)' height={28} width={28} style={styles.entryIcon} />
+                        <Text style={styles.entryTitle}> {sectionName} </Text>
+                    </Pressable>    
+                    {this.inputCardBody(sectionName=sectionName, cardBodyStyle=cardBodyStyle, inputs=inputs)}  
+                </View>   
+            )
+        }
+    }
+
+    loginMsg() {
         return(
-            <View style={[styles.card]}>
-                <Pressable style={styles.cardRow}  onPress={this.setSelectedEntry(sectionName)}>
-                    <Icon name={icon} fill='rgba(255,255,255,0.75)' height={28} width={28} style={styles.entryIcon} />
-                    <Text style={styles.entryTitle}> {sectionName} </Text>
-                </Pressable>
-
-                {this.inputSection(sectionName=sectionName, cardBodyStyle=cardBodyStyle, inputs=inputs)}  
-
-            </View>
+          <View style={[styles.login.msgBox, this.state.loginMsg ? {} : {backgroundColor: 'transparent', borderColor: 'transparent'} ]}>
+            <Text style={styles.login.msg}>{this.state.loginMsg}</Text>
+          </View>
         )
     }
+  
+    setLoginMsg(msg) {
+        this.setState({loginMsg: msg})
+        setTimeout( () => this.setState({loginMsg: ''}) , 1000 * 5 )
+    }    
 
     onSaveButtonPress () {
         if (!this.state.selectedMood) {
-            alert('Necessário adicionar uma avaliação.')
+            // alert('Necessário adicionar uma avaliação.')
+            this.setLoginMsg('Adicione uma avaliação para continuar.')
+            this.setState({selectedEntry: 'Avaliação'})
 
         } else {
             try {
                 const newEntry = {
-                    jornal: this.state.jornalEntry,
-                    mood: this.state.selectedMood,
-                    emotions: basicEmotions.filter( emotion => this.state.isSelectedEmotions[emotion] ) ,
-                    address: formattedAddress(this.state.address),
-                    date: Today(),
                     startTime: this.state.startTime,
                     endTime: getTime(),
+                    date: Today(),
                     star: this.state.star,
+                    mood: this.state.selectedMood,
+                    emotions: basicEmotions.filter( emotion => this.state.isSelectedEmotions[emotion] ) ,
+                    jornal: this.state.jornalEntry,
+                    address: formattedAddress(this.state.address),
+                    weather: this.state.weather,
                 }
                 this.postNewEntryAsync(newEntry)
 
             } catch (error) {
-                alert('Não foi possível postar sua entrada. Tente novamente...')
+                // alert('Não foi possível postar sua entrada. Tente novamente...')
+                this.setLoginMsg('Não foi possível fazer a entrada. Tente novamente...')
                 console.log('Error when attempting to post user entry. Logging error...')
                 console.log(error)
             }
         }
+    }
+
+    saveButton() {
+        const isDataLoading = this.state.isFetchingLocationOrWeather
+        return(
+            <Pressable
+            onPress={this.onSaveButtonPress}
+            disabled={isDataLoading}
+            style={styles.saveButton}
+            >
+                {isDataLoading ? (
+                    <ActivityIndicator size='small' color='#000000' /> // <Icon name={'sync-outline'} fill='black' width={28} height={28} />
+                ) : (
+                    <Text style={styles.saveButtonLabel}> Salvar </Text>
+                )}
+            </Pressable>
+        )
     }
 
     async postNewEntryAsync(newEntry) {
@@ -459,6 +377,7 @@ export default class PostEntranceScreen extends Component {
         var info = this.props.route.params.userInfo;
 
         try {
+            var postUserEntryResult = {ok: false, status: '999', statusText: 'Not fetched yet.'}
             const postUserEntryOpts = { 
                 method: 'POST',
                 headers: {
@@ -466,13 +385,13 @@ export default class PostEntranceScreen extends Component {
                 },
                 body: JSON.stringify( newEntry ),
             }
-            var postUserEntryResult = await fetch( corsURI + appServerURI + 'Users/' + info.username + '/entries', postUserEntryOpts);
+            postUserEntryResult = await fetch( corsURI + appServerURI + 'Users/' + info.username + '/entries', postUserEntryOpts);
             // var postUserEntryResult = await fetch('http://localhost:3000/Users/' + info.username + '/entries', postUserEntryOpts);
 
             if (postUserEntryResult.ok) {
                 console.log('fetch POST request successful')
                 console.log('Status: ' + postUserEntryResult.status + ', ' + postUserEntryResult.statusText)
-                this.props.navigation.navigate('Entrances', {newPost: true} )    
+                    
 
             } else {
                 console.log('fetch POST request failed. Throwing error...')
@@ -485,12 +404,143 @@ export default class PostEntranceScreen extends Component {
 
         } finally {
             this.setState({ isLoading: false });
+            if (postUserEntryResult.ok) this.props.navigation.navigate('Entrances', {newPost: true} )
+        }
     }
-}
-  
+
+    async fetchWeather() {
+
+        try {
+
+            if (this.state.userCoordinates) {
+
+                console.log('FETCH WEATHER STATUS: STARTED...!')
+                const coords = this.state.userCoordinates
+                const lat = coords.latitude
+                const lng = coords.longitude
+                
+                await fetch(
+                    `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lng}&APPID=${OpenWeatherMapAPI.KEY}&units=metric`
+                )
+                .then(res => {
+                    const resStatus = 'Status: ' + res.status + ', Status Text: ' + res.statusText
+                    if (!res.ok) 
+                        throw new Error(resStatus)
+                    else {
+                        return res.json()
+                    }
+                })
+                .then(weather => {
+                    console.log('FETCH WEATHER STATUS: SUCCESSFUL!')
+                    // console.log(weather);
+
+                    const weatherInfo = {
+                        coords: weather.coord,
+                        name: weather.name,
+                        weather: weather.weather[0],
+                        main: weather.main,
+                        clouds: weather.clouds,
+                        wind: weather.wind,
+                        visibility: weather.visibility,
+                    }
+
+                    this.setState({weather: weatherInfo})
+                });
+        
+            } else {
+                console.log('FETCH WEATHER STATUS: UNABLE TO START! USER POSITION NOT AVAILABLE.')
+            }
+
+        } catch(error) {
+            console.log('FETCH WEATHER STATUS: ERROR! LOGGING ERROR...')
+            console.log(error)
+
+        } finally {
+            console.log('FETCH WEATHER STATUS: FINISHED!')    
+            this.setState({isFetchingLocationOrWeather: false})
+        }
+    }
+
+    // Check if device has location services enabled
+    async checkIfLocationEnabled () {
+
+        if ( !this.state.locationServiceEnabled ) {
+            try{
+                console.log('GEOCODING PROCESS (CHECK): CHECKING IF USER HAS SERVICES ENABLED.' )
+                let enabled = await Location.hasServicesEnabledAsync();
+            
+                if (!enabled) {
+                    console.log('GEOCODING PROCESS (CHECK): CHECKED! USER DOES NOT HAVE SERVICES ENABLED.' )
+                    alert('Location Service not enabled. Please enable your location services.')
+                } else {
+                    console.log('GEOCODING PROCESS (CHECK): CHECKED! USER HAS SERVICES ENABLED.')
+                    this.setState({LocationServiceEnabled: enabled});
+                }
+
+            } catch(error) {
+                console.log("GEOCODING PROCESS (CHECK): ERROR IN SERVICES PERMISSION CHECK! COULD'NT CHECK IF USER HAS SERVICES ENABLED.")
+            
+            } finally {
+                console.log("GEOCODING PROCESS (CHECK): FINISHED!")
+            }
+        
+        } else {
+                console.log("GEOCODING PROCESS (CHECK): SKIPPING! USER ALREADY HAS SERVICES ENABLED.")
+        } 
+
+    };
+
+    // Check for permission, get current user position and use reverse geocoding for user coordinates
+    async getCurrentLocation() {
+
+        try {
+            console.log('GEOCODING PROCESS (PERMISSION): REQUEST PERMISSION ASYNC...')
+            let { status } = await Location.requestForegroundPermissionsAsync()
+            // let { status } = await Location.requestBackgroundPermissionsAsync()
+        
+            if (status !== 'granted') {
+                console.log('GEOCODING PROCESS (PERMISSION): PERMISSION NOT GRANTED!')
+                alert('Permission not granted. Allow the app to use location service.');
+
+            } else {
+                console.log('GEOCODING PROCESS (PERMISSION): PERMISSION GRANTED!')
+            }
+        
+            console.log('GEOCODING PROCESS (REQUEST): GETTING CURRENT USER POSITION ASYNC...')
+            let { coords } = await Location.getCurrentPositionAsync();
+            
+            if (coords) {   
+                const { latitude, longitude } = coords;
+                this.setState({userCoordinates: coords})
+                console.log(`GEOCODING PROCESS (REQUEST): CURRENT USER POSITION FOUND... Latitude: ${latitude}, Logitude: ${longitude}`)
+                console.log('GEOCODING PROCESS (REVERSE GEOCODING): REVERSE GEOCODE ASYNC...')  
+                let response = await Location.reverseGeocodeAsync({ latitude, longitude });
+        
+                if (response) {
+                    this.setState({userAddressList: response, address: response[0]})
+                    console.log('GEOCODING PROCESS (REVERSE GEOCODING): REVERSE GEOCODE SUCCESSFUL! UPDATING STATE...')  
+
+                } else {
+                    console.log('GEOCODING PROCESS (REVERSE GEOCODING): REVERSE GEOCODE FAILED! LOGGING RESPONSE...')  
+                    console.log(response)
+                }
+        
+            } else {
+                console.log(`GEOCODING PROCESS (REVERSE GEOCODING): USER POSITION NOT FOUND! UNABLE TO PROCEED TO REVERSE GEOCODING...`)
+            }
+
+        } catch (error) {
+            console.log('GEOCODING PROCESS: ERROR IN USER POSITION REQUEST! LOGGING ERROR...')
+            console.log(error)
+        
+        } finally {
+            console.log('GEOCODING PROCESS: USER POSITION REQUEST FINISHED. PROCEEDING TO FETCH WEATHER DATA...')
+            this.fetchWeather()
+        }
+    };
+
     render() {
         console.log('Rendering "Post Entry" screen...')
-        const isDataLoading = this.state.isFetchingLocationOrWeather
         return(
             <ImageBackground source={require('../assets/wallpaper.jpg')} style={styles.mainView}>
 
@@ -503,18 +553,10 @@ export default class PostEntranceScreen extends Component {
                     </View>
                 </ScrollView>  
 
-                <Pressable
-                onPress={this.onSaveButtonPress}
-                disabled={isDataLoading}
-                style={styles.saveButton}
-                >
-                    {isDataLoading ? (
-                        <Icon name={'sync-outline'} fill='black' width={28} height={28} />
-                    ) : (
-                        <Text style={styles.saveButtonLabel}> Salvar </Text>
-                    )}
-                </Pressable>
-    
+                <this.saveButton />
+
+                {this.loginMsg()}
+
             </ImageBackground>
         )    
     }

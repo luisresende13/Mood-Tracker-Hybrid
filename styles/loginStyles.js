@@ -84,7 +84,7 @@ var styles = {
             textAlign: 'center',
         },
         msgBox: {
-            width: 350,
+            width: 300,
             height: 36,
             justifyContent: 'center',
             backgroundColor: 'rgb(30,30,30)',
@@ -94,6 +94,7 @@ var styles = {
         msg: {
             textAlign: 'center',
             color: 'white',
+            // paddingHorizontal: 20,
         },
     }
 };

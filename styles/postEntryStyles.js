@@ -2,6 +2,25 @@ import { StatusBar } from 'expo-status-bar';
 // import { Platform } from 'react-native';
 
 const styles = {
+  login: {
+    msgBox: {
+      position: 'absolute',
+      bottom: '10%',
+      width: 300,
+      alignSelf: 'center',
+      // width: 350,
+      height: 36,
+      justifyContent: 'center',
+      backgroundColor: 'rgb(30,30,30)',
+      borderWidth: 1,
+      borderColor: 'rgb(40,40,40)',
+    },
+    msg: {
+        textAlign: 'center',
+        color: 'white',
+        // paddingHorizontal: 15,
+    },
+  },
   mainView: {
     flex: 1,                 
     marginTop: StatusBar.currentHeight,
@@ -142,7 +161,6 @@ const styles = {
       marginHorizontal: 5
   },
   entryCardEmotionBadge: {
-    fontFamily: 'sans-serif',
     backgroundColor: 'aliceblue',
     borderRadius: 30,
     paddingVertical: 7,
