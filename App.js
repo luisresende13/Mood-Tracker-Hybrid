@@ -15,7 +15,7 @@ const Stack = createNativeStackNavigator();
 
 const HomeScreen = (props) => {
 
-  console.log('Returning "HomeScreen" Component...')
+  // console.log('Returning "HomeScreen" Component...')
   return(
     <Stack.Navigator 
     initialRouteName='Entrances'
@@ -81,7 +81,7 @@ export default class App extends Component {
   }
 
   authUser(userInfo) {
-    console.log('User authenticated. Navigating to "Entries" screen...')
+    console.log('User authenticated. Navigating to "HomeScreen"...')
     this.setState( {isUserAuth: true, userInfo} )
   }
 

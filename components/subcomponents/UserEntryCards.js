@@ -24,7 +24,12 @@ function openWeatherMapIconsURI (icon) {
 // const moodColors = ['#ff3333', '#0099cc', '#add8e6', '#ffff33', '#00cc00']
 const moodColors = {'Horrível': '#ff3333', 'Mal': '#0099cc', 'Regular': '#add8e6', 'Bem': '#ffff33', 'Ótimo': '#00cc00'};
 
-
+const monthDict = {'Jan': '01', 'Feb': '02', 'Mar': '03', 'Apr': '04', 'May': '05', 'Jun': '06', 'Jul': '07', 'Ago': '08', 'Sep': '09', 'Oct': '10', 'Nov': '11', 'Dec': '12'}
+function Today() {
+    const now = Date().toString().split(' ')
+    const today = [ now[3], monthDict[now[1]], now[2] ].join('-')
+    return today
+}
 
 function MoodHeader({entry}) {
     return(
@@ -110,12 +115,24 @@ function Jornal({ entry }) {
 }
 
 function EmptyCard(props) {
+    const today = props.date == Today()
+    const navigateParams = {
+        currentEntry: {
+            type: today ? 'new' : 'custom-date',
+            date: props.date,
+            entry: null
+        }
+    }
     const textStyle = {fontSize: 16, color: 'white', marginTop: 7}
     return (
-        <Pressable onPress={ () => props.navigation.navigate( 'PostEntrance', {currentEntry: 'new'} ) } style={[styles.card, {alignItems: 'center', justifyContent: 'center', fontSize: 16, height: 145}]}>
+        <Pressable
+        onPress={ () => props.navigation.navigate('PostEntrance', navigateParams) }
+        disabled={!today}
+        style={[styles.card, {alignItems: 'center', justifyContent: 'center', fontSize: 16, height: today ? 145 : 117}]}
+        >
             <Icon name='inbox' fill='rgba(255,255,255,0.3)' width={25} height={25} />
             <Text style={textStyle}> Nenhuma entrada encontrada. </Text>
-            <Text style={textStyle}> Pressione aqui para adicionar uma a este dia! </Text>
+            { today ? <Text style={textStyle}> Pressione aqui para adicionar uma a este dia! </Text> : null }
         </Pressable>
     );
 }
@@ -133,15 +150,12 @@ export default class UserEntryCards extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            date: this.props.date,
             userEntries: [],
-            selectedEntryId: null,
             isEntriesSyncing: false,
-            isDeleteLoading: false,
-            newPost: this.props.newPost,
+            isLoading: false,
         };
         this.EntryCard = this.EntryCard.bind(this);
-        this.onEntryCardPress = this.onEntryCardPress.bind(this);
+        // this.onEntryCardPress = this.onEntryCardPress.bind(this);
         this.EditEntryButtons = this.EditEntryButtons.bind(this);
         this.editUserEntry = this.editUserEntry.bind(this);
         this.deleteUserEntry = this.deleteUserEntry.bind(this);
@@ -149,71 +163,33 @@ export default class UserEntryCards extends Component {
     }
 
     componentDidMount() {
-        console.log('"Subcomponent UserEntryCards did mount..."')
+        console.log('Subcomponent "UserEntryCards" did mount...')
         this.syncUserEntries()
-        setInterval( () => { this.updateIfNewPost() }, 1000 * 2 )
-        setInterval( () => { console.log('Default auto syncing started...'); this.syncUserEntries() }, 1000 * 10 )
+        setInterval( () => { this.updateIfPosted() }, 1000 * 3 )
+        // setInterval( () => { console.log('Default auto syncing started...'); this.syncUserEntries() }, 1000 * 10 )
         
     }
 
-    updateIfNewPost () {
-        if (this.props.newPost) {
-            console.log('JUST POSTED WARNING: POSTED. Selecting current date ...');
-            this.props.forgetNewPost();
+    updateIfPosted () {
+        if (this.props.posted.status) {
+            console.log('JUST POSTED STATUS: POSTED. Redirecting date and syncing entries ...');
+            this.props.forgetPosted();
             this.syncUserEntries();
-        }
-    }
-
-    EditEntryButtons(props) {
-        const buttonLabels = ['Editar', 'Excluir']
-        const [isButtonPressed, setIsButtonPressed] = useState({
-            'Editar': false,
-            'Excluir': false,
-            'Mover': false,
-        })
-        const onEditButtonPress = {'Excluir': this.deleteUserEntry, 'Editar': this.editUserEntry, 'Mover': () => {console.log('Mover entrada...')}}
-        const editButtonLoading = {'Excluir': this.state.isDeleteLoading, 'Editar': false, 'Mover': false}
-
-        if (this.state.selectedEntryId == props.entryId) {
-            return(
-                <View style={styles.editButtonsView}>
-                    {buttonLabels.map( (buttonLabel, index) => (
-                        <Pressable
-                        key={`èdit-${buttonLabel}-${props.entryId}`}
-                        style={[styles.editButton,  {backgroundColor: isButtonPressed[buttonLabel] ? (buttonLabel=='Excluir' ? '#000f' : '#fff2'): '#0000', borderColor: buttonLabel=='Excluir' ? 'red' : 'white' }]}
-                        disabled={ editButtonLoading[buttonLabel] | this.state.isEntriesSyncing }
-                        onPress={ onEditButtonPress[buttonLabel] }
-                        onPressIn={() => setIsButtonPressed({ ...isButtonPressed, [buttonLabel]: !isButtonPressed[buttonLabel] })}
-                        onPressOut={() => setIsButtonPressed({ ...isButtonPressed, [buttonLabel]: !isButtonPressed[buttonLabel] })}
-                        >
-                            <Text style={[styles.editButtonLabel, {color: buttonLabel=='Excluir' ? 'red' : 'white' }]}>{buttonLabel}</Text>                    
-                        </Pressable>
-                    ))}
-            </View>
-            )
-        } else {
-            return null
-        }
-    }
-
-    onEntryCardPress(entryId) {
-        function setSelectedEntryId() {
-            this.setState({ selectedEntryId: this.state.selectedEntryId === entryId ? null : entryId })
-        }
-        return setSelectedEntryId.bind(this);
+            }
     }
 
     EntryCard({ entry }) {
+        function onEntryCardPress() {
+            this.props.setSelectedEntryId(this.props.selectedEntryId === entry._id ? null : entry._id)
+        }
         return (
-            <Pressable onPress={this.onEntryCardPress(entry._id)} style={styles.card}>
-                <MoodHeader entry={entry} />
-                <Emotions entry={entry} />
-                <Address entry={entry} />
-                <Jornal entry={entry} />
-
-                <this.EditEntryButtons entryId={entry._id}/>
-
-            </Pressable>
+        <Pressable onPress={onEntryCardPress.bind(this)} style={styles.card}>
+            <MoodHeader entry={entry} />
+            <Emotions entry={entry} />
+            <Address entry={entry} />
+            <Jornal entry={entry} />
+            <this.EditEntryButtons entryId={entry._id} />
+        </Pressable>
         );
     }    
 
@@ -227,33 +203,63 @@ export default class UserEntryCards extends Component {
             return <CardsLoadingMessage />
 
         } else {
-            return <EmptyCard navigation={this.props.navigation} />
+            return <EmptyCard navigation={this.props.navigation} date={this.props.date} />
+        }
+    }
+
+    EditEntryButtons(props) {
+        const buttonLabels = ['Editar', 'Excluir']
+        const onButtonPress = { 'Editar': this.editUserEntry, 'Excluir': this.deleteUserEntry }
+
+        const [isButtonPressed, setIsButtonPressed] = useState({
+            'Editar': false,
+            'Excluir': false,
+        })
+
+        if (this.props.selectedEntryId == props.entryId) {
+            return(
+                <View style={styles.editButtonsView}>
+                    { buttonLabels.map( (label) => (
+                        <Pressable
+                        key={`èdit-${label}-${props.entryId}`}
+                        style={[styles.editButton,  {backgroundColor: isButtonPressed[label] ? (label=='Excluir' ? '#000f' : '#fff2') : '#0000', borderColor: label=='Excluir' ? 'red' : 'white' }]}
+                        disabled={ this.state.isLoading | this.state.isEntriesSyncing }
+                        onPress={ onButtonPress[label] }
+                        onPressIn={() => setIsButtonPressed({ ...isButtonPressed, [label]: !isButtonPressed[label] })}
+                        onPressOut={() => setIsButtonPressed({ ...isButtonPressed, [label]: !isButtonPressed[label] })}
+                        >
+                            <Text style={[styles.editButtonLabel, {color: label=='Excluir' ? 'red' : 'white' }]}>{label}</Text>                    
+                        </Pressable>
+                    )) }
+            </View>
+            )
+        } else {
+            return null
         }
     }
 
     editUserEntry() {
-        const currentEntry = this.state.userEntries.filter( (entry) => entry._id == this.state.selectedEntryId )[0]
-        this.props.navigation.navigate('PostEntrance', {currentEntry: currentEntry })
+        const selectedEntry = this.state.userEntries.filter( (entry) => entry._id == this.props.selectedEntryId )[0]
+        // this.setState({selectedEntryId: null})
+        this.props.navigation.navigate('PostEntrance', { currentEntry: {type: 'edit', date: selectedEntry.date, entry: selectedEntry} })
     }
 
     async deleteUserEntry() {
 
         console.log('DELETE USER ENTRY STATUS: Started...')
-        this.setState({ isDeleteLoading: true });
-
+        this.setState({ isLoading: true });
         // prompt()
 
         try {
             var UsersResult = {ok: false, status: 999}
-            UsersResult = await fetch( corsURI + appServerURI + 'Users/' + this.props.userInfo.username + '/entries/' + this.state.selectedEntryId, { method: 'DELETE' });
-            // var UsersResult = await fetch( 'https://localhost:3000/' + 'Users/' + this.props.userInfo.username + '/entries/' + this.state.selectedEntryId, { method: 'DELETE' });
+            UsersResult = await fetch( corsURI + appServerURI + 'Users/' + this.props.userInfo.username + '/entries/' + this.props.selectedEntryId, { method: 'DELETE' });
+            // var UsersResult = await fetch( 'https://localhost:3000/' + 'Users/' + this.props.userInfo.username + '/entries/' + this.props.selectedEntryId, { method: 'DELETE' });
             const usersStatus =  'Status: ' + UsersResult.status + ', ' + UsersResult.statusText
 
             if (UsersResult.ok) {
                 // const users = await UsersResult.json();
                 console.log('fetch DELETE request for user entry successful.')
                 console.log(usersStatus)
-
                 console.log('DELETE USER ENTRY STATUS: Successful.')
 
             } else {
@@ -264,13 +270,14 @@ export default class UserEntryCards extends Component {
         } catch (error) {
                 console.log('DELETE USER ENTRY STATUS: Error captured. Printing error...')
                 console.log(error);
+                this.props.setAlertMsg('Não foi possível deletar a entrada. Tente novamente.')
 
         } finally {
-            this.setState({ isDeleteLoading: false });
+            this.setState({ isLoading: false});
+            this.props.setSelectedEntryId(null)
             console.log('DELETE USER ENTRY STATUS: FINISHED. Proceeding to sync user entries...')
             if (UsersResult.ok) {this.syncUserEntries()}
         }    
-
     }
 
     async syncUserEntries() {
@@ -300,6 +307,7 @@ export default class UserEntryCards extends Component {
         } catch (error) {
                 console.log('SYNC ENTRIES STATUS: Error captured. Printing error...')
                 console.log(error);
+                this.props.setAlertMsg('Não foi possível sincronizar as entradas. Por favor, aguarde..')
 
         } finally {
             this.setState({ isEntriesSyncing: false });
@@ -308,7 +316,7 @@ export default class UserEntryCards extends Component {
     }
 
     render() {
-        console.log('"Rendering "UserEntryCards" subcomponent..."')
+        // console.log('"Rendering "UserEntryCards" subcomponent..."')
         return this.UserEntryCardsList()
     }
 }

@@ -71,71 +71,94 @@ export default class EntrancesScreen extends Component {
             selectedDate: Today(),
             entriesLoading: false,
             entriesSynced: false,
+            alertMsg: '',
         };
         this.onNextButtonPress = this.onNextButtonPress.bind(this);
-        this.forgetNewPost = this.forgetNewPost.bind(this);         
+        this.forgetPosted = this.forgetPosted.bind(this);
+        this.setAlertMsg = this. setAlertMsg.bind(this);
+        this.setSelectedEntryId = this.setSelectedEntryId.bind(this);
     }
     
     componentDidMount() {
         console.log('"Entries" screen component did mount...')      
+        this.props.navigation.setParams({posted: {status: false, entry: null}});
     }
 
-    onNextButtonPress(next='next') { 
+    setSelectedEntryId(id) {
+        this.setState({selectedEntryId: id})
+    }
+
+    onNextButtonPress(next='next') {
         function setSelectedDate() {
-            this.setState( {selectedDate: getNextDate(this.state.selectedDate, next)} ) 
+            this.setState({
+                selectedEntryId: null,
+                selectedDate: getNextDate(this.state.selectedDate, next),
+            })
         }
         return setSelectedDate.bind(this);
     }
 
-    forgetNewPost() {
-        function forgetNewPost() {
-            this.props.navigation.setParams({newPost: false});
-            this.setState({
-                selectedDate: Today(),
-            });
-        }
-        return forgetNewPost.bind(this);
+    forgetPosted() {
+        this.setState({
+            selectedEntryId: null,
+            selectedDate: this.props.route.params.posted.entry.type == 'new' ? Today() : this.state.selectedDate,
+        });
+        this.props.navigation.setParams({posted: {status: false, entry: null}});
+    }
+
+    setAlertMsg(msg) {
+        this.setState({loginMsg: msg})
+        setTimeout( () => this.setState({loginMsg: ''}) , 1000 * 5 )
+    }
+    
+    alertMsg() {
+        return(
+            <View style={[styles.msgBox, this.state.alertMsg ? {} : {backgroundColor: 'transparent', borderColor: 'transparent'} ]}>
+                <Text style={styles.msg}>{this.state.alertMsg}</Text>
+            </View>
+        )
+    }
+
+    DateNavigationButton = ({next, today}) => {
+        const buttonColor = next=='next' ? (today ? 'rgba(255,255,255,0.1)' : 'white') : 'white'
+        return(
+            <Pressable onPress={ this.onNextButtonPress(next) } disabled={ next=='next' & today }>
+                <Icon name={ next=='next' ? 'arrow-forward' : 'arrow-back'} width={35} height={35} fill={buttonColor} />
+            </Pressable>
+        )
     }
 
     render() {
-
-        console.log('Rendering "Entries" screen...')
-        const isToday = this.state.selectedDate === this.state.date
-
+        // console.log('Rendering "Entries" screen...')
+        const today = this.state.selectedDate === Today()
         return(
             <ImageBackground source={require('../assets/wallpaper.jpg')} style={[styles.mainView]}>
                 
                 <ScrollView style={styles.scrollView}>
-
-                        <View style={styles.section}>        
-                            <View style={[styles.cardRow, {justifyContent: 'space-between'}]}>
-                                <Pressable onPress={ this.onNextButtonPress('previous') }>
-                                    <Icon name='arrow-back' width={35} height={35} fill='white' />
-                                </Pressable>
-                                <Text style={styles.sectionTitle}> { 'Suas entradas  •  ' + formatDate(this.state.selectedDate) } </Text>                                
-                                { !isToday ? (
-                                    <Pressable onPress={ this.onNextButtonPress('next') }>
-                                        <Icon name='arrow-forward' width={35} height={35} fill='white' />
-                                    </Pressable>   
-                                ) : (
-                                    <View style={{height: 35, width: 35}}></View>
-                                )}
-                            </View>
-
-                            <UserEntryCards
-                            navigation = {this.props.navigation}
-                            userInfo={this.props.route.params.userInfo}
-                            newPost={this.props.route.params.newPost}
-                            forgetNewPost={this.forgetNewPost()}
-                            date={this.state.selectedDate}
-                            />
+                    <View style={styles.section}>
+                        <View style={[styles.cardRow, {justifyContent: 'space-between'}]}>
+                            <this.DateNavigationButton icon='arrow-back' next='previous' />
+                            <Text style={styles.sectionTitle}> {'Suas entradas  •  ' + formatDate(this.state.selectedDate)} </Text>                                
+                            <this.DateNavigationButton icon='arrow-forward' next='next' today={today} />
                         </View>
-
+                        <UserEntryCards
+                        date={this.state.selectedDate}
+                        selectedEntryId={this.state.selectedEntryId}
+                        userInfo={this.props.route.params.userInfo}
+                        posted={this.props.route.params.posted}
+                        setSelectedEntryId={this.setSelectedEntryId}
+                        forgetPosted={this.forgetPosted}
+                        setAlertMsg = {this.setAlertMsg}
+                        navigation = {this.props.navigation}
+                        />
+                    </View>
                 </ScrollView>
 
-                <Pressable onPress={() => { this.props.navigation.navigate( 'PostEntrance', {currentEntry: 'new'} )} }  style={[styles.postButton]}>
-                        <Icon name='plus-circle' width={72} height={72} fill='white' style={styles.postButtonLabel}/>
+                <Pressable onPress={() => {this.props.navigation.navigate( 'PostEntrance', {currentEntry: {type: 'new', date: Today(), entry: null}} )}}  style={[styles.postButton]}>
+                    <Icon name='plus-circle' width={72} height={72} fill='white' style={styles.postButtonLabel}/>
                 </Pressable>
+
+                {this.alertMsg()}
   
             </ImageBackground>
             )

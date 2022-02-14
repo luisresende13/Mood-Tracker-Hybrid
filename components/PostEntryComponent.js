@@ -28,11 +28,11 @@ const moodColorsTransp = (alpha) => [`rgba(255, 51, 51, ${alpha})`, `rgba(0, 153
 const moodIcons = ['emoticon-dead', 'emoticon-sad', 'emoticon-neutral', 'emoticon-happy', 'emoticon-excited']
 
 // Emotion configs
-const emotionGroupsNames = [ 'Bem & Calmo', 'Bem & Energizado', 'Mal & Calmo', 'Mal e Energizado' ]
+const emotionGroupsNames = [ 'Bem & Calmo', 'Bem & Energizado', 'Mal & Calmo', 'Mal & Energizado' ]
 const goodEnergizedEmotions = ['Animação', 'Concentração', 'Desinibição', 'Motivação', 'Euforia']
 const goodCalmEmotions = ['Alívio', 'Calma', 'Conforto', 'Despreocupação', 'Inspiração', 'Orgulho', 'Paz', 'Relaxamento', 'Satisfação', 'Segurança', 'Criatividade']
-const badEnergizedEmotions = ['Inquietação', 'Ansiedade', 'Desespero', 'Frustração', 'Insatisfação', 'Irritação', 'Medo', 'Preocupação', 'Impaciência', 'Sobrecarregado(a)', 'Tensão']
-const badCalmEmotions = ['Depressão', 'Timidez', 'Cansaço', 'Tristeza','Confusão', 'Desanimo', 'Vergonha', 'Insegurança', 'Apátia', 'Solidão', 'Tédio']
+const badEnergizedEmotions = ['Inquietação', 'Ansiedade', 'Desespero', 'Frustração', 'Insatisfação', 'Irritação', 'Medo', 'Vergonha', 'Preocupação', 'Impaciência', 'Sobrecarregado(a)', 'Tensão']
+const badCalmEmotions = ['Depressão', 'Timidez', 'Cansaço', 'Tristeza','Confusão', 'Desanimo', 'Insegurança', 'Solidão', 'Tédio']
 // const badEnergizedEmotions = ['Agitação', 'Ansiedade', 'Tristeza', 'Decepção', 'Depressão', 'Desespero', 'Frustração', 'Insatisfação', 'Irritação', 'Medo', 'Paranoia', 'Preocupação', 'Impaciencia', 'Raiva', 'Revolta', 'Sobrecarregado(a)', 'Tensão', 'Nojo']
 
 const emotionGroups = [ goodCalmEmotions.sort(), goodEnergizedEmotions.sort(), badCalmEmotions.sort(), badEnergizedEmotions.sort() ]
@@ -97,8 +97,6 @@ function formattedAddress(addressObj) {
     return addressObj.street + ', ' + addressObj.streetNumber + ' - ' + addressObj.district + ', ' + addressObj.subregion + '. ' + addressObj.region + ', ' + addressObj.isoCountryCode + '.'
 }
 
-// Default export: PostEntranceScreen class component
-
 export default class PostEntranceScreen extends Component {
   
     constructor(props) {
@@ -106,7 +104,7 @@ export default class PostEntranceScreen extends Component {
 
         this.state = {
             
-            date: Today(),
+            date: this.props.route.params.currentEntry.date,
             startTime: getTime(),
             endTime: null,
             star: false,
@@ -121,7 +119,6 @@ export default class PostEntranceScreen extends Component {
             isSelectedEmotions: isSelectedEmotions,
             isLoading: false,
             isFetchingLocationOrWeather: false,
-            editCheck: false,
 
             locationServiceEnabled: null,
             userCoordinates: null,
@@ -129,7 +126,6 @@ export default class PostEntranceScreen extends Component {
             loginMsg: '',
         };
 
-        this.onComponentDidMount = this.onComponentDidMount.bind(this);
         this.fillEntryIfEdit = this.fillEntryIfEdit.bind(this);
         this.onSaveButtonPress = this.onSaveButtonPress.bind(this);
         this.saveButton = this.saveButton.bind(this);
@@ -146,57 +142,56 @@ export default class PostEntranceScreen extends Component {
     }
 
     componentDidMount() {
-        this.onComponentDidMount()
-    }
-    
-    onComponentDidMount() {
         console.log('"PostEntryComponent" did mount.')
         this.fillEntryIfEdit()
     }
-
+    
     fillEntryIfEdit() {
-        if (this.props.route.params.currentEntry !== 'new') {
+        const currentEntry = this.props.route.params.currentEntry
+        switch (currentEntry.type) {
+            case 'new':
+                console.log('INITIATING BLANK ENTRY! FETCHING LOCATION AND WEATHER DATA...')
+                this.setState({ 
+                    // date: currentEntry.date,
+                    // startTime: getTime(),
+                    isFetchingLocationOrWeather: true
+                })
+                this.checkIfLocationEnabled();
+                this.getCurrentLocation();                    
+                break;
+        
+            case 'custom-date':
+                console.log('INITIALIZING CUSTOM DATE ENTRY! SETTING DATE TO: ' + currentEntry.date)
+                break
+                // this.setState({
+                    // date: currentEntry.date,
+                    // startTime: getTime(),    
+                // })
 
-            if (this.state.editCheck) {
-            console.log('EDIT MODE SKIPPED. ALREADY INITIALIZED.')
-            return
-            }
-
-            const currentEntry = this.props.route.params.currentEntry
-            console.log('INITIALIZING EDIT MODE! FILLING ENTRY FOR ID: ' + currentEntry._id)
-
-            var isSelectedEmotionsNew = {}
-            for ( let emotion of basicEmotions){
-                if (currentEntry.emotions.indexOf(emotion) != -1) {
-                    isSelectedEmotionsNew[emotion] = true
-                } else {
-                    isSelectedEmotionsNew[emotion] = false
+            case 'edit':
+                const entry = currentEntry.entry
+                console.log('INITIALIZING EDIT MODE ENTRY! FILLING ENTRY FOR ID: ' + entry._id)
+                var isSelectedEmotionsNew = {}
+                for ( let emotion of basicEmotions ) {
+                    isSelectedEmotionsNew[emotion] = entry.emotions.indexOf(emotion) != -1
                 }
-            }            
-
-            const oldEntry = {
-                startTime: currentEntry.startTime,
-                endTime: currentEntry.endTime,
-                date: currentEntry.date,
-                star: currentEntry.star,
-                isMoodUnmarked: false,
-                selectedMood: currentEntry.mood,
-                isSelectedEmotions: isSelectedEmotionsNew,
-                jornalEntry: currentEntry.jornal,
-                address: currentEntry.address,
-                weather: currentEntry.weather,
-                
-                editCheck: true,
-            }
-            this.setState(oldEntry)
-            console.log('EDIT MODE INITIALIZED SUCCESSFULLY!')
-
-        } else {
-            console.log('INITIATING NEW BLANK ENTRY! FETCHING LOCATION AND WEATHER DATA...')
-            this.setState({isFetchingLocationOrWeather: true})
-            this.checkIfLocationEnabled();
-            this.getCurrentLocation();
-            }
+                this.setState({
+                    // date: entry.date,
+                    startTime: entry.startTime,
+                    endTime: entry.endTime,
+                    star: entry.star,
+                    selectedMood: entry.mood,
+                    isSelectedEmotions: isSelectedEmotionsNew,
+                    jornalEntry: entry.jornal,
+                    address: entry.address,
+                    weather: entry.weather,
+                    isMoodUnmarked: false,
+                })
+                break
+    
+            default:
+                break;
+        }
     }
 
     postEntryHeader() {
@@ -229,9 +224,7 @@ export default class PostEntranceScreen extends Component {
     }
 
     MoodButtons() {
-        
         return moods.map((item, index) => {
-       
             const selected = this.state.selectedMood == item
             const unmarked = this.state.isMoodUnmarked
             const selColor = moodColorsRGBA[index]
@@ -267,7 +260,6 @@ export default class PostEntranceScreen extends Component {
                 <Pressable
                 key={'emotion-' + emotion}
                 title={emotion}
-                style={ {} }
                 onPress={this.onEmotionButtonPress(emotion)}
                 >
                     <Text style={[styles.emotionBadge, {backgroundColor: this.state.isSelectedEmotions[emotion] ? 'lightblue' : 'aliceblue' }]}>{emotion}</Text>
@@ -325,7 +317,6 @@ export default class PostEntranceScreen extends Component {
     }
 
     InputCard(sectionName, icon, cardBodyStyle, inputs) {
-
         if (sectionName !== 'Jornal') {
             return(
                 <Pressable style={[styles.card]} onPress={this.setSelectedEntry(sectionName)} >
@@ -362,25 +353,23 @@ export default class PostEntranceScreen extends Component {
         setTimeout( () => this.setState({loginMsg: ''}) , 1000 * 5 )
     }    
 
-    onSaveButtonPress () {
+    onSaveButtonPress() {
         if (!this.state.selectedMood) {
-            // alert('Necessário adicionar uma avaliação.')
-            this.setLoginMsg('Adicione uma avaliação para continuar.')
+            this.setLoginMsg('Necessário adicionar uma avaliação.')
             this.setState({selectedEntry: 'Avaliação'})
 
         } else {
             try {
-
                 if (this.props.route.params.currentEntry === 'new') {
                     this.setState({
                         endTime: getTime(),
-                        date: Today(),
+                        // date: Today(),
                     })
                 }
-
                 const newEntry = {
                     startTime: this.state.startTime,
                     endTime: this.state.endTime,
+                    lastEdited: getTime(),
                     date: this.state.date,
                     star: this.state.star,
                     mood: this.state.selectedMood,
@@ -393,7 +382,7 @@ export default class PostEntranceScreen extends Component {
 
             } catch (error) {
                 // alert('Não foi possível postar sua entrada. Tente novamente...')
-                this.setLoginMsg('Não foi possível fazer a entrada. Tente novamente...')
+                this.setLoginMsg('Não foi possível postar a entrada. Tente novamente...')
                 console.log('Error when attempting to post user entry. Logging error...')
                 console.log(error)
             }
@@ -401,18 +390,18 @@ export default class PostEntranceScreen extends Component {
     }
 
     saveButton() {
-        const isDataLoading = this.state.isFetchingLocationOrWeather
+        const isDataLoading = this.state.isFetchingLocationOrWeather | this.state.isLoading
         return(
             <Pressable
             onPress={this.onSaveButtonPress}
             disabled={isDataLoading}
             style={styles.saveButton}
             >
-                {isDataLoading ? (
+                { isDataLoading ? (
                     <ActivityIndicator size='small' color='#000000' /> // <Icon name={'sync-outline'} fill='black' width={28} height={28} />
                 ) : (
                     <Text style={styles.saveButtonLabel}> Salvar </Text>
-                )}
+                ) }
             </Pressable>
         )
     }
@@ -420,9 +409,11 @@ export default class PostEntranceScreen extends Component {
     async postNewEntryAsync(newEntry) {
         this.setState({ isLoading: true });
         var info = this.props.route.params.userInfo;
-        const editMode = this.props.route.params.currentEntry !== 'new'
+        const currentEntry = this.props.route.params.currentEntry
+        const editMode = currentEntry.type === 'edit';
         try {
-            var postUserEntryResult = {ok: false, status: '999', statusText: 'Not fetched yet.'}
+            console.log('POST ENTRY STATUS: Started...')
+            var postUserEntryResult = {ok: false, status: '999', statusText: 'Post not fetched yet.'}
             const postUserEntryOpts = { 
                 method: editMode? 'PUT' : 'POST',
                 headers: {
@@ -430,17 +421,17 @@ export default class PostEntranceScreen extends Component {
                 },
                 body: JSON.stringify( newEntry ),
             }
-            postUserEntryResult = await fetch( corsURI + appServerURI + 'Users/' + info.username + '/entries' + (editMode ? '/'+this.props.route.params.currentEntry._id : ''), postUserEntryOpts);
             // var postUserEntryResult = await fetch('http://localhost:3000/Users/' + info.username + '/entries', postUserEntryOpts);
+            postUserEntryResult = await fetch( corsURI + appServerURI + 'Users/' + info.username + '/entries' + (editMode ? '/'+currentEntry.entry._id : ''), postUserEntryOpts);
+            const postUserEntryStatus = 'Status: ' + postUserEntryResult.status + ', ' + postUserEntryResult.statusText
 
             if (postUserEntryResult.ok) {
-                console.log('fetch POST request successful')
-                console.log('Status: ' + postUserEntryResult.status + ', ' + postUserEntryResult.statusText)
+                console.log('POST ENTRY STATUS: Successful.')
+                console.log(postUserEntryStatus)
                     
-
             } else {
-                console.log('fetch POST request failed. Throwing error...')
-                throw new Error('Status: ' + postUserEntryResult.status + ', ' + postUserEntryResult.statusText)
+                console.log('POST ENTRY STATUS: Failed. Throwing error...')
+                throw new Error(postUserEntryStatus)
             }
 
         } catch (error) {
@@ -448,15 +439,15 @@ export default class PostEntranceScreen extends Component {
             console.log(error);
 
         } finally {
+            console.log('POST ENTRY STATUS: Finished.')
             this.setState({ isLoading: false });
-            if (postUserEntryResult.ok) this.props.navigation.navigate('Entrances', {newPost: true} )
+            if (postUserEntryResult.ok) this.props.navigation.navigate('Entrances', {posted: {status: true, entry: currentEntry} } )
         }
     }
 
     async fetchWeather() {
 
         try {
-
             if (this.state.userCoordinates) {
 
                 console.log('FETCH WEATHER STATUS: STARTED...!')
@@ -585,7 +576,7 @@ export default class PostEntranceScreen extends Component {
     };
 
     render() {
-        console.log('Rendering "Post Entry" screen...')
+        // console.log('Rendering "Post Entry" screen...')
         return(
             <ImageBackground source={require('../assets/wallpaper.jpg')} style={styles.mainView}>
 

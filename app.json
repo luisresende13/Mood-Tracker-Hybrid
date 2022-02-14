@@ -28,6 +28,7 @@
     },
     "web": {
       "favicon": "./assets/icon.png"
-    }
+    },
+    "description": "Moodflow app clone. The development of this app clone is for educational purposes only."
   }
 }

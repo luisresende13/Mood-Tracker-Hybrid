@@ -146,9 +146,7 @@ class LoginScreen extends Component {
       <ImageBackground source={require('../assets/wallpaper.jpg')} style={[styles.login.mainView ,{justifyContent: 'space-evenly'}]}>
         
         <View style={styles.login.titleView}>
-          {/* <View style={styles.login.titleIcon}></View> */}
           <Text style={styles.login.title}>Mood Tracker</Text>
-          {/* <Icon name='clock' width={25} height={25} fill='white' animation='pulse' style={styles.login.titleIcon} /> */}
         </View>
 
         <View style={styles.login.card}>
@@ -173,7 +171,8 @@ class LoginScreen extends Component {
             onChangeText={this.onChangeText('password')}
             autoComplete='password'
             importantForAutofill='yes'
-            ></TextInput>
+            >
+            </TextInput>
           </View>
           <View style={styles.login.cardSection}>
             {this.submitButton('signin')}
@@ -352,7 +351,7 @@ class LoginScreen extends Component {
 
   render() {
 
-    console.log('Rendering "LoginComponent" screen...')
+    // console.log('Rendering "LoginComponent" screen...')
     return this.LoginScreen()
   
   }
