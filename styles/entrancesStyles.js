@@ -47,8 +47,10 @@ const styles = {
     },
     scrollView: {
         // paddingHorizontal: Platform.OS != 'web' ? '5%' : '5%',
-        height: '100%',
-        width: '100%',
+        flex: 1,
+        // height: '100%',
+        // width: '100%',
+        borderWidth: 1
         // alignSelf: 'center',
     },
     section: {
@@ -124,13 +126,13 @@ const styles = {
     },
     editButtonsView: {
         flexDirection: 'row',
-        height: 55,
+        height: 50,
         paddingBottom: 5,
         alignItems: 'flex-end',
         justifyContent: 'space-between'
     },
     editButton: {
-        height: 37,
+        height: 34,
         width: 102,
         borderWidth: 1,
         borderColor: 'aliceblue',
@@ -144,6 +146,9 @@ const styles = {
         color: 'white',
     },
     msgBox: {
+        position: 'absolute',
+        alignSelf: 'center',
+        bottom: 110,
         width: 300,
         height: 36,
         justifyContent: 'center',

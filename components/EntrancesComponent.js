@@ -107,8 +107,8 @@ export default class EntrancesScreen extends Component {
     }
 
     setAlertMsg(msg) {
-        this.setState({loginMsg: msg})
-        setTimeout( () => this.setState({loginMsg: ''}) , 1000 * 5 )
+        this.setState({alertMsg: msg})
+        setTimeout( () => this.setState({alertMsg: ''}) , 1000 * 5 )
     }
     
     alertMsg() {

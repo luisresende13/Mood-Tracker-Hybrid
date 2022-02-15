@@ -69,7 +69,7 @@ function Address ({entry}) {
         return(
             <View style={styles.cardRow}>
                 <Text numberOfLines={ isCollapsed } onPress={ () => { setIsCollapsed( isCollapsed ? 0 : 1 ) }} style={styles.text}>
-                    <Icon name='pin' height={17} width={17} fill='rgba(255,255,255,0.75)' style={{marginRight: 5, top: 2}} />
+                    <Icon name='pin' height={17} width={17} fill='rgba(255,255,255,0.75)' style={{position: 'relative', marginRight: 5, top: 2}} />
                     {entry.address}
                 </Text>
             </View>        
@@ -104,7 +104,7 @@ function Jornal({ entry }) {
         return(
             <View style={styles.cardRow}>
                 <Text style={styles.textBadge}>
-                    <Icon name='book-open' height={20} width={20} fill='rgba(0,0,0,0.25)' style={{top: 4, left: 1, marginRight: 6}} />
+                    <Icon name='book-open' height={20} width={20} fill='rgba(0,0,0,0.25)' style={{position: 'relative', top: 4, left: 1, marginRight: 6}} />
                     {entry.jornal}
                 </Text>
             </View>
@@ -127,7 +127,7 @@ function EmptyCard(props) {
     return (
         <Pressable
         onPress={ () => props.navigation.navigate('PostEntrance', navigateParams) }
-        disabled={!today}
+        // disabled={!today}
         style={[styles.card, {alignItems: 'center', justifyContent: 'center', fontSize: 16, height: today ? 145 : 117}]}
         >
             <Icon name='inbox' fill='rgba(255,255,255,0.3)' width={25} height={25} />
@@ -254,7 +254,7 @@ export default class UserEntryCards extends Component {
             var UsersResult = {ok: false, status: 999}
             UsersResult = await fetch( corsURI + appServerURI + 'Users/' + this.props.userInfo.username + '/entries/' + this.props.selectedEntryId, { method: 'DELETE' });
             // var UsersResult = await fetch( 'https://localhost:3000/' + 'Users/' + this.props.userInfo.username + '/entries/' + this.props.selectedEntryId, { method: 'DELETE' });
-            const usersStatus =  'Status: ' + UsersResult.status + ', ' + UsersResult.statusText
+            const usersStatus =  'Status ' + UsersResult.status + ', ' + UsersResult.statusText
 
             if (UsersResult.ok) {
                 // const users = await UsersResult.json();
@@ -275,7 +275,7 @@ export default class UserEntryCards extends Component {
         } finally {
             this.setState({ isLoading: false});
             this.props.setSelectedEntryId(null)
-            console.log('DELETE USER ENTRY STATUS: FINISHED. Proceeding to sync user entries...')
+            console.log('DELETE USER ENTRY STATUS: FINISHED.' + UsersResult.ok ? 'Proceeding to sync user entries...' : 'Delete failed, skipping sync of user entries...')
             if (UsersResult.ok) {this.syncUserEntries()}
         }    
     }
