@@ -3,7 +3,7 @@ import { View, Text, ImageBackground, Pressable, ScrollView, Platform, TextInput
 
 import { Icon } from 'react-native-eva-icons'
 import VectorIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-
+import EditEmotions from './subcomponents/EditEmotions'
 import styles from '../styles/postEntryStyles'
 
 // Geocoding and weather dependencies and APIs
@@ -173,7 +173,7 @@ export default class PostEntranceScreen extends Component {
             const isMoodUnmarked = this.state.isMoodUnmarked
             const selColor = moodColorsRGBA[index]
             return(
-                <View key={'mood '+index} style={styles.moodButton} >
+                <View key={'mood '+index} style={styles.moodButton}>
                     <VectorIcon
                     name={moodIcons[index]}
                     size={isMoodUnmarked ? 52 : (selected ? 57 : 50) }
@@ -242,14 +242,20 @@ export default class PostEntranceScreen extends Component {
     inputCardBody(sectionName, cardBodyStyle, cardBodyContent) {
         if (this.state.selectedEntry === sectionName) {
             if (sectionName == 'Emoções') {
-                return emotionGroups.map((emotions, index) => (
-                    <View key={'emotion-group-' + index} style={{width: '100%', alignItems: 'center', marginVertical: 10}}>
-                        <Text style={{fontSize: 15, color: 'white', marginVertical: 8}}>{emotionGroupsNames[index]}</Text>
-                        <View key={index} style={[styles.cardRow, cardBodyStyle]}>
-                            {cardBodyContent(emotions)}
-                        </View>
-                    </View>
-                ))
+                return(
+                    <>
+                        { emotionGroups.map((emotions, index) => (
+                            <View key={'emotion-group-' + index} style={{width: '100%', alignItems: 'center', marginVertical: 10}}>
+                                <Text style={{fontSize: 15, color: 'white', marginVertical: 8}}>{emotionGroupsNames[index]}</Text>
+                                <View key={index} style={[styles.cardRow, cardBodyStyle]}>
+                                    {cardBodyContent(emotions)}
+                                </View>
+                            </View>
+                        )) }
+                        <EditEmotions />
+                    </>
+    
+                )
             } else {
                 return(
                     <View style={[styles.cardRow, cardBodyStyle]}>
@@ -265,17 +271,6 @@ export default class PostEntranceScreen extends Component {
     }
 
     InputCard(sectionName, icon, cardBodyStyle, cardBodyContent) {
-        if (sectionName !== 'Jornal') {
-            return(
-                <Pressable style={[styles.card]} onPress={this.setSelectedEntry(sectionName)} >
-                    <View style={styles.cardRow}  >
-                        <Icon name={icon} fill='rgba(255,255,255,0.75)' height={28} width={28} style={styles.entryIcon} />
-                        <Text style={styles.entryTitle}> {sectionName} </Text>
-                    </View>    
-                    {this.inputCardBody(sectionName, cardBodyStyle, cardBodyContent)}
-                </Pressable>
-            )
-        } else {
             return(
                 <View style={[styles.card]} >
                     <Pressable style={styles.cardRow} onPress={this.setSelectedEntry(sectionName)} >
@@ -285,7 +280,6 @@ export default class PostEntranceScreen extends Component {
                     {this.inputCardBody(sectionName, cardBodyStyle, cardBodyContent)}  
                 </View>   
             )
-        }
     }
 
     setSelectedEntry (entry) {

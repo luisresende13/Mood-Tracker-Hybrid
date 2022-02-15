@@ -172,6 +172,27 @@ const styles = {
     fontSize: 16,
     marginRight: 3,
   },
+  editButtonsView: {
+    flexDirection: 'row',
+    height: 55,
+    paddingVertical: 5,
+    alignItems: 'flex-end',
+    justifyContent: 'space-between'
+  },
+  editButton: {
+    height: 34,
+    width: 102,
+    borderWidth: 1,
+    borderColor: 'aliceblue',
+    borderRadius: 19,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  editButtonLabel: {
+      fontSize: 15,
+      fontWeight: '400',
+      color: 'white',
+  },
 }
 
 export default styles;
