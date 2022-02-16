@@ -28,20 +28,28 @@ const moodColorsTransp = (alpha) => [`rgba(255, 51, 51, ${alpha})`, `rgba(0, 153
 const moodIcons = ['emoticon-dead', 'emoticon-sad', 'emoticon-neutral', 'emoticon-happy', 'emoticon-excited']
 
 // Emotion configs
-const emotionGroupsNames = [ 'Bem & Calmo', 'Bem & Energizado', 'Mal & Calmo', 'Mal & Energizado' ]
+const emotionGroupsNames = [ 'Bem & Calmo(a)', 'Bem & Energizado(a)', 'Mal & Calmo(a)', 'Mal & Energizado(a)' ]
 const goodEnergizedEmotions = ['Animação', 'Concentração', 'Desinibição', 'Motivação', 'Euforia']
 const goodCalmEmotions = ['Alívio', 'Calma', 'Conforto', 'Despreocupação', 'Inspiração', 'Orgulho', 'Paz', 'Relaxamento', 'Satisfação', 'Segurança', 'Criatividade']
 const badEnergizedEmotions = ['Inquietação', 'Ansiedade', 'Desespero', 'Frustração', 'Insatisfação', 'Irritação', 'Medo', 'Vergonha', 'Preocupação', 'Impaciência', 'Sobrecarregado(a)', 'Tensão']
 const badCalmEmotions = ['Depressão', 'Timidez', 'Cansaço', 'Tristeza','Confusão', 'Desanimo', 'Insegurança', 'Solidão', 'Tédio']
 // const badEnergizedEmotions = ['Agitação', 'Ansiedade', 'Tristeza', 'Decepção', 'Depressão', 'Desespero', 'Frustração', 'Insatisfação', 'Irritação', 'Medo', 'Paranoia', 'Preocupação', 'Impaciencia', 'Raiva', 'Revolta', 'Sobrecarregado(a)', 'Tensão', 'Nojo']
 
+const emotionTypes = ['Positiva', 'Negativa']
+const emotionEnergy = ['Calmo(a)', 'Energizado(a)']
+
 const emotionGroups = [ goodCalmEmotions.sort(), goodEnergizedEmotions.sort(), badCalmEmotions.sort(), badEnergizedEmotions.sort() ]
 const basicEmotions = [ ...emotionGroups[0], ...emotionGroups[1], ...emotionGroups[2], ...emotionGroups[3] ]
 
-var isSelectedEmotions = {}
-for ( let emotion of basicEmotions){
-    isSelectedEmotions[emotion] = false
+function buildIsSelectedEmotions(emotions) {
+    var isSelectedEmotions = {}
+    for ( let emotion of emotions) {
+        isSelectedEmotions[emotion.name] = false
+    }
+    return isSelectedEmotions
+    
 }
+
 
 // Date config
 const monthSigs = ['Jan', 'Feb', 'Mar', 'Apr', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -97,13 +105,40 @@ function formattedAddress(addressObj) {
     return addressObj.street + ', ' + addressObj.streetNumber + ' - ' + addressObj.district + ', ' + addressObj.subregion + '. ' + addressObj.region + ', ' + addressObj.isoCountryCode + '.'
 }
 
+function mapEmotions(emotions, layout='grid') {
+    var userEmotionGroups = layout=='grid' ? [[],[],[],[]] : [[],[]]
+    var emotionLabels = layout=='grid' ? emotionGroupsNames : emotionTypes
+    for (let emotion of emotions) {
+        if (layout=='grid') {
+            if (emotion.type=='Positiva') {
+                if (emotion.energy=='Calmo(a)')
+                userEmotionGroups[0] = [ ...userEmotionGroups[0], emotion]
+                else if (emotion.energy=='Energizado(a)')
+                userEmotionGroups[1] = [ ...userEmotionGroups[1], emotion]
+            } else if (emotion.type=='Negativa') {
+                if (emotion.energy=='Calmo(a)')
+                userEmotionGroups[2] = [ ...userEmotionGroups[2], emotion]
+                else if (emotion.energy=='Energizado(a)')
+                userEmotionGroups[3] = [ ...userEmotionGroups[3], emotion]
+            }   
+        } else if (layout=='type') {
+            if (emotion.type=='Positivo')
+            userEmotionGroups[0] = [ ...userEmotionGroups[0], emotion]
+            else if (emotion.type=='Negativo')
+            userEmotionGroups[1] = [ ...userEmotionGroups[1], emotion]
+        }
+    }
+    return [userEmotionGroups, emotionLabels]
+}
+
 export default class PostEntranceScreen extends Component {
   
     constructor(props) {
         super(props);
 
         this.state = {
-            
+            user: this.props.route.params.user,
+
             date: '',
             startTime: '',
             endTime: '',
@@ -120,9 +155,10 @@ export default class PostEntranceScreen extends Component {
 
             selectedEntry: 'Avaliação',
             isMoodUnmarked: true,
-            isSelectedEmotions: isSelectedEmotions,
+            isSelectedEmotions: buildIsSelectedEmotions(this.props.route.params.user.emotions),
             isLoading: false,
             isFetchingLocationOrWeather: false,
+            deleteMode: false,
 
             locationServiceEnabled: null,
             userCoordinates: null,
@@ -133,6 +169,7 @@ export default class PostEntranceScreen extends Component {
         this.initializeEntry = this.initializeEntry.bind(this);
         this.onSaveButtonPress = this.onSaveButtonPress.bind(this);
         this.saveButton = this.saveButton.bind(this);
+        this.setLoginMsg = this.setLoginMsg.bind(this);
         this.EmotionButtons = this.EmotionButtons.bind(this);
         this.MoodButtons = this.MoodButtons.bind(this);
         this.postEntryHeader = this.postEntryHeader.bind(this);
@@ -143,6 +180,10 @@ export default class PostEntranceScreen extends Component {
         this.InputCard = this.InputCard.bind(this);
         this.JornalInput = this.JornalInput.bind(this);
         this.postNewEntryAsync = this.postNewEntryAsync.bind(this);
+        this.updateUserData = this.updateUserData.bind(this);
+        this.setDeleteMode = this.setDeleteMode.bind(this);
+        this.deleteEmotion = this.deleteEmotion.bind(this);
+        this.onEmotionButtonLongPress = this.onEmotionButtonLongPress.bind(this);
     }
 
     componentDidMount() {
@@ -201,24 +242,35 @@ export default class PostEntranceScreen extends Component {
         return(
             emotions.map( emotion => (
                 <Pressable
-                key={'emotion-' + emotion}
-                title={emotion}
-                onPress={this.onEmotionButtonPress(emotion)}
+                key={'emotion-' + emotion.name}
+                title={emotion.name}
+                onPress={this.onEmotionButtonPress(emotion.name)}
+                onLongPress={this.onEmotionButtonLongPress(emotion.name)}
                 >
-                    <Text style={[styles.emotionBadge, {backgroundColor: this.state.isSelectedEmotions[emotion] ? 'lightblue' : 'aliceblue' }]}>{emotion}</Text>
+                    <Text style={[styles.emotionBadge, {backgroundColor: this.state.isSelectedEmotions[emotion.name] ? 'lightblue' : 'aliceblue' }]}>{emotion.name}</Text>
                 </Pressable>
             ))
         )
     }
 
-    onEmotionButtonPress(emotion) { 
+    onEmotionButtonPress(emotion) {
         function selectEmotion () {
             this.setState({
                 isSelectedEmotions: {
                     ...this.state.isSelectedEmotions,
                     [emotion]: !this.state.isSelectedEmotions[emotion]
                 }
-            })
+            })    
+        }
+        selectEmotion = selectEmotion.bind(this);
+        return selectEmotion
+    }
+
+    onEmotionButtonLongPress(emotion) { 
+        function selectEmotion () {
+            if (this.state.deleteMode) {
+                this.deleteEmotion(emotion)
+            }
         }
         selectEmotion = selectEmotion.bind(this);
         return selectEmotion
@@ -242,17 +294,27 @@ export default class PostEntranceScreen extends Component {
     inputCardBody(sectionName, cardBodyStyle, cardBodyContent) {
         if (this.state.selectedEntry === sectionName) {
             if (sectionName == 'Emoções') {
+
+                const [userEmotionGroups, emotionLabels] = mapEmotions(this.state.user.emotions)
                 return(
                     <>
-                        { emotionGroups.map((emotions, index) => (
+                        { userEmotionGroups.map((emotions, index) => (
                             <View key={'emotion-group-' + index} style={{width: '100%', alignItems: 'center', marginVertical: 10}}>
-                                <Text style={{fontSize: 15, color: 'white', marginVertical: 8}}>{emotionGroupsNames[index]}</Text>
+                                <Text style={{fontSize: 15, color: 'white', marginVertical: 8}}>{emotionLabels[index]}</Text>
                                 <View key={index} style={[styles.cardRow, cardBodyStyle]}>
                                     {cardBodyContent(emotions)}
                                 </View>
                             </View>
                         )) }
-                        <EditEmotions />
+                        <EditEmotions
+                        user={this.props.route.params.user}
+                        syncUserData={this.props.route.params.syncUserData}
+                        updateUserData={this.updateUserData}
+                        deleteMode={this.state.deleteMode}
+                        setDeleteMode={this.setDeleteMode}
+                        setAlertMsg={this.setLoginMsg}
+                        isLoading={this.state.isLoading}
+                        />
                     </>
     
                 )
@@ -271,15 +333,15 @@ export default class PostEntranceScreen extends Component {
     }
 
     InputCard(sectionName, icon, cardBodyStyle, cardBodyContent) {
-            return(
-                <View style={[styles.card]} >
-                    <Pressable style={styles.cardRow} onPress={this.setSelectedEntry(sectionName)} >
-                        <Icon name={icon} fill='rgba(255,255,255,0.75)' height={28} width={28} style={styles.entryIcon} />
-                        <Text style={styles.entryTitle}> {sectionName} </Text>
-                    </Pressable>    
-                    {this.inputCardBody(sectionName, cardBodyStyle, cardBodyContent)}  
-                </View>   
-            )
+        return(
+            <View style={[styles.card]} >
+                <Pressable style={styles.cardRow} onPress={this.setSelectedEntry(sectionName)} >
+                    <Icon name={icon} fill='rgba(255,255,255,0.75)' height={28} width={28} style={styles.entryIcon} />
+                    <Text style={styles.entryTitle}> {sectionName} </Text>
+                </Pressable>    
+                {this.inputCardBody(sectionName, cardBodyStyle, cardBodyContent)}  
+            </View>   
+        )
     }
 
     setSelectedEntry (entry) {
@@ -303,8 +365,9 @@ export default class PostEntranceScreen extends Component {
         setTimeout( () => this.setState({loginMsg: ''}) , 1000 * 5 )
     }    
 
-    initializeEntry() {
+    async initializeEntry() {
         const currentEntry = this.props.route.params.currentEntry
+        const user = this.state.user
         switch (currentEntry.type) {
             case 'new':
                 console.log('POST ENTRY STATUS: INITIATING BLANK NEW ENTRY! FETCHING LOCATION AND WEATHER DATA...')
@@ -314,9 +377,10 @@ export default class PostEntranceScreen extends Component {
                     endTime: '',
                     isFetchingLocationOrWeather: true
                 })
-                this.checkIfLocationEnabled();
-                this.getCurrentLocation();                    
-                break;
+                await this.checkIfLocationEnabled();
+                await this.getCurrentLocation();                    
+                await this.fetchWeather()
+            break;
         
             case 'custom-date':
                 console.log('POST ENTRY STATUS: INITIALIZING CUSTOM DATE ENTRY! SETTING DATE TO: ' + currentEntry.date)
@@ -329,9 +393,10 @@ export default class PostEntranceScreen extends Component {
 
             case 'edit':
                 const entry = currentEntry.entry
+                const currentEmotions = entry.emotions.map(emotion => emotion.name)
                 var isSelectedEmotionsNew = {}
-                for ( let emotion of basicEmotions ) {
-                    isSelectedEmotionsNew[emotion] = entry.emotions.indexOf(emotion) != -1
+                for ( let emotion of user.emotions ) {
+                    isSelectedEmotionsNew[emotion.name] = currentEmotions.includes(emotion.name)
                 }
                 this.setState({
                     date: entry.date,
@@ -353,6 +418,23 @@ export default class PostEntranceScreen extends Component {
             default:
                 break;
         }
+    }
+
+    updateUserData() {
+        console.log('UPDATING USER DATA IN "PostEntryComponent"...')
+        const user = this.props.route.params.passUserData()
+
+        const oldEmotions = Object.keys(this.state.isSelectedEmotions)
+        const currentEmotions = user.emotions.map(emotion => emotion.name)
+        const newEmotions = currentEmotions.filter(emotion => oldEmotions.includes(emotion))
+
+        const newEmotionsSelected = buildIsSelectedEmotions(newEmotions)
+        oldEmotions.forEach(emotion => { if (currentEmotions.includes(emotion)) newEmotionsSelected[emotion] = this.state.isSelectedEmotions[emotion] })
+
+        this.setState({
+            user: user,
+            isSelectedEmotions: newEmotionsSelected
+        })
     }
 
     saveButton() {
@@ -410,14 +492,12 @@ export default class PostEntranceScreen extends Component {
                     lastEdited: [ ...this.state.lastEdited, {date: Today(), time: lastEdited}],
                     star: this.state.star,
                     mood: this.state.selectedMood,
-                    emotions: basicEmotions.filter( emotion => this.state.isSelectedEmotions[emotion] ),
+                    emotions: this.state.user.emotions.filter( emotion => this.state.isSelectedEmotions[emotion.name] ),
                     jornal: this.state.jornalEntry,
                     address: this.state.address,
                     location: this.state.location,
                     weather: this.state.weather,
                 }
-
-                console.log(`POST ENTRY STATUS: POST SET FOR ENTRY TYPE: ${currentEntry.type}. POST: ${JSON.stringify(newEntryPost)}`)
                 this.postNewEntryAsync(newEntryPost)
 
             } catch (error) {
@@ -431,7 +511,7 @@ export default class PostEntranceScreen extends Component {
 
     async postNewEntryAsync(newEntry) {
         this.setState({ isLoading: true });
-        var info = this.props.route.params.userInfo;
+        var user = this.props.route.params.user;
         const currentEntry = this.props.route.params.currentEntry
         const editMode = currentEntry.type === 'edit';
         try {
@@ -445,7 +525,7 @@ export default class PostEntranceScreen extends Component {
                 body: JSON.stringify( newEntry ),
             }
             // var postUserEntryResult = await fetch('http://localhost:3000/Users/' + info.username + '/entries', postUserEntryOpts);
-            postUserEntryResult = await fetch( corsURI + appServerURI + 'Users/' + info.username + '/entries' + (editMode ? '/'+currentEntry.entry._id : ''), postUserEntryOpts);
+            postUserEntryResult = await fetch( corsURI + appServerURI + 'Users/' + user.username + '/entries' + (editMode ? '/'+currentEntry.entry._id : ''), postUserEntryOpts);
             const postUserEntryStatus = 'Status: ' + postUserEntryResult.status + ', ' + postUserEntryResult.statusText
 
             if (postUserEntryResult.ok) {
@@ -466,6 +546,51 @@ export default class PostEntranceScreen extends Component {
             this.setState({ isLoading: false });
             if (postUserEntryResult.ok) this.props.navigation.navigate('Entrances', {posted: {status: true, entry: currentEntry} } )
         }
+    }
+
+    setDeleteMode() {
+        this.setState({deleteMode: !this.state.deleteMode})
+    }
+
+    async deleteEmotion(emotion) {
+        this.setState({ isLoading: true });
+        var user = this.state.user;
+        try {
+            console.log('DELETE EMOTION STATUS: Started...')
+            var postEmotionResult = {ok: false, status: '999', statusText: 'Post not fetched yet.'}
+            const postUserEntryOpts = { 
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }
+            // var postUserEntryResult = await fetch('http://localhost:3000/Users/' + info.username + '/emotions', postUserEntryOpts);
+            postEmotionResult = await fetch( corsURI + appServerURI + 'Users/' + user.username + '/emotions/' + emotion, postUserEntryOpts);
+            const postEmotionStatus = 'Status: ' + postEmotionResult.status + ', ' + postEmotionResult.statusText
+
+            if (postEmotionResult.ok) {
+                console.log('DELETE EMOTION STATUS: Successful.')
+                console.log(postEmotionStatus)
+                    
+            } else {
+                console.log('DELETE EMOTION STATUS: Failed. Throwing error...')
+                throw new Error(postEmotionStatus)
+            }
+
+        } catch (error) {
+            this.setAlertMsg('Erro no servidor. Tente novamente...')
+            console.log('Erro capturado:')
+            console.log(error);
+
+        } finally {
+            console.log('DELETE EMOTION STATUS: Finished.')
+            this.setState({ isLoading: false });
+            if (postEmotionResult.ok) {
+                await this.props.route.params.syncUserData();
+                this.updateUserData();
+            }
+        }
+ 
     }
 
     async fetchWeather() {
@@ -594,7 +719,6 @@ export default class PostEntranceScreen extends Component {
         
         } finally {
             console.log('GEOCODING PROCESS: USER POSITION REQUEST FINISHED. PROCEEDING TO FETCH WEATHER DATA...')
-            this.fetchWeather()
         }
     };
 

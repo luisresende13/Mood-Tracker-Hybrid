@@ -11,8 +11,8 @@ import dateRange from '../shared/dateRange';
 import styles from '../styles/entrancesStyles';
 
 // cors-midpoint uri (needed to avoid cors' allow-cross-origin error when fetching)
-// const corsURI = 'https://morning-journey-78874.herokuapp.com/';
-// const appServerURI = 'https://mood-tracker-server.herokuapp.com/'
+const corsURI = 'https://morning-journey-78874.herokuapp.com/';
+const appServerURI = 'https://mood-tracker-server.herokuapp.com/'
 
 // Defining pertinent constants
 const monthDict = {'Jan': '01', 'Feb': '02', 'Mar': '03', 'Apr': '04', 'May': '05', 'Jun': '06', 'Jul': '07', 'Ago': '08', 'Sep': '09', 'Oct': '10', 'Nov': '11', 'Dec': '12'}
@@ -65,23 +65,30 @@ export default class EntrancesScreen extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            userEntries: [],
+            
+            user: this.props.route.params.user,
             date: Today(),
             time: getTime(),
             selectedDate: Today(),
             entriesLoading: false,
-            entriesSynced: false,
+            userDataSynced: false,
+            isUserDataSyncing: false,
             alertMsg: '',
         };
         this.onNextButtonPress = this.onNextButtonPress.bind(this);
         this.forgetPosted = this.forgetPosted.bind(this);
         this.setAlertMsg = this. setAlertMsg.bind(this);
         this.setSelectedEntryId = this.setSelectedEntryId.bind(this);
+        this.setUserInfo = this.setUserInfo.bind(this);
+        this.syncUserData = this.syncUserData.bind(this);
+        this.passUserData = this.passUserData.bind(this);
     }
     
     componentDidMount() {
         console.log('"Entries" screen component did mount...')      
         this.props.navigation.setParams({posted: {status: false, entry: null}});
+        // this.syncUserData()
+
     }
 
     setSelectedEntryId(id) {
@@ -128,9 +135,58 @@ export default class EntrancesScreen extends Component {
         )
     }
 
+    setUserInfo(user) {
+        this.setState({user: user, userDataSynced: true})
+    }
+
+    passUserData() {
+        return this.state.user
+    }
+
+    async syncUserData() {
+
+        console.log('SYNC ENTRIES STATUS: Started...')
+        this.setState({ isUserDataSyncing: true });
+    
+        try {
+
+            var UsersResult = await fetch( corsURI + appServerURI + 'Users', { method: 'GET' });
+            const usersStatus =  'Status: ' + UsersResult.status + ', ' + UsersResult.statusText
+
+            if (UsersResult.ok) {
+                const users = await UsersResult.json();
+                const user = users.filter((user) => user.email === this.state.user.email)[0]
+                console.log('fetch GET request for user entries successful.')
+                console.log(usersStatus)
+
+                this.setState({user: user, userDataSynced: true})
+                console.log('SYNC ENTRIES STATUS: Successful.')
+
+            } else {
+                console.log( new Error('"fetch" GET request for user entries failed. Throwing error...') )
+                throw new Error(usersStatus)
+            }
+    
+        } catch (error) {
+                console.log('SYNC ENTRIES STATUS: Error captured. Printing error...')
+                console.log(error);
+                this.props.setAlertMsg('Não foi possível sincronizar as entradas. Por favor, aguarde..')
+
+        } finally {
+            this.setState({ isUserDataSyncing: false });
+            console.log('SYNC ENTRIES STATUS: Finished.')
+        }    
+    }
+
     render() {
         // console.log('Rendering "Entries" screen...')
         const today = this.state.selectedDate === Today()
+        const navigateParams = {
+            user: this.state.user,
+            currentEntry: {type: 'new', date: Today(), entry: null},
+            syncUserData: this.syncUserData,
+            passUserData: this.passUserData,
+        }
         return(
             <ImageBackground source={require('../assets/wallpaper.jpg')} style={[styles.mainView]}>
                 
@@ -144,8 +200,12 @@ export default class EntrancesScreen extends Component {
                         <UserEntryCards
                         date={this.state.selectedDate}
                         selectedEntryId={this.state.selectedEntryId}
-                        userInfo={this.props.route.params.userInfo}
                         posted={this.props.route.params.posted}
+                        user={this.state.user}
+                        isUserDataSyncing={this.state.isUserDataSyncing}
+                        setUserInfo={this.setUserInfo}
+                        syncUserData={this.syncUserData}
+                        passUserData={this.passUserData}
                         setSelectedEntryId={this.setSelectedEntryId}
                         forgetPosted={this.forgetPosted}
                         setAlertMsg = {this.setAlertMsg}
@@ -154,7 +214,7 @@ export default class EntrancesScreen extends Component {
                     </View>
                 </ScrollView>
 
-                <Pressable onPress={() => {this.props.navigation.navigate( 'PostEntrance', {currentEntry: {type: 'new', date: Today(), entry: null}} )}}  style={[styles.postButton]}>
+                <Pressable onPress={() => {this.props.navigation.navigate( 'PostEntrance', navigateParams )}}  style={[styles.postButton]}>
                     <Icon name='plus-circle' width={72} height={72} fill='white' style={styles.postButtonLabel}/>
                 </Pressable>
 

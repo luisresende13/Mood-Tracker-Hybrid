@@ -136,7 +136,7 @@ const styles = {
         width: 102,
         borderWidth: 1,
         borderColor: 'aliceblue',
-        borderRadius: 19,
+        borderRadius: 17,
         alignItems: 'center',
         justifyContent: 'center'
     },

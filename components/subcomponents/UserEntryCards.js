@@ -84,6 +84,9 @@ function Emotions ({entry}) {
         return (
             <View style={[styles.cardRow, {flexWrap: 'wrap', justifyContent: 'flex-start', paddingTop: 2, PaddingBottom: 0}]}>
                 { entry.emotions.map((emotion, index) => {
+                    if (emotion.name) {
+                        emotion = emotion.name
+                    }
                     return(
                         <View key={'emotion-' + emotion} style={{paddingVertical: 5, paddingHorizontal: 2}}>
                             <Text style={[styles.emotionBadge]}>{emotion}</Text>
@@ -117,22 +120,24 @@ function Jornal({ entry }) {
 function EmptyCard(props) {
     const today = props.date == Today()
     const navigateParams = {
+        user: props.user,
         currentEntry: {
             type: today ? 'new' : 'custom-date',
             date: props.date,
             entry: null
-        }
+        },
+        syncUserData: props.syncUserData,
+        passUserData: props.passUserData,
     }
     const textStyle = {fontSize: 16, color: 'white', marginTop: 7}
     return (
         <Pressable
         onPress={ () => props.navigation.navigate('PostEntrance', navigateParams) }
-        // disabled={!today}
-        style={[styles.card, {alignItems: 'center', justifyContent: 'center', fontSize: 16, height: today ? 145 : 117}]}
+        style={[styles.card, {alignItems: 'center', justifyContent: 'center', fontSize: 16, height: 145}]}
         >
             <Icon name='inbox' fill='rgba(255,255,255,0.3)' width={25} height={25} />
             <Text style={textStyle}> Nenhuma entrada encontrada. </Text>
-            { today ? <Text style={textStyle}> Pressione aqui para adicionar uma a este dia! </Text> : null }
+            <Text style={textStyle}> Pressione aqui para adicionar uma a este dia! </Text>
         </Pressable>
     );
 }
@@ -150,8 +155,6 @@ export default class UserEntryCards extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            userEntries: [],
-            isEntriesSyncing: false,
             isLoading: false,
         };
         this.EntryCard = this.EntryCard.bind(this);
@@ -159,14 +162,12 @@ export default class UserEntryCards extends Component {
         this.EditEntryButtons = this.EditEntryButtons.bind(this);
         this.editUserEntry = this.editUserEntry.bind(this);
         this.deleteUserEntry = this.deleteUserEntry.bind(this);
-        this.syncUserEntries = this.syncUserEntries.bind(this);
     }
 
     componentDidMount() {
         console.log('Subcomponent "UserEntryCards" did mount...')
-        this.syncUserEntries()
         setInterval( () => { this.updateIfPosted() }, 1000 * 3 )
-        // setInterval( () => { console.log('Default auto syncing started...'); this.syncUserEntries() }, 1000 * 10 )
+        // setInterval( () => { console.log('Default auto syncing started...'); this.syncUserData() }, 1000 * 10 )
         
     }
 
@@ -174,7 +175,7 @@ export default class UserEntryCards extends Component {
         if (this.props.posted.status) {
             console.log('JUST POSTED STATUS: POSTED. Redirecting date and syncing entries ...');
             this.props.forgetPosted();
-            this.syncUserEntries();
+            this.props.syncUserData();
             }
     }
 
@@ -194,16 +195,16 @@ export default class UserEntryCards extends Component {
     }    
 
     UserEntryCardsList() {
-        const selDateEntries = this.state.userEntries.filter( (entry) => entry.date === this.props.date )
+        const selDateEntries = this.props.user.entries.filter( (entry) => entry.date === this.props.date ).reverse()
 
         if (selDateEntries.length) {
             return selDateEntries.map( entry => <this.EntryCard key={'entry-card-'+entry.startTime} entry={entry} />)
         
-        } else if (this.state.isEntriesSyncing) {    
+        } else if (this.props.isUserDataSyncing) {    
             return <CardsLoadingMessage />
 
         } else {
-            return <EmptyCard navigation={this.props.navigation} date={this.props.date} />
+            return <EmptyCard {...this.props} />
         }
     }
 
@@ -223,7 +224,7 @@ export default class UserEntryCards extends Component {
                         <Pressable
                         key={`èdit-${label}-${props.entryId}`}
                         style={[styles.editButton,  {backgroundColor: isButtonPressed[label] ? (label=='Excluir' ? '#000f' : '#fff2') : '#0000', borderColor: label=='Excluir' ? 'red' : 'white' }]}
-                        disabled={ this.state.isLoading | this.state.isEntriesSyncing }
+                        disabled={ this.state.isLoading | this.props.isUserDataSyncing }
                         onPress={ onButtonPress[label] }
                         onPressIn={() => setIsButtonPressed({ ...isButtonPressed, [label]: !isButtonPressed[label] })}
                         onPressOut={() => setIsButtonPressed({ ...isButtonPressed, [label]: !isButtonPressed[label] })}
@@ -239,9 +240,18 @@ export default class UserEntryCards extends Component {
     }
 
     editUserEntry() {
-        const selectedEntry = this.state.userEntries.filter( (entry) => entry._id == this.props.selectedEntryId )[0]
-        // this.setState({selectedEntryId: null})
-        this.props.navigation.navigate('PostEntrance', { currentEntry: {type: 'edit', date: selectedEntry.date, entry: selectedEntry} })
+        const selectedEntry = this.props.user.entries.filter( (entry) => entry._id == this.props.selectedEntryId )[0]
+        const navigateParams = {
+            user: this.props.user,
+            currentEntry: {
+                type: 'edit',
+                date: selectedEntry.date,
+                entry: selectedEntry
+            },
+            syncUserData: this.props.syncUserData,
+            passUserData: this.props.passUserData,
+        }
+        this.props.navigation.navigate('PostEntrance', navigateParams)
     }
 
     async deleteUserEntry() {
@@ -252,8 +262,8 @@ export default class UserEntryCards extends Component {
 
         try {
             var UsersResult = {ok: false, status: 999}
-            UsersResult = await fetch( corsURI + appServerURI + 'Users/' + this.props.userInfo.username + '/entries/' + this.props.selectedEntryId, { method: 'DELETE' });
-            // var UsersResult = await fetch( 'https://localhost:3000/' + 'Users/' + this.props.userInfo.username + '/entries/' + this.props.selectedEntryId, { method: 'DELETE' });
+            UsersResult = await fetch( corsURI + appServerURI + 'Users/' + this.props.user.username + '/entries/' + this.props.selectedEntryId, { method: 'DELETE' });
+            // var UsersResult = await fetch( 'https://localhost:3000/' + 'Users/' + this.props.user.username + '/entries/' + this.props.selectedEntryId, { method: 'DELETE' });
             const usersStatus =  'Status ' + UsersResult.status + ', ' + UsersResult.statusText
 
             if (UsersResult.ok) {
@@ -276,42 +286,7 @@ export default class UserEntryCards extends Component {
             this.setState({ isLoading: false});
             this.props.setSelectedEntryId(null)
             console.log('DELETE USER ENTRY STATUS: FINISHED.' + UsersResult.ok ? 'Proceeding to sync user entries...' : 'Delete failed, skipping sync of user entries...')
-            if (UsersResult.ok) {this.syncUserEntries()}
-        }    
-    }
-
-    async syncUserEntries() {
-
-        console.log('SYNC ENTRIES STATUS: Started...')
-        this.setState({ isEntriesSyncing: true });
-    
-        try {
-
-            var UsersResult = await fetch( corsURI + appServerURI + 'Users', { method: 'GET' });
-            const usersStatus =  'Status: ' + UsersResult.status + ', ' + UsersResult.statusText
-
-            if (UsersResult.ok) {
-                const users = await UsersResult.json();
-                const user = users.filter((user) => user.email === this.props.userInfo.email)[0]
-                console.log('fetch GET request for user entries successful.')
-                console.log(usersStatus)
-
-                this.setState({userEntries: user['entries'].reverse(), entriesSynced: true})  
-                console.log('SYNC ENTRIES STATUS: Successful.')
-
-            } else {
-                console.log( new Error('"fetch" GET request for user entries failed. Throwing error...') )
-                throw new Error(usersStatus)
-            }
-    
-        } catch (error) {
-                console.log('SYNC ENTRIES STATUS: Error captured. Printing error...')
-                console.log(error);
-                this.props.setAlertMsg('Não foi possível sincronizar as entradas. Por favor, aguarde..')
-
-        } finally {
-            this.setState({ isEntriesSyncing: false });
-            console.log('SYNC ENTRIES STATUS: Finished.')
+            if (UsersResult.ok) {this.props.syncUserData()}
         }    
     }
 

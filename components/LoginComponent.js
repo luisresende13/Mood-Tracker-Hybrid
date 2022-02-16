@@ -5,6 +5,7 @@ import { Icon } from 'react-native-eva-icons'
 
 import React, { Component } from 'react';
 import { View, Text, ImageBackground, TextInput, Pressable, Platform, ActivityIndicator } from 'react-native';
+const defaultEmotions = require('../shared/emotionsConfig')
 import styles from '../styles/loginStyles'
 
 // App server connection settings
@@ -231,8 +232,7 @@ class LoginScreen extends Component {
       if ( user ) {          
         
         if (user.password === info.password) {
-          const userInfo = { ...info, username: info.email.split('@')[0]}
-          this.setState( {isUserAuth: true, userInfo} )
+          this.setState( {isUserAuth: true, userInfo: user} )
           const successMsg = 'Login realizado com sucesso!'
           this.setLoginMsg(successMsg)
           console.log('SIGNIN STATUS: Sucesso.')
@@ -307,14 +307,14 @@ class LoginScreen extends Component {
 
         // Registering new user by posting user identification to database
         info.username = info.email.split('@')[0]
-        const postUserOpts = { 
+        const postUserOpts = {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify( { entries: [], ...info } )
+          body: JSON.stringify( { ...info, emotions: defaultEmotions, entries: [] } )
         }
-        
+
         postUserResult = await fetch( corsURI + appServerURI +  'Users/' + info.username, postUserOpts );
         const postUserStatus = 'Status: ' + postUserResult.status + ', ' + postUserResult.statusText
 

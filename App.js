@@ -27,14 +27,14 @@ const HomeScreen = (props) => {
       name="Entrances"
       component={EntrancesScreen}
       options={{title: 'Suas entradas'}}
-      initialParams={{userInfo: props.userInfo}}
+      initialParams={{user: props.user}}
       // initialParams={{userInfo: props.route.params.userInfo}}
       />
       <Stack.Screen
       name="PostEntrance"
       component={PostEntranceScreen}
       options={{title: 'Adicione uma  entrada'}}
-      initialParams={{userInfo: props.userInfo}}
+      initialParams={{user: props.user}}
       // initialParams={{userInfo: props.route.params.userInfo}}
       />
     </Stack.Navigator>
@@ -75,14 +75,14 @@ export default class App extends Component {
 
     this.state = {
       isUserAuth: false,
-      userInfo: null,
+      user: null,
     };
     this.authUser = this.authUser.bind(this);
   }
 
-  authUser(userInfo) {
+  authUser(user) {
     console.log('User authenticated. Navigating to "HomeScreen"...')
-    this.setState( {isUserAuth: true, userInfo} )
+    this.setState( {isUserAuth: true, user} )
   }
 
   render() {
@@ -94,7 +94,7 @@ export default class App extends Component {
       return (
 
         <NavigationContainer>
-          <HomeScreen userInfo={this.state.userInfo} />
+          <HomeScreen user={this.state.user} />
         </NavigationContainer>
 
         // <NavigationContainer>
