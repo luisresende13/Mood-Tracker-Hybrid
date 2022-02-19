@@ -104,6 +104,14 @@ class LoginScreen extends Component {
     this.onSignUp = this.onSignUp.bind(this);
   }
 
+  componentDidMount() {
+    console.log('"LoginScreen" component did mount...')
+  }
+
+  componentWillUnmount() {
+    console.log('"LoginScreen" component will unmount...')
+  }
+
   LoginIcon() {  
     if (this.state.isDataLoading) {
       return <ActivityIndicator color='#000000' />
@@ -208,6 +216,7 @@ class LoginScreen extends Component {
 
     console.log('SIGNIN STATUS: Started...')
     var info = this.state.userInfo;
+    info.email = info.email.trim()
     this.setState({ isDataLoading: true });
 
     try {
@@ -267,6 +276,7 @@ class LoginScreen extends Component {
 
     console.log('SIGNUP STATUS: started...')
     var info = this.state.userInfo;
+    info.email = info.email.trim()
     this.setState({ isDataLoading: true });
     
     try {
@@ -351,7 +361,7 @@ class LoginScreen extends Component {
 
   render() {
 
-    // console.log('Rendering "LoginComponent" screen...')
+    console.log('Rendering "LoginScreen" component...')
     return this.LoginScreen()
   
   }

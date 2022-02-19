@@ -1,6 +1,6 @@
 // Module import
 import React, { Component, useState } from 'react';
-import { Platform, View, Text, Pressable, Image } from 'react-native';
+import { Platform, View, Text, Pressable, Image, ActivityIndicator } from 'react-native';
 import { Icon } from 'react-native-eva-icons'
 
 // Local import
@@ -127,7 +127,9 @@ function EmptyCard(props) {
             entry: null
         },
         syncUserData: props.syncUserData,
-        passUserData: props.passUserData,
+        setMainScreenState: props.setMainScreenState,
+        getMainScreenState: props.getMainScreenState,
+
     }
     const textStyle = {fontSize: 16, color: 'white', marginTop: 7}
     return (
@@ -144,8 +146,9 @@ function EmptyCard(props) {
 
 function CardsLoadingMessage() {
     return(
-        <View style={[styles.card, {alignItems: 'center', justifyContent: 'center', height: 145}]}>
-            <Icon name='sync-outline' fill='rgba(0,0,0,0.3)' width={25} height={25} />
+        <View style={[styles.card, {alignItems: 'center', justifyContent: 'center', height: 85}]}>
+            <Icon name='sync-outline' fill='rgba(255,255,255,1)' width={25} height={25} />
+            <Text style={{marginTop: 10, fontSize: 16, color: 'white'}}>Sincronizando entradas...</Text>
         </View>
     )
 }
@@ -154,11 +157,9 @@ export default class UserEntryCards extends Component {
 
     constructor(props) {
         super(props);
-        this.state = {
-            isLoading: false,
-        };
+        this.state = {};
+        
         this.EntryCard = this.EntryCard.bind(this);
-        // this.onEntryCardPress = this.onEntryCardPress.bind(this);
         this.EditEntryButtons = this.EditEntryButtons.bind(this);
         this.editUserEntry = this.editUserEntry.bind(this);
         this.deleteUserEntry = this.deleteUserEntry.bind(this);
@@ -168,9 +169,12 @@ export default class UserEntryCards extends Component {
         console.log('Subcomponent "UserEntryCards" did mount...')
         setInterval( () => { this.updateIfPosted() }, 1000 * 3 )
         // setInterval( () => { console.log('Default auto syncing started...'); this.syncUserData() }, 1000 * 10 )
-        
     }
 
+    componentWillUnmount() {
+        console.log('"UserEntryCards" sub-component will unmount...')
+      }
+    
     updateIfPosted () {
         if (this.props.posted.status) {
             console.log('JUST POSTED STATUS: POSTED. Redirecting date and syncing entries ...');
@@ -196,13 +200,17 @@ export default class UserEntryCards extends Component {
 
     UserEntryCardsList() {
         const selDateEntries = this.props.user.entries.filter( (entry) => entry.date === this.props.date ).reverse()
-
         if (selDateEntries.length) {
-            return selDateEntries.map( entry => <this.EntryCard key={'entry-card-'+entry.startTime} entry={entry} />)
-        
-        } else if (this.props.isUserDataSyncing) {    
+            return(
+                <>
+                    { selDateEntries.map( entry => <this.EntryCard key={'entry-card-'+entry.startTime} entry={entry} />) }
+                    {/* { this.props.isUserDataSyncing ? <CardsLoadingMessage /> : null }         */}
+                </>
+            )
+       
+        } else if (this.props.isUserDataSyncing ) {
             return <CardsLoadingMessage />
-
+            
         } else {
             return <EmptyCard {...this.props} />
         }
@@ -217,19 +225,31 @@ export default class UserEntryCards extends Component {
             'Excluir': false,
         })
 
+        function highlightButtonFor(label) {
+            function highlightButton() {
+                setIsButtonPressed({ ...isButtonPressed, [label]: !isButtonPressed[label] })
+            }
+            return highlightButton.bind(this);
+        }
+
+        const isLoading = this.props.isDeleteLoading | this.props.isUserDataSyncing
+        const buttonLabel = (label) => <Text style={[styles.editButtonLabel, {color: label=='Excluir' ? 'red' : 'white' }]}>{label}</Text>
         if (this.props.selectedEntryId == props.entryId) {
             return(
                 <View style={styles.editButtonsView}>
                     { buttonLabels.map( (label) => (
                         <Pressable
-                        key={`èdit-${label}-${props.entryId}`}
-                        style={[styles.editButton,  {backgroundColor: isButtonPressed[label] ? (label=='Excluir' ? '#000f' : '#fff2') : '#0000', borderColor: label=='Excluir' ? 'red' : 'white' }]}
-                        disabled={ this.state.isLoading | this.props.isUserDataSyncing }
-                        onPress={ onButtonPress[label] }
-                        onPressIn={() => setIsButtonPressed({ ...isButtonPressed, [label]: !isButtonPressed[label] })}
-                        onPressOut={() => setIsButtonPressed({ ...isButtonPressed, [label]: !isButtonPressed[label] })}
+                        key={`edit-${label}-${props.entryId}`}
+                        style={[styles.editButton,  {backgroundColor: isButtonPressed[label] ? (label=='Excluir' ? '#0008' : '#fff5') : '#0000', borderColor: label=='Excluir' ? 'red' : 'white' }]}
+                        disabled={ isLoading }
+                        onPress={() => {highlightButtonFor(label)(); onButtonPress[label]() }}
+                        onPressIn={highlightButtonFor(label)}
                         >
-                            <Text style={[styles.editButtonLabel, {color: label=='Excluir' ? 'red' : 'white' }]}>{label}</Text>                    
+                            { label=='Excluir' ? (
+                                this.props.isDeleteLoading ? <ActivityIndicator color='red' /> : buttonLabel(label)
+                                
+                            ) : buttonLabel(label) }
+                                                
                         </Pressable>
                     )) }
             </View>
@@ -249,7 +269,9 @@ export default class UserEntryCards extends Component {
                 entry: selectedEntry
             },
             syncUserData: this.props.syncUserData,
-            passUserData: this.props.passUserData,
+            setMainScreenState: this.props.setMainScreenState,
+            getMainScreenState: this.props.getMainScreenState,
+    
         }
         this.props.navigation.navigate('PostEntrance', navigateParams)
     }
@@ -257,7 +279,7 @@ export default class UserEntryCards extends Component {
     async deleteUserEntry() {
 
         console.log('DELETE USER ENTRY STATUS: Started...')
-        this.setState({ isLoading: true });
+        this.props.setIsDeleteEntryLoading(true);
         // prompt()
 
         try {
@@ -283,7 +305,7 @@ export default class UserEntryCards extends Component {
                 this.props.setAlertMsg('Não foi possível deletar a entrada. Tente novamente.')
 
         } finally {
-            this.setState({ isLoading: false});
+            this.props.setIsDeleteEntryLoading(false);
             this.props.setSelectedEntryId(null)
             console.log('DELETE USER ENTRY STATUS: FINISHED.' + UsersResult.ok ? 'Proceeding to sync user entries...' : 'Delete failed, skipping sync of user entries...')
             if (UsersResult.ok) {this.props.syncUserData()}
@@ -291,7 +313,7 @@ export default class UserEntryCards extends Component {
     }
 
     render() {
-        // console.log('"Rendering "UserEntryCards" subcomponent..."')
+        console.log('"Rendering "UserEntryCards" sub-component..."')
         return this.UserEntryCardsList()
     }
 }

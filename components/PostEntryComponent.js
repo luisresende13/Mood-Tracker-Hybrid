@@ -29,17 +29,7 @@ const moodIcons = ['emoticon-dead', 'emoticon-sad', 'emoticon-neutral', 'emotico
 
 // Emotion configs
 const emotionGroupsNames = [ 'Bem & Calmo(a)', 'Bem & Energizado(a)', 'Mal & Calmo(a)', 'Mal & Energizado(a)' ]
-const goodEnergizedEmotions = ['Animação', 'Concentração', 'Desinibição', 'Motivação', 'Euforia']
-const goodCalmEmotions = ['Alívio', 'Calma', 'Conforto', 'Despreocupação', 'Inspiração', 'Orgulho', 'Paz', 'Relaxamento', 'Satisfação', 'Segurança', 'Criatividade']
-const badEnergizedEmotions = ['Inquietação', 'Ansiedade', 'Desespero', 'Frustração', 'Insatisfação', 'Irritação', 'Medo', 'Vergonha', 'Preocupação', 'Impaciência', 'Sobrecarregado(a)', 'Tensão']
-const badCalmEmotions = ['Depressão', 'Timidez', 'Cansaço', 'Tristeza','Confusão', 'Desanimo', 'Insegurança', 'Solidão', 'Tédio']
-// const badEnergizedEmotions = ['Agitação', 'Ansiedade', 'Tristeza', 'Decepção', 'Depressão', 'Desespero', 'Frustração', 'Insatisfação', 'Irritação', 'Medo', 'Paranoia', 'Preocupação', 'Impaciencia', 'Raiva', 'Revolta', 'Sobrecarregado(a)', 'Tensão', 'Nojo']
-
 const emotionTypes = ['Positiva', 'Negativa']
-const emotionEnergy = ['Calmo(a)', 'Energizado(a)']
-
-const emotionGroups = [ goodCalmEmotions.sort(), goodEnergizedEmotions.sort(), badCalmEmotions.sort(), badEnergizedEmotions.sort() ]
-const basicEmotions = [ ...emotionGroups[0], ...emotionGroups[1], ...emotionGroups[2], ...emotionGroups[3] ]
 
 function buildIsSelectedEmotions(emotions) {
     var isSelectedEmotions = {}
@@ -47,9 +37,7 @@ function buildIsSelectedEmotions(emotions) {
         isSelectedEmotions[emotion.name] = false
     }
     return isSelectedEmotions
-    
 }
-
 
 // Date config
 const monthSigs = ['Jan', 'Feb', 'Mar', 'Apr', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -131,6 +119,16 @@ function mapEmotions(emotions, layout='grid') {
     return [userEmotionGroups, emotionLabels]
 }
 
+function sortObjListByKey(objList, objKey) {
+    const keys = objList.map(obj => obj[objKey])
+    const sortedKeys = [...keys].sort()
+    var newObjList = []
+    sortedKeys.forEach(key => {
+        newObjList.push( objList[keys.indexOf(key)] )
+    })
+    return newObjList
+}
+
 export default class PostEntranceScreen extends Component {
   
     constructor(props) {
@@ -156,13 +154,15 @@ export default class PostEntranceScreen extends Component {
             selectedEntry: 'Avaliação',
             isMoodUnmarked: true,
             isSelectedEmotions: buildIsSelectedEmotions(this.props.route.params.user.emotions),
-            isLoading: false,
             isFetchingLocationOrWeather: false,
-            deleteMode: false,
+            isPostEntryLoading: false,
+            isDeleteEmotionLoading: false,
+            isSaveEmotionLoading: false,
+            deleteEmotionMode: false,
+            isUpdateUserDataLoading: false,
+            isUserDataSyncing:  false,
 
-            locationServiceEnabled: null,
             userCoordinates: null,
-
             loginMsg: '',
         };
 
@@ -181,13 +181,13 @@ export default class PostEntranceScreen extends Component {
         this.JornalInput = this.JornalInput.bind(this);
         this.postNewEntryAsync = this.postNewEntryAsync.bind(this);
         this.updateUserData = this.updateUserData.bind(this);
-        this.setDeleteMode = this.setDeleteMode.bind(this);
+        // this.setDeleteEmotionMode = this.setDeleteEmotionMode.bind(this);
         this.deleteEmotion = this.deleteEmotion.bind(this);
         this.onEmotionButtonLongPress = this.onEmotionButtonLongPress.bind(this);
     }
 
     componentDidMount() {
-        console.log('"PostEntryComponent" did mount.')
+        console.log('"PostEntry" component did mount.')
         this.initializeEntry()
     }
 
@@ -240,14 +240,16 @@ export default class PostEntranceScreen extends Component {
 
     EmotionButtons(emotions) {
         return(
-            emotions.map( emotion => (
+            sortObjListByKey(emotions, 'name').map( emotion => (
                 <Pressable
                 key={'emotion-' + emotion.name}
                 title={emotion.name}
                 onPress={this.onEmotionButtonPress(emotion.name)}
                 onLongPress={this.onEmotionButtonLongPress(emotion.name)}
+                suppressHighlighting={true}
+                selectable={false}
                 >
-                    <Text style={[styles.emotionBadge, {backgroundColor: this.state.isSelectedEmotions[emotion.name] ? 'lightblue' : 'aliceblue' }]}>{emotion.name}</Text>
+                    <Text onLongPress={null} style={[styles.emotionBadge, {backgroundColor: this.state.isSelectedEmotions[emotion.name] ? 'lightblue' : 'aliceblue' }]}>{emotion.name}</Text>
                 </Pressable>
             ))
         )
@@ -268,7 +270,7 @@ export default class PostEntranceScreen extends Component {
 
     onEmotionButtonLongPress(emotion) { 
         function selectEmotion () {
-            if (this.state.deleteMode) {
+            if (this.state.deleteEmotionMode) {
                 this.deleteEmotion(emotion)
             }
         }
@@ -307,13 +309,11 @@ export default class PostEntranceScreen extends Component {
                             </View>
                         )) }
                         <EditEmotions
-                        user={this.props.route.params.user}
-                        syncUserData={this.props.route.params.syncUserData}
+                        {...this.props}
+                        {...this.state}
+                        setParentState={this.setState.bind(this)}
                         updateUserData={this.updateUserData}
-                        deleteMode={this.state.deleteMode}
-                        setDeleteMode={this.setDeleteMode}
                         setAlertMsg={this.setLoginMsg}
-                        isLoading={this.state.isLoading}
                         />
                     </>
     
@@ -380,6 +380,7 @@ export default class PostEntranceScreen extends Component {
                 await this.checkIfLocationEnabled();
                 await this.getCurrentLocation();                    
                 await this.fetchWeather()
+                this.setState({isFetchingLocationOrWeather: false})
             break;
         
             case 'custom-date':
@@ -398,6 +399,7 @@ export default class PostEntranceScreen extends Component {
                 for ( let emotion of user.emotions ) {
                     isSelectedEmotionsNew[emotion.name] = currentEmotions.includes(emotion.name)
                 }
+
                 this.setState({
                     date: entry.date,
                     startTime: entry.startTime,
@@ -422,23 +424,60 @@ export default class PostEntranceScreen extends Component {
 
     updateUserData() {
         console.log('UPDATING USER DATA IN "PostEntryComponent"...')
-        const user = this.props.route.params.passUserData()
+        this.setState({isUpdateUserDataLoading: true})
+        const user = this.props.route.params.getMainScreenState().user
 
         const oldEmotions = Object.keys(this.state.isSelectedEmotions)
         const currentEmotions = user.emotions.map(emotion => emotion.name)
         const newEmotions = currentEmotions.filter(emotion => oldEmotions.includes(emotion))
 
         const newEmotionsSelected = buildIsSelectedEmotions(newEmotions)
-        oldEmotions.forEach(emotion => { if (currentEmotions.includes(emotion)) newEmotionsSelected[emotion] = this.state.isSelectedEmotions[emotion] })
+        oldEmotions.forEach(emotion => { 
+            if (currentEmotions.includes(emotion)) 
+                newEmotionsSelected[emotion] = this.state.isSelectedEmotions[emotion]
+        })
 
         this.setState({
             user: user,
-            isSelectedEmotions: newEmotionsSelected
+            isSelectedEmotions: newEmotionsSelected,
+            isUpdateUserDataLoading: false
         })
     }
 
     saveButton() {
-        const isDataLoading = this.state.isFetchingLocationOrWeather | this.state.isLoading
+        const isDataLoading = (
+            this.state.isFetchingLocationOrWeather |
+            this.state.isPostEntryLoading |
+            this.state.isSaveEmotionLoading |
+            this.state.isDeleteEmotionLoading |
+            this.state.isUserDataSyncing |
+            this.state.isUpdateUserDataLoading
+        )
+        var color;
+        switch (true) {
+            case this.state.isFetchingLocationOrWeather:
+                color = 'brown'
+                break;
+        
+            case this.state.isPostEntryLoading:
+                color = 'black'
+                break;
+            case this.state.isSaveEmotionLoading:
+                color = 'green'
+                break;
+            case this.state.isDeleteEmotionLoading:
+                color = 'red'
+                break;
+            case this.state.isUserDataSyncing:
+                color = 'blue'
+                break;
+            case this.state.isUpdateUserDataLoading:
+                color = 'green'
+                break;
+            default:
+                break;
+        }
+
         return(
             <Pressable
             onPress={this.onSaveButtonPress}
@@ -446,7 +485,7 @@ export default class PostEntranceScreen extends Component {
             style={styles.saveButton}
             >
                 { isDataLoading ? (
-                    <ActivityIndicator size='small' color='#000000' /> // <Icon name={'sync-outline'} fill='black' width={28} height={28} />
+                    <ActivityIndicator size='small' color={color} />
                 ) : (
                     <Text style={styles.saveButtonLabel}> Salvar </Text>
                 ) }
@@ -456,61 +495,48 @@ export default class PostEntranceScreen extends Component {
 
     onSaveButtonPress() {
         if (!this.state.selectedMood) {
-            this.setLoginMsg('Necessário adicionar uma avaliação.')
+            this.setLoginMsg('Adicione uma avaliação para continuar.')
             this.setState({selectedEntry: 'Avaliação'})
-
-        } else {
-            try {
-                const currentEntry = this.props.route.params.currentEntry
-                var createdAt, endTime
-                var lastEdited = getTime()
-                switch (currentEntry.type) {
-                    case 'new':
-                        endTime = lastEdited
-                        createdAt = lastEdited
-                        break;
-                    
-                    case 'custom-date':
-                        endTime = this.state.endTime // Returns empty string ''.
-                        createdAt = lastEdited
-                        break
-                    
-                    case 'edit':
-                        endTime = this.state.endTime
-                        createdAt = this.state.createdAt
-                        break
-                
-                    default:
-                        break;
-                }
-
-                const newEntryPost = {
-                    date: this.state.date,
-                    startTime: this.state.startTime,
-                    endTime: endTime,
-                    createdAt: createdAt,
-                    lastEdited: [ ...this.state.lastEdited, {date: Today(), time: lastEdited}],
-                    star: this.state.star,
-                    mood: this.state.selectedMood,
-                    emotions: this.state.user.emotions.filter( emotion => this.state.isSelectedEmotions[emotion.name] ),
-                    jornal: this.state.jornalEntry,
-                    address: this.state.address,
-                    location: this.state.location,
-                    weather: this.state.weather,
-                }
-                this.postNewEntryAsync(newEntryPost)
-
-            } catch (error) {
-                // alert('Não foi possível postar sua entrada. Tente novamente...')
-                this.setLoginMsg('Não foi possível postar a entrada. Tente novamente...')
-                console.log('Error when attempting to post user entry. Logging error...')
-                console.log(error)
-            }
+            return
         }
+        const currentEntry = this.props.route.params.currentEntry
+        var lastEdited = getTime()
+        var createdAt, endTime
+        switch (currentEntry.type) {
+            case 'new':
+                endTime = lastEdited
+                createdAt = lastEdited
+                break;
+            case 'custom-date':
+                endTime = this.state.endTime // Returns empty string ''.
+                createdAt = lastEdited
+                break
+            case 'edit':
+                endTime = this.state.endTime
+                createdAt = this.state.createdAt
+                break
+            default:
+                break;
+        }
+        const newEntryPost = {
+            date: this.state.date,
+            startTime: this.state.startTime,
+            endTime: endTime,
+            createdAt: createdAt,
+            lastEdited: [ ...this.state.lastEdited, {date: Today(), time: lastEdited}],
+            star: this.state.star,
+            mood: this.state.selectedMood,
+            emotions: this.state.user.emotions.filter( emotion => this.state.isSelectedEmotions[emotion.name] ),
+            jornal: this.state.jornalEntry,
+            address: this.state.address,
+            location: this.state.location,
+            weather: this.state.weather,
+        }
+        this.postNewEntryAsync(newEntryPost)
     }
-
+    
     async postNewEntryAsync(newEntry) {
-        this.setState({ isLoading: true });
+        this.setState({ isPostEntryLoading: true });
         var user = this.props.route.params.user;
         const currentEntry = this.props.route.params.currentEntry
         const editMode = currentEntry.type === 'edit';
@@ -538,22 +564,23 @@ export default class PostEntranceScreen extends Component {
             }
 
         } catch (error) {
+            this.setLoginMsg('Erro no servidor. Tente novamente...')
             console.log('Erro capturado:')
             console.log(error);
 
         } finally {
             console.log('POST ENTRY STATUS: Finished.')
-            this.setState({ isLoading: false });
+            this.setState({ isPostEntryLoading: false });
             if (postUserEntryResult.ok) this.props.navigation.navigate('Entrances', {posted: {status: true, entry: currentEntry} } )
         }
     }
 
-    setDeleteMode() {
-        this.setState({deleteMode: !this.state.deleteMode})
-    }
+    // setDeleteEmotionMode() {
+    //     this.setState({deleteEmotionMode: !this.state.deleteEmotionMode})
+    // }
 
     async deleteEmotion(emotion) {
-        this.setState({ isLoading: true });
+        this.setState({ isDeleteEmotionLoading: true });
         var user = this.state.user;
         try {
             console.log('DELETE EMOTION STATUS: Started...')
@@ -578,15 +605,17 @@ export default class PostEntranceScreen extends Component {
             }
 
         } catch (error) {
-            this.setAlertMsg('Erro no servidor. Tente novamente...')
+            this.setLoginMsg('Erro no servidor. Tente novamente...')
             console.log('Erro capturado:')
             console.log(error);
 
         } finally {
             console.log('DELETE EMOTION STATUS: Finished.')
-            this.setState({ isLoading: false });
+            this.setState({ isDeleteEmotionLoading: false });
             if (postEmotionResult.ok) {
+                this.setState({isUserDataSyncing: true})
                 await this.props.route.params.syncUserData();
+                this.setState({isUserDataSyncing: false})
                 this.updateUserData();
             }
         }
@@ -632,64 +661,66 @@ export default class PostEntranceScreen extends Component {
                 });
         
             } else {
-                console.log('FETCH WEATHER STATUS: UNABLE TO START! USER POSITION NOT AVAILABLE.')
+            // this.setLoginMsg('Não foi possível obter as condições do tempo. Tente reabrir essa tela...')
+            console.log('FETCH WEATHER STATUS: UNABLE TO START! USER POSITION NOT AVAILABLE.')
             }
 
-        } catch(error) {
+        } catch (error) {
+            this.setLoginMsg('Não foi possível obter as condições do tempo. Tente reabrir essa tela...')
             console.log('FETCH WEATHER STATUS: ERROR! LOGGING ERROR...')
             console.log(error)
 
         } finally {
             console.log('FETCH WEATHER STATUS: FINISHED!')    
-            this.setState({isFetchingLocationOrWeather: false})
         }
     }
 
     // Check if device has location services enabled
     async checkIfLocationEnabled () {
 
-        if ( !this.state.locationServiceEnabled ) {
-            try{
-                console.log('GEOCODING PROCESS (CHECK): CHECKING IF USER HAS SERVICES ENABLED.' )
-                let enabled = await Location.hasServicesEnabledAsync();
-            
-                if (!enabled) {
-                    console.log('GEOCODING PROCESS (CHECK): CHECKED! USER DOES NOT HAVE SERVICES ENABLED.' )
-                    alert('Location Service not enabled. Please enable your location services.')
-                } else {
-                    console.log('GEOCODING PROCESS (CHECK): CHECKED! USER HAS SERVICES ENABLED.')
-                    this.setState({LocationServiceEnabled: enabled});
-                }
+        try{
+            console.log('GEOCODING PROCESS (CHECK): CHECKING IF USER HAS SERVICES ENABLED.' )
+            let enabled = await Location.hasServicesEnabledAsync();            
 
-            } catch(error) {
-                console.log("GEOCODING PROCESS (CHECK): ERROR IN SERVICES PERMISSION CHECK! COULD'NT CHECK IF USER HAS SERVICES ENABLED.")
-            
-            } finally {
-                console.log("GEOCODING PROCESS (CHECK): FINISHED!")
+            if (!enabled) {
+                console.log('GEOCODING PROCESS (CHECK): CHECKED! USER DOES NOT HAVE SERVICES ENABLED.' )
+                this.setLoginMsg('Não foi possível obter sua localização. Habilite o serviço de localização para associar um endereço a essa entrada...')
+            } else {
+                console.log('GEOCODING PROCESS (CHECK): CHECKED! USER HAS SERVICES ENABLED.')
             }
-        
-        } else {
-                console.log("GEOCODING PROCESS (CHECK): SKIPPING! USER ALREADY HAS SERVICES ENABLED.")
-        } 
 
+        } catch(error) {
+            this.setLoginMsg('Não foi possível conferir se o serviço de localização está ativado. Tente reabrir essa tela...')
+            console.log("GEOCODING PROCESS (CHECK): ERROR IN SERVICES PERMISSION CHECK! COULD'NT CHECK IF USER HAS SERVICES ENABLED.")
+        
+        } finally {
+            console.log("GEOCODING PROCESS (CHECK): FINISHED!")
+        }
     };
 
     // Check for permission, get current user position and use reverse geocoding for user coordinates
     async getCurrentLocation() {
 
         try {
-            console.log('GEOCODING PROCESS (PERMISSION): REQUEST PERMISSION ASYNC...')
-            let { status } = await Location.requestForegroundPermissionsAsync()
-            // let { status } = await Location.requestBackgroundPermissionsAsync()
-        
-            if (status !== 'granted') {
-                console.log('GEOCODING PROCESS (PERMISSION): PERMISSION NOT GRANTED!')
-                alert('Permission not granted. Allow the app to use location service.');
 
+            if (this.props.route.params.getMainScreenState().locationPermission === 'granted') {
+                console.log('GEOCODING PROCESS (PERMISSION): PERMISSION ALREADY GRANTED. SKIPPING REQUEST...')
             } else {
-                console.log('GEOCODING PROCESS (PERMISSION): PERMISSION GRANTED!')
+                console.log('GEOCODING PROCESS (PERMISSION): REQUESTING PERMISSION ASYNC...')
+                let { status } = await Location.requestForegroundPermissionsAsync()
+                // let { status } = await Location.requestBackgroundPermissionsAsync()        
+                this.props.route.params.setMainScreenState({locationPermission: status})
+    
+                if (status !== 'granted') {
+                    console.log('GEOCODING PROCESS (PERMISSION): PERMISSION NOT GRANTED!')
+                    this.setLoginMsg('Permissão de localização não concedida. Permita que o app use os serviços de localização para associar um endereço a essa entrada...')
+                    return 
+    
+                } else {
+                    console.log('GEOCODING PROCESS (PERMISSION): PERMISSION GRANTED!')
+                }
             }
-        
+
             console.log('GEOCODING PROCESS (REQUEST): GETTING CURRENT USER POSITION ASYNC...')
             let { coords } = await Location.getCurrentPositionAsync();
             
@@ -714,6 +745,7 @@ export default class PostEntranceScreen extends Component {
             }
 
         } catch (error) {
+            this.setLoginMsg('Não foi possível obter a localização atual. Tente reabrir essa tela...')
             console.log('GEOCODING PROCESS: ERROR IN USER POSITION REQUEST! LOGGING ERROR...')
             console.log(error)
         
@@ -723,7 +755,7 @@ export default class PostEntranceScreen extends Component {
     };
 
     render() {
-        // console.log('Rendering "Post Entry" screen...')
+        console.log('Rendering "PostEntry" component...')
         return(
             <ImageBackground source={require('../assets/wallpaper.jpg')} style={styles.mainView}>
 

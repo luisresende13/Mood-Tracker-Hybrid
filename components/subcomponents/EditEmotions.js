@@ -8,6 +8,15 @@ import styles from '../../styles/postEntryStyles'
 const corsURI = Platform.OS == 'web' ? 'https://morning-journey-78874.herokuapp.com/' : ''
 const appServerURI = 'https://mood-tracker-server.herokuapp.com/'
 
+function capitalize(multipleWordString) {
+    var words = multipleWordString.split(' ');
+    var CapitalizedWords = [];
+    words.forEach(element => {
+    CapitalizedWords.push(element[0].toUpperCase() + element.slice(1, element.length));
+    });
+    return CapitalizedWords.join(' ');
+}
+
 export default class EditEmotions extends Component {
 
     constructor(props) {
@@ -19,22 +28,253 @@ export default class EditEmotions extends Component {
             newEmotionName: '',
             selectedEmotionType: null,
             selectedEmotionEnergy: null,
-            isLoading: false,
         }
-        this.EditEmotionsButtons = this.EditEmotionsButtons.bind(this);
+        this.EditEmotionsMenu = this.EditEmotionsMenu.bind(this);
         this.EditEmotionsSection = this.EditEmotionsSection.bind(this);
         this.onSaveEmotionButtonPress = this.onSaveEmotionButtonPress.bind(this);
     }
 
-    async onSaveEmotionButtonPress() {
-        this.setState({ isLoading: true });
-        var user = this.props.user;
-        const newEmotion = {
-            name: this.state.newEmotionName,
-            type: this.state.selectedEmotionType,
-            energy: this.state.selectedEmotionEnergy,
+    EditEmotionsSection() {
+
+        const emotionTypes = ['Positiva', 'Negativa']
+        const emotionEnergy = ['Calmo(a)', 'Energizado(a)']
+
+        const inputSectionStyle = {marginTop: 0, marginTop: 0   , alignItems: 'center'}
+        const textStyle = {color: 'white', fontSize: 16, alignSelf: 'center', marginBottom: 8}
+        const inputStyle = {width: '70%', height: 35, borderRadius: 16.5, color: 'white', backgroundColor: 'rgba(0,0,0,0.7)', fontSize: 15, textAlign: 'center' }
+        const tagStyle = {width: '45%', height: 28, borderRadius: 13.5,  marginBottom: 7, color: 'white', alignItems: 'center', justifyContent: 'center'}
+        const createEmotionViewStyle = {height: 420, marginTop: 20, paddingTop: 10, justifyContent: 'space-evenly', borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.2)'}
+
+        const [isButtonPressed, setIsButtonPressed] = useState({
+            'Salvar': false,
+            'Voltar': false,
+            'Terminar': false,
+        })
+        function highlightButtonFor(label) {
+            function highlightButton() {
+                setIsButtonPressed({ ...isButtonPressed, [label]: !isButtonPressed[label] })
+            }
+            return highlightButton.bind(this);
         }
+
+        const isLoading = (
+            this.props.isDeleteEmotionLoading |
+            this.props.isSaveEmotionLoading |
+            this.props.isPostEntryLoading |
+            this.props.isUserDataSyncing |
+            this.props.isUpdateUserDataLoading
+        )
+
+        const isNewEmotionFormComplete = !this.state.newEmotionName | !this.state.selectedEmotionType | !this.state.selectedEmotionEnergy
+
+        switch (this.state.mode) {
+
+            case 'hidden':
+                return null
+
+            case 'create':
+
+                return(
+                    <View style={createEmotionViewStyle}>
+                        <Text style={{color: 'white', fontSize: 22, alignSelf: 'center'}}>Criar emoção</Text>
+                        <View style={inputSectionStyle}>
+                            <Text style={textStyle}>Nome</Text>
+                            <TextInput
+                            placeholder='Nome da emoção...'
+                            placeholderTextColor={'rgba(255,255,255,0.4)'}
+                            style={inputStyle}
+                            onChangeText={text => this.setState({newEmotionName: text})}
+                            value={this.state.newEmotionName}
+                            />
+                        </View>
+                        <View style={inputSectionStyle}>
+                            <Text style={textStyle}>Tipo</Text>
+                            { emotionTypes.map((type) => {
+                                const typeSelected = this.state.selectedEmotionType === type
+                                return(
+                                    <Pressable
+                                    key={'emotion-'+type}
+                                    onPress={() => this.setState({selectedEmotionType: typeSelected ? null : type })}
+                                    style={[tagStyle, {backgroundColor: typeSelected ? 'rgba(0,0,0,0.8)' : 'rgba(0,0,0,0.3)'}]}>
+                                        <Text style={[{fontSize: 15, color: 'white'}]}>{type}</Text>
+                                    </Pressable>
+                                )
+                            }) }
+                        </View>
+                        <View style={inputSectionStyle}>
+                            <Text style={textStyle}>Energia</Text>
+                            { emotionEnergy.map((type) => {
+                                const typeSelected = this.state.selectedEmotionEnergy === type
+                                return(
+                                    <Pressable
+                                    key={'emotion-'+type}
+                                    onPress={() => this.setState({selectedEmotionEnergy: typeSelected ? null : type })}
+                                    style={[tagStyle, {backgroundColor: typeSelected ? 'rgba(0,0,0,0.8)' : 'rgba(0,0,0,0.3)'}]}>
+                                        <Text style={[{fontSize: 15, color: 'white'}]}>{type}</Text>
+                                    </Pressable>
+                                )
+                            }) }
+                        </View>
+                        <View style={[inputSectionStyle, {flexDirection: 'row', justifyContent: 'space-evenly'}]}>
+                            <Pressable
+                            onPress={() => {
+                                highlightButtonFor('Salvar')()
+                                this.onSaveEmotionButtonPress()
+                                setIsButtonPressed({'Salvar': false})
+                            }}
+                            onPressIn={highlightButtonFor('Salvar')}
+                            disabled={isLoading | isNewEmotionFormComplete}
+                            style={[styles.editButton, {
+                                alignSelf: 'center',
+                                backgroundColor: isButtonPressed['Salvar'] ? '#fff5' : '#fff0',
+                                borderColor: isLoading | isNewEmotionFormComplete ? '#fff5' : '#ffff',
+                                }]}>
+                                <Text style={[styles.editButtonLabel, {color: isLoading | isNewEmotionFormComplete ? '#fff5' : '#ffff'}]}>Salvar</Text>
+                            </Pressable>
+                            <Pressable
+                            onPress={() => {
+                                highlightButtonFor('Voltar')()
+                                this.setState({showEditMenu: true, showExpandMenuButton: true, mode: 'hidden'})
+                                setIsButtonPressed({'Voltar': false})
+                            }}
+                            onPressIn={highlightButtonFor('Voltar')}
+                            disabled={isLoading}
+                            style={[styles.editButton, {
+                                alignSelf: 'center',
+                                borderColor: isLoading ? '#fff5' : '#ffff',
+                                backgroundColor: isButtonPressed['Voltar'] ? '#fff5' : '#fff0'
+                                }]}>
+                                <Text style={[styles.editButtonLabel, {color: isLoading ? '#fff5' : '#ffff'}]}>Voltar</Text>
+                            </Pressable>
+                            </View>
+                    </View>
+                )
+
+            case 'delete':
+                return(
+                    <View style={[createEmotionViewStyle, {height: 150}]}>
+                        <Text style={{color: 'white', fontSize: 22, alignSelf: 'center'}}>Excluir emoções</Text>
+                        <Text style={{color: 'white', fontSize: 16, textAlign: 'center'}}>Pressione e segure para excluir uma emoção.</Text>
+                        <View style={[styles.cardRow, {justifyContent: 'space-evenly'}]}>
+                            <Pressable
+                            onPress={() => {
+                                highlightButtonFor('Terminar')();
+                                this.props.setParentState({deleteEmotionMode: false});
+                                this.setState({showEditMenu: true, showExpandMenuButton: true, mode: 'hidden'});
+                                setIsButtonPressed({'Terminar': false})
+                            }}
+                            onPressIn={highlightButtonFor('Terminar')}
+                            disabled={isLoading}
+                            style={[styles.editButton, {
+                                alignSelf: 'center',
+                                borderColor: isLoading ? '#fff5' : '#ffff',
+                                backgroundColor: isButtonPressed['Terminar'] ? '#fff5' : '#fff0'
+                            }]}
+                            >
+                                <Text style={[styles.editButtonLabel, {color: isLoading ? '#fff5' : '#ffff'}]}>Terminar</Text>
+                            </Pressable>
+                        </View>
+                    </View>
+                )
+
+            default:
+                return null
+
+        }
+
+    }
+
+    EditEmotionsMenu() {
+
+        const buttonLabels = ['Criar', 'Excluir', 'Layout']
+        const onButtonPress = { 
+            'Criar': () => this.setState({showEditMenu: false, showExpandMenuButton: false, mode: 'create'}),
+            'Excluir': () => {
+                this.props.setParentState({deleteEmotionMode: !this.props.deleteEmotionMode})
+                this.setState({showEditMenu: false , showExpandMenuButton: false, mode: 'delete'})
+            },
+            'Layout': () => {}
+        }
+        const [isButtonPressed, setIsButtonPressed] = useState({
+            'Criar': false,
+            'Excluir': false,
+            'Layout': false,
+        })
+        function highlightButtonFor(label) {
+            function highlightButton() {
+                setIsButtonPressed({ ...isButtonPressed, [label]: !isButtonPressed[label] })
+            }
+            return highlightButton.bind(this);
+        }
+
+        const showEditMenu =  this.state.showEditMenu
+        const showExpandMenuButton = this.state.showExpandMenuButton
+        const hidden = this.state.mode == 'hidden'
+        const anyOpen = showEditMenu || !hidden
+
+        const isLoading = (
+            this.props.isPostEntryLoading |
+            this.props.isUserDataSyncing |
+            this.props.isUpdateUserDataLoading |
+            this.props.isDeleteEmotionLoading |
+            this.props.isSaveEmotionLoading
+        )
+
+        return(
+            <>
+                { showExpandMenuButton ? (
+                    <View style={[styles.cardRow, {height: 50, marginTop: 25, paddingTop: 10, justifyContent: showEditMenu ? 'space-between' : 'center', borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.2)'}]}>
+                        { showEditMenu ? ( 
+                            buttonLabels.map((label) => (
+                                <Pressable
+                                key={`emotion-${label}`}
+                                style={[styles.editButton,  {
+                                    backgroundColor: isButtonPressed[label] ? '#fff5' : '#0000',
+                                    borderColor: isLoading ? '#fff5' : '#ffff',
+                                    width: 75
+                                }]}
+                                disabled={ isLoading }
+                                onPress={() => {
+                                    highlightButtonFor(label)(); onButtonPress[label]()
+                                    setIsButtonPressed({ [label]: false })
+                                } }
+                                onPressIn={highlightButtonFor(label)}
+                                >
+                                    <Text style={[styles.editButtonLabel, {color: isLoading ? '#fff5' : '#ffff'}]}>{label}</Text>                    
+                                </Pressable>
+                            ))
+                        ) : null }
+                        <Pressable
+                        onPress={() => this.setState({ showEditMenu:  !showEditMenu })}
+                        // disabled={isLoading}
+                        style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 5, width: 75}}>
+                            <Icon name={ !showEditMenu ? 'more-horizontal-outline' : 'arrow-back-outline' } fill='white' width={20} height={20} />
+                            <Text style={{color: 'white', fontSize: 15, marginLeft: 0}}> {anyOpen ? 'menos' : 'mais'}</Text>
+                        </Pressable>
+                    </View> 
+                ) :  null  }
+            </>
+
+        )
+    }
+
+    async onSaveEmotionButtonPress() {
+
+        const newEmotionAlreadyExists = Object.keys(this.props.isSelectedEmotions).includes(capitalize(this.state.newEmotionName))
+        if (newEmotionAlreadyExists) {
+            this.props.setAlertMsg('Esse nome já está sendo usado, escolha outro para continuar.')
+            return
+        }
+
         try {
+            this.props.setParentState({ isSaveEmotionLoading: true });
+            var user = this.props.route.params.user;
+            const newEmotion = {
+                name: capitalize(this.state.newEmotionName),
+                type: this.state.selectedEmotionType,
+                energy: this.state.selectedEmotionEnergy,
+            }
+
             console.log('POST EMOTION STATUS: Started...')
             var postEmotionResult = {ok: false, status: '999', statusText: 'Post not fetched yet.'}
             const postUserEntryOpts = { 
@@ -72,168 +312,23 @@ export default class EditEmotions extends Component {
 
         } finally {
             console.log('POST EMOTION STATUS: Finished.')
-            this.setState({ isLoading: false });
+            this.props.setParentState({ isSaveEmotionLoading: false });
             if (postEmotionResult.ok) {
-                await this.props.syncUserData();
+                this.props.setParentState({ isUserDataSyncing: true });
+                await this.props.route.params.syncUserData();
+                this.props.setParentState({ isUserDataSyncing: false, isUpdateUserDataLoading: true });
                 this.props.updateUserData();
+                this.props.setParentState({ isUpdateUserDataLoading: false });
             }
         }
  
     }
-
-    onDeleteEmotionsButtonPress() {
-        this.props.setDeleteMode()
-    }
-
-    EditEmotionsSection() {
-
-        const emotionTypes = ['Positiva', 'Negativa']
-        const emotionEnergy = ['Calmo(a)', 'Energizado(a)']
-
-        const inputSectionStyle = {marginTop: 0, marginBottom: 0, alignItems: 'center'}
-        const textStyle = {color: 'white', fontSize: 16, alignSelf: 'center', marginBottom: 8}
-        const inputStyle = {width: '55%', height: 30, borderRadius: 16.5, color: 'white', backgroundColor: 'rgba(0,0,0,0.3)', fontSize: 15, textAlign: 'center' }
-        const tagStyle = {width: '45%', height: 28, borderRadius: 13.5,  marginBottom: 7, color: 'white', alignItems: 'center', justifyContent: 'center'}
-        const createEmotionViewStyle = {height: 420, marginTop: 25, paddingVertical: 0, justifyContent: 'space-evenly', borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.2)'}
-
-        switch (this.state.mode) {
-            case 'hidden':
-                return null
-                // break;
-
-            case 'create':
-
-                return(
-                    <View style={createEmotionViewStyle}>
-                        <Text style={{color: 'white', fontSize: 22, alignSelf: 'center'}}>Criar emoção</Text>
-                        <View style={inputSectionStyle}>
-                            <Text style={textStyle}>Nome</Text>
-                            <TextInput
-                            placeholder='Nome da emoção...'
-                            style={inputStyle}
-                            onChangeText={text => this.setState({newEmotionName: text})}
-                            value={this.state.newEmotionName}
-                            />
-                        </View>
-                        <View style={inputSectionStyle}>
-                            <Text style={textStyle}>Tipo</Text>
-                            { emotionTypes.map((type) => {
-                                const typeSelected = this.state.selectedEmotionType === type
-                                return(
-                                    <Pressable
-                                    key={'emotion-'+type}
-                                    onPress={() => this.setState({selectedEmotionType: typeSelected ? null : type })}
-                                    style={[tagStyle, {backgroundColor: typeSelected ? 'rgba(0,0,0,0.8)' : 'rgba(0,0,0,0.3)'}]}>
-                                        <Text style={[{fontSize: 15, color: 'white'}]}>{type}</Text>
-                                    </Pressable>
-                                )
-                            }) }
-                        </View>
-                        <View style={inputSectionStyle}>
-                            <Text style={textStyle}>Energia</Text>
-                            { emotionEnergy.map((type) => {
-                                const typeSelected = this.state.selectedEmotionEnergy === type
-                                return(
-                                    <Pressable
-                                    key={'emotion-'+type}
-                                    onPress={() => this.setState({selectedEmotionEnergy: typeSelected ? null : type })}
-                                    style={[tagStyle, {backgroundColor: typeSelected ? 'rgba(0,0,0,0.8)' : 'rgba(0,0,0,0.3)'}]}>
-                                        <Text style={[{fontSize: 15, color: 'white'}]}>{type}</Text>
-                                    </Pressable>
-                                )
-                            }) }
-                        </View>
-                        <View style={[styles.cardRow, {justifyContent: 'space-evenly'}]}>
-                            <Pressable onPress={this.onSaveEmotionButtonPress} style={[styles.editButton, {alignSelf: 'center'}]}>
-                                <Text style={styles.editButtonLabel}>Salvar</Text>
-                            </Pressable>
-                            <Pressable onPress={() => this.setState({showEditMenu: true, showExpandMenuButton: true, mode: 'hidden'}) } style={[styles.editButton, {alignSelf: 'center', borderColor: 'white'}]}>
-                                <Text style={[styles.editButtonLabel, {color: 'white'}]}>Cancelar</Text>
-                            </Pressable>
-                            </View>
-                    </View>
-                )
-                break
-
-            case 'delete':
-                return(
-                    <View style={[createEmotionViewStyle, {height: 150}]}>
-                        <Text style={{color: 'white', fontSize: 22, alignSelf: 'center'}}>Excluir emoções</Text>
-                        <Text style={{color: 'white', fontSize: 16, textAlign: 'center'}}>Pressione e segure para excluir uma emoção.</Text>
-                        <View style={[styles.cardRow, {justifyContent: 'space-evenly'}]}>
-                            <Pressable
-                            onPress={() => {this.props.setDeleteMode(); this.setState({showEditMenu: true, showExpandMenuButton: true, mode: 'hidden'})}}
-                            style={[styles.editButton, {alignSelf: 'center', borderColor: 'white'}]}
-                            >
-                                <Text style={[styles.editButtonLabel, {color: 'white'}]}>Terminar</Text>
-                            </Pressable>
-                        </View>
-                    </View>
-                )
-                break
-
-            default:
-                return null
-
-        }
-
-    }
-
-    EditEmotionsButtons() {
-
-        const buttonLabels = ['Criar', 'Excluir', 'Layout']
-        const onButtonPress = { 
-            'Criar': () => this.setState({showEditMenu: false, showExpandMenuButton: false, mode: 'create'}),
-            'Excluir': () => {this.setState({showEditMenu: false , showExpandMenuButton: false, mode: 'delete'}); this.props.setDeleteMode()},
-            'Layout': () => {}
-        }
-        const [isButtonPressed, setIsButtonPressed] = useState({
-            'Criar': false,
-            'Excluir': false,
-            'Layout': false,
-        })
-        const showEditMenu =  this.state.showEditMenu
-        const showExpandMenuButton = this.state.showExpandMenuButton
-        const hidden = this.state.mode=='hidden'
-        const anyOpen = showEditMenu || !hidden
-
-        return(
-            <>
-                { this.state.showExpandMenuButton ? (
-                    <View style={[styles.cardRow, {height: 50, marginTop: 25, paddingTop: 10, justifyContent: showEditMenu ? 'space-between' : 'center', borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.2)'}]}>
-                        { showEditMenu ? ( 
-                            buttonLabels.map((label) => (
-                                <Pressable
-                                key={`emotion-${label}`}
-                                style={[styles.editButton,  {backgroundColor: isButtonPressed[label] ? '#fff2' : '#0000', width: 75}]}
-                                disabled={ this.state.isLoading }
-                                onPress={ onButtonPress[label] }
-                                onPressIn={() => setIsButtonPressed({ ...isButtonPressed, [label]: !isButtonPressed[label] })}
-                                onPressOut={() => setIsButtonPressed({ ...isButtonPressed, [label]: !isButtonPressed[label] })}
-                                >
-                                    <Text style={[styles.editButtonLabel, {color:  'white' }]}>{label}</Text>                    
-                                </Pressable>
-                            ))
-                        ) : null }
-                        <Pressable
-                        onPress={() => this.setState({ showEditMenu:  !showEditMenu })}
-                        style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 5, width: 75}}>
-                            <Icon name={ !showEditMenu ? 'more-horizontal-outline' : 'arrow-back-outline' } fill='white' width={20} height={20} />
-                            <Text style={{color: 'white', fontSize: 16, marginLeft: 0}}> {anyOpen ? 'menos' : 'mais'}</Text>
-                        </Pressable>
-                    </View> 
-                ) :  null  }
-            </>
-
-        )
-    }
-        
+    
     render() {
-        
         return(
             <>
                 <this.EditEmotionsSection />
-                <this.EditEmotionsButtons />
+                <this.EditEmotionsMenu />
             </>
         )
     }

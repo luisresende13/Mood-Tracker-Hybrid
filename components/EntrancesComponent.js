@@ -1,6 +1,6 @@
 // Module imports
 import React, { Component } from 'react';
-import { View, Text, ImageBackground, Pressable, ScrollView } from 'react-native';
+import { View, Text, ImageBackground, Pressable, ScrollView, ActivityIndicator, Platform } from 'react-native';
 import { Icon } from 'react-native-eva-icons'
 
 // Component imports
@@ -10,8 +10,8 @@ import UserEntryCards from './subcomponents/UserEntryCards';
 import dateRange from '../shared/dateRange';
 import styles from '../styles/entrancesStyles';
 
-// cors-midpoint uri (needed to avoid cors' allow-cross-origin error when fetching)
-const corsURI = 'https://morning-journey-78874.herokuapp.com/';
+// cors-midpoint uri (needed to avoid cors' allow-cross-origin error when fetching in web platforms)
+const corsURI = Platform.OS == 'web' ? 'https://morning-journey-78874.herokuapp.com/' : ''
 const appServerURI = 'https://mood-tracker-server.herokuapp.com/'
 
 // Defining pertinent constants
@@ -70,29 +70,44 @@ export default class EntrancesScreen extends Component {
             date: Today(),
             time: getTime(),
             selectedDate: Today(),
-            entriesLoading: false,
+            // entriesLoading: false,
             userDataSynced: false,
             isUserDataSyncing: false,
+            isDeleteEntryLoading: false,
             alertMsg: '',
+            locationPermission: null,
         };
         this.onNextButtonPress = this.onNextButtonPress.bind(this);
         this.forgetPosted = this.forgetPosted.bind(this);
         this.setAlertMsg = this. setAlertMsg.bind(this);
         this.setSelectedEntryId = this.setSelectedEntryId.bind(this);
         this.setUserInfo = this.setUserInfo.bind(this);
+        this.setIsDeleteEntryLoading = this.setIsDeleteEntryLoading.bind(this);
         this.syncUserData = this.syncUserData.bind(this);
-        this.passUserData = this.passUserData.bind(this);
+        // this.passUserData = this.passUserData.bind(this);
+        this.getMainScreenState = this.getMainScreenState.bind(this);
     }
     
     componentDidMount() {
         console.log('"Entries" screen component did mount...')      
-        this.props.navigation.setParams({posted: {status: false, entry: null}});
+        // this.props.navigation.setParams({posted: {status: false, entry: null}});
         // this.syncUserData()
+    }
 
+    componentWillUnmount() {
+        console.log('"EntriesScreen" component will unmount...')
+    }
+
+    getMainScreenState() {
+        return this.state
     }
 
     setSelectedEntryId(id) {
         this.setState({selectedEntryId: id})
+    }
+
+    setIsDeleteEntryLoading(value) {
+        this.setState({isDeleteEntryLoading: value})
     }
 
     onNextButtonPress(next='next') {
@@ -139,14 +154,14 @@ export default class EntrancesScreen extends Component {
         this.setState({user: user, userDataSynced: true})
     }
 
-    passUserData() {
-        return this.state.user
-    }
+    // passUserData() {
+    //     return this.state.user
+    // }
 
     async syncUserData() {
 
         console.log('SYNC ENTRIES STATUS: Started...')
-        this.setState({ isUserDataSyncing: true });
+        this.setState({ isUserDataSyncing: true, userDataSynced: false });
     
         try {
 
@@ -170,7 +185,7 @@ export default class EntrancesScreen extends Component {
         } catch (error) {
                 console.log('SYNC ENTRIES STATUS: Error captured. Printing error...')
                 console.log(error);
-                this.props.setAlertMsg('Não foi possível sincronizar as entradas. Por favor, aguarde..')
+                this.setAlertMsg('Não foi possível sincronizar as entradas. Por favor, aguarde..')
 
         } finally {
             this.setState({ isUserDataSyncing: false });
@@ -179,14 +194,17 @@ export default class EntrancesScreen extends Component {
     }
 
     render() {
-        // console.log('Rendering "Entries" screen...')
+        console.log('Rendering "EntriesScreen" component...')
+
         const today = this.state.selectedDate === Today()
         const navigateParams = {
             user: this.state.user,
             currentEntry: {type: 'new', date: Today(), entry: null},
             syncUserData: this.syncUserData,
-            passUserData: this.passUserData,
+            setMainScreenState: this.setState.bind(this),
+            getMainScreenState: this.getMainScreenState,
         }
+        const isLoading = this.state.isUserDataSyncing | this.state.isDeleteEntryLoading
         return(
             <ImageBackground source={require('../assets/wallpaper.jpg')} style={[styles.mainView]}>
                 
@@ -205,8 +223,12 @@ export default class EntrancesScreen extends Component {
                         isUserDataSyncing={this.state.isUserDataSyncing}
                         setUserInfo={this.setUserInfo}
                         syncUserData={this.syncUserData}
-                        passUserData={this.passUserData}
+                        // passUserData={this.passUserData}
+                        setMainScreenState ={this.setState.bind(this)}
+                        getMainScreenState={this.getMainScreenState}
                         setSelectedEntryId={this.setSelectedEntryId}
+                        isDeleteEntryLoading={this.state.isDeleteEntryLoading}
+                        setIsDeleteEntryLoading={this.setIsDeleteEntryLoading}
                         forgetPosted={this.forgetPosted}
                         setAlertMsg = {this.setAlertMsg}
                         navigation = {this.props.navigation}
@@ -214,8 +236,22 @@ export default class EntrancesScreen extends Component {
                     </View>
                 </ScrollView>
 
-                <Pressable onPress={() => {this.props.navigation.navigate( 'PostEntrance', navigateParams )}}  style={[styles.postButton]}>
-                    <Icon name='plus-circle' width={72} height={72} fill='white' style={styles.postButtonLabel}/>
+                <Pressable
+                onPress={() => {this.props.navigation.navigate( 'PostEntrance', navigateParams )}}
+                style={[styles.postButton, {backgroundColor: isLoading ? 'white' : 'black'}]}
+                disabled={isLoading}
+                >
+                { this.state.isUserDataSyncing ? (
+                        <ActivityIndicator color='black' size={'large'} />
+                ) : (
+                    this.state.isDeleteEntryLoading ? (
+                        <ActivityIndicator color='red' size={'large'} />
+                    ) : (
+                        <Icon name='plus-circle' width={72} height={72} fill='white' style={styles.postButtonLabel}/>
+                    )
+                )
+                
+}
                 </Pressable>
 
                 {this.alertMsg()}

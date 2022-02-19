@@ -15,7 +15,7 @@ const Stack = createNativeStackNavigator();
 
 const HomeScreen = (props) => {
 
-  // console.log('Returning "HomeScreen" Component...')
+    console.log('Returning "HomeScreen" component...')
   return(
     <Stack.Navigator 
     initialRouteName='Entrances'
@@ -27,7 +27,7 @@ const HomeScreen = (props) => {
       name="Entrances"
       component={EntrancesScreen}
       options={{title: 'Suas entradas'}}
-      initialParams={{user: props.user}}
+      initialParams={{user: props.user, posted: {status: false, date: null, entry: null}}}
       // initialParams={{userInfo: props.route.params.userInfo}}
       />
       <Stack.Screen
