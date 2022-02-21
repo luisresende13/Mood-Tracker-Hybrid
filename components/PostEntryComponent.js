@@ -30,6 +30,7 @@ const moodIcons = ['emoticon-dead', 'emoticon-sad', 'emoticon-neutral', 'emotico
 // Emotion configs
 const emotionGroupsNames = [ 'Bem & Calmo(a)', 'Bem & Energizado(a)', 'Mal & Calmo(a)', 'Mal & Energizado(a)' ]
 const emotionTypes = ['Positiva', 'Negativa']
+const emotionEnergy = ['Calmo(a)', 'Energizado(a)']
 
 function buildIsSelectedEmotions(emotions) {
     var isSelectedEmotions = {}
@@ -94,26 +95,33 @@ function formattedAddress(addressObj) {
 }
 
 function mapEmotions(emotions, layout='grid') {
-    var userEmotionGroups = layout=='grid' ? [[],[],[],[]] : [[],[]]
-    var emotionLabels = layout=='grid' ? emotionGroupsNames : emotionTypes
+    var userEmotionGroups = layout=='grid' ? [[],[],[],[]] : ( layout=='spread' ? [[]] : [[],[]] )
+    var emotionLabels = layout=='grid' ? emotionGroupsNames : ( layout=='type' ? emotionTypes : (layout=='spread' ? ['Minhas emoções'] : emotionEnergy ) )
     for (let emotion of emotions) {
         if (layout=='grid') {
             if (emotion.type=='Positiva') {
                 if (emotion.energy=='Calmo(a)')
-                userEmotionGroups[0] = [ ...userEmotionGroups[0], emotion]
+                    userEmotionGroups[0] = [ ...userEmotionGroups[0], emotion]
                 else if (emotion.energy=='Energizado(a)')
-                userEmotionGroups[1] = [ ...userEmotionGroups[1], emotion]
+                    userEmotionGroups[1] = [ ...userEmotionGroups[1], emotion]
             } else if (emotion.type=='Negativa') {
                 if (emotion.energy=='Calmo(a)')
-                userEmotionGroups[2] = [ ...userEmotionGroups[2], emotion]
+                    userEmotionGroups[2] = [ ...userEmotionGroups[2], emotion]
                 else if (emotion.energy=='Energizado(a)')
-                userEmotionGroups[3] = [ ...userEmotionGroups[3], emotion]
-            }   
+                    userEmotionGroups[3] = [ ...userEmotionGroups[3], emotion]
+            }
         } else if (layout=='type') {
-            if (emotion.type=='Positivo')
+            if (emotion.type=='Positiva')
+                userEmotionGroups[0] = [ ...userEmotionGroups[0], emotion]
+            else if (emotion.type=='Negativa')
+                userEmotionGroups[1] = [ ...userEmotionGroups[1], emotion]
+        } else if (layout=='energy') {
+            if (emotion.energy=='Calmo(a)')
+                userEmotionGroups[0] = [ ...userEmotionGroups[0], emotion]
+            else if (emotion.energy=='Energizado(a)')
+                userEmotionGroups[1] = [ ...userEmotionGroups[1], emotion]
+        } else if (layout=='spread') {
             userEmotionGroups[0] = [ ...userEmotionGroups[0], emotion]
-            else if (emotion.type=='Negativo')
-            userEmotionGroups[1] = [ ...userEmotionGroups[1], emotion]
         }
     }
     return [userEmotionGroups, emotionLabels]
@@ -154,6 +162,7 @@ export default class PostEntranceScreen extends Component {
             selectedEntry: 'Avaliação',
             isMoodUnmarked: true,
             isSelectedEmotions: buildIsSelectedEmotions(this.props.route.params.user.emotions),
+            selectedEmotionLayout: this.props.route.params.user.layout,
             isFetchingLocationOrWeather: false,
             isPostEntryLoading: false,
             isDeleteEmotionLoading: false,
@@ -181,7 +190,6 @@ export default class PostEntranceScreen extends Component {
         this.JornalInput = this.JornalInput.bind(this);
         this.postNewEntryAsync = this.postNewEntryAsync.bind(this);
         this.updateUserData = this.updateUserData.bind(this);
-        // this.setDeleteEmotionMode = this.setDeleteEmotionMode.bind(this);
         this.deleteEmotion = this.deleteEmotion.bind(this);
         this.onEmotionButtonLongPress = this.onEmotionButtonLongPress.bind(this);
     }
@@ -296,8 +304,7 @@ export default class PostEntranceScreen extends Component {
     inputCardBody(sectionName, cardBodyStyle, cardBodyContent) {
         if (this.state.selectedEntry === sectionName) {
             if (sectionName == 'Emoções') {
-
-                const [userEmotionGroups, emotionLabels] = mapEmotions(this.state.user.emotions)
+                const [userEmotionGroups, emotionLabels] = mapEmotions(this.state.user.emotions, this.state.selectedEmotionLayout)
                 return(
                     <>
                         { userEmotionGroups.map((emotions, index) => (
@@ -316,7 +323,7 @@ export default class PostEntranceScreen extends Component {
                         setAlertMsg={this.setLoginMsg}
                         />
                     </>
-    
+
                 )
             } else {
                 return(
@@ -354,7 +361,7 @@ export default class PostEntranceScreen extends Component {
 
     loginMsg() {
         return(
-          <View style={[styles.login.msgBox, this.state.loginMsg ? {} : {backgroundColor: 'transparent', borderColor: 'transparent'} ]}>
+          <View style={[styles.login.msgBox, this.state.loginMsg ? {} : {height: 0, backgroundColor: 'transparent', borderColor: 'transparent'} ]}>
             <Text style={styles.login.msg}>{this.state.loginMsg}</Text>
           </View>
         )
@@ -571,13 +578,17 @@ export default class PostEntranceScreen extends Component {
         } finally {
             console.log('POST ENTRY STATUS: Finished.')
             this.setState({ isPostEntryLoading: false });
-            if (postUserEntryResult.ok) this.props.navigation.navigate('Entrances', {posted: {status: true, entry: currentEntry} } )
+            if (postUserEntryResult.ok) {
+                console.log('proceding to SYNC USER DATA IN RESPONSE TO SUCCESSFUL USER ENTRY POST... ')
+                this.props.route.params.syncUserData()
+                this.props.route.params.setMainScreenState({
+                    selectedEntryId: null,
+                    selectedDate: currentEntry.type == 'new' ? Today() : this.props.route.params.getMainScreenState().selectedDate,
+                })
+                this.props.navigation.navigate('Entrances', {} )
+            }
         }
     }
-
-    // setDeleteEmotionMode() {
-    //     this.setState({deleteEmotionMode: !this.state.deleteEmotionMode})
-    // }
 
     async deleteEmotion(emotion) {
         this.setState({ isDeleteEmotionLoading: true });

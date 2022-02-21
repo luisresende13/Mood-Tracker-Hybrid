@@ -63,7 +63,6 @@ function MoodHeader({entry}) {
 }
 
 function Address ({entry}) {
-
     const [isCollapsed, setIsCollapsed] = useState( 1 );
     if (entry.address) {
         return(
@@ -120,10 +119,10 @@ function Jornal({ entry }) {
 function EmptyCard(props) {
     const today = props.date == Today()
     const navigateParams = {
-        user: props.user,
+        user: props.parentState.user,
         currentEntry: {
             type: today ? 'new' : 'custom-date',
-            date: props.date,
+            date: props.parentState.date,
             entry: null
         },
         syncUserData: props.syncUserData,
@@ -134,7 +133,7 @@ function EmptyCard(props) {
     const textStyle = {fontSize: 16, color: 'white', marginTop: 7}
     return (
         <Pressable
-        onPress={ () => props.navigation.navigate('PostEntrance', navigateParams) }
+        onPress={ () => props.parentProps.navigation.navigate('PostEntrance', navigateParams) }
         style={[styles.card, {alignItems: 'center', justifyContent: 'center', fontSize: 16, height: 145}]}
         >
             <Icon name='inbox' fill='rgba(255,255,255,0.3)' width={25} height={25} />
@@ -167,25 +166,15 @@ export default class UserEntryCards extends Component {
 
     componentDidMount() {
         console.log('Subcomponent "UserEntryCards" did mount...')
-        setInterval( () => { this.updateIfPosted() }, 1000 * 3 )
-        // setInterval( () => { console.log('Default auto syncing started...'); this.syncUserData() }, 1000 * 10 )
     }
 
     componentWillUnmount() {
         console.log('"UserEntryCards" sub-component will unmount...')
       }
     
-    updateIfPosted () {
-        if (this.props.posted.status) {
-            console.log('JUST POSTED STATUS: POSTED. Redirecting date and syncing entries ...');
-            this.props.forgetPosted();
-            this.props.syncUserData();
-            }
-    }
-
     EntryCard({ entry }) {
         function onEntryCardPress() {
-            this.props.setSelectedEntryId(this.props.selectedEntryId === entry._id ? null : entry._id)
+            this.props.setMainScreenState({ selectedEntryId: this.props.parentState.selectedEntryId === entry._id ? null : entry._id })
         }
         return (
         <Pressable onPress={onEntryCardPress.bind(this)} style={styles.card}>
@@ -199,16 +188,16 @@ export default class UserEntryCards extends Component {
     }    
 
     UserEntryCardsList() {
-        const selDateEntries = this.props.user.entries.filter( (entry) => entry.date === this.props.date ).reverse()
+        const selDateEntries = this.props.parentState.user.entries.filter( (entry) => entry.date === this.props.parentState.date ).reverse()
         if (selDateEntries.length) {
             return(
                 <>
                     { selDateEntries.map( entry => <this.EntryCard key={'entry-card-'+entry.startTime} entry={entry} />) }
-                    {/* { this.props.isUserDataSyncing ? <CardsLoadingMessage /> : null }         */}
+                    {/* { this.props.parentState.isUserDataSyncing ? <CardsLoadingMessage /> : null } */}
                 </>
             )
        
-        } else if (this.props.isUserDataSyncing ) {
+        } else if (this.props.parentState.isUserDataSyncing ) {
             return <CardsLoadingMessage />
             
         } else {
@@ -232,9 +221,9 @@ export default class UserEntryCards extends Component {
             return highlightButton.bind(this);
         }
 
-        const isLoading = this.props.isDeleteLoading | this.props.isUserDataSyncing
+        const isLoading = this.props.parentState.isDeleteLoading | this.props.parentState.isUserDataSyncing
         const buttonLabel = (label) => <Text style={[styles.editButtonLabel, {color: label=='Excluir' ? 'red' : 'white' }]}>{label}</Text>
-        if (this.props.selectedEntryId == props.entryId) {
+        if (this.props.parentState.selectedEntryId == props.entryId) {
             return(
                 <View style={styles.editButtonsView}>
                     { buttonLabels.map( (label) => (
@@ -246,7 +235,7 @@ export default class UserEntryCards extends Component {
                         onPressIn={highlightButtonFor(label)}
                         >
                             { label=='Excluir' ? (
-                                this.props.isDeleteLoading ? <ActivityIndicator color='red' /> : buttonLabel(label)
+                                this.props.parentState.isDeleteLoading ? <ActivityIndicator color='red' /> : buttonLabel(label)
                                 
                             ) : buttonLabel(label) }
                                                 
@@ -260,9 +249,9 @@ export default class UserEntryCards extends Component {
     }
 
     editUserEntry() {
-        const selectedEntry = this.props.user.entries.filter( (entry) => entry._id == this.props.selectedEntryId )[0]
+        const selectedEntry = this.props.parentState.user.entries.filter( (entry) => entry._id == this.props.parentState.selectedEntryId )[0]
         const navigateParams = {
-            user: this.props.user,
+            user: this.props.parentState.user,
             currentEntry: {
                 type: 'edit',
                 date: selectedEntry.date,
@@ -273,19 +262,19 @@ export default class UserEntryCards extends Component {
             getMainScreenState: this.props.getMainScreenState,
     
         }
-        this.props.navigation.navigate('PostEntrance', navigateParams)
+        this.props.parentProps.navigation.navigate('PostEntrance', navigateParams)
     }
 
     async deleteUserEntry() {
 
         console.log('DELETE USER ENTRY STATUS: Started...')
-        this.props.setIsDeleteEntryLoading(true);
+        this.props.setMainScreenState({ isDeleteEntryLoading: true });
         // prompt()
 
         try {
             var UsersResult = {ok: false, status: 999}
-            UsersResult = await fetch( corsURI + appServerURI + 'Users/' + this.props.user.username + '/entries/' + this.props.selectedEntryId, { method: 'DELETE' });
-            // var UsersResult = await fetch( 'https://localhost:3000/' + 'Users/' + this.props.user.username + '/entries/' + this.props.selectedEntryId, { method: 'DELETE' });
+            UsersResult = await fetch( corsURI + appServerURI + 'Users/' + this.props.parentState.user.username + '/entries/' + this.props.parentState.selectedEntryId, { method: 'DELETE' });
+            // var UsersResult = await fetch( 'https://localhost:3000/' + 'Users/' + this.props.parentState.user.username + '/entries/' + this.props.parentState.selectedEntryId, { method: 'DELETE' });
             const usersStatus =  'Status ' + UsersResult.status + ', ' + UsersResult.statusText
 
             if (UsersResult.ok) {
@@ -305,8 +294,8 @@ export default class UserEntryCards extends Component {
                 this.props.setAlertMsg('Não foi possível deletar a entrada. Tente novamente.')
 
         } finally {
-            this.props.setIsDeleteEntryLoading(false);
-            this.props.setSelectedEntryId(null)
+            this.props.setMainScreenState({ isDeleteEntryLoading: false });
+            this.props.setMainScreenState({ selectedEntryId: null })
             console.log('DELETE USER ENTRY STATUS: FINISHED.' + UsersResult.ok ? 'Proceeding to sync user entries...' : 'Delete failed, skipping sync of user entries...')
             if (UsersResult.ok) {this.props.syncUserData()}
         }    

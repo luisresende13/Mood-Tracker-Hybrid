@@ -85,11 +85,13 @@ var styles = {
         },
         msgBox: {
             width: 300,
-            height: 36,
+            paddingVertical: 5,
+            paddingHorizontal: 3,
             justifyContent: 'center',
             backgroundColor: 'rgb(30,30,30)',
             borderWidth: 1,
             borderColor: 'rgb(40,40,40)',
+            
         },
         msg: {
             textAlign: 'center',

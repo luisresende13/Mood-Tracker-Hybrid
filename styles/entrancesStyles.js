@@ -48,10 +48,6 @@ const styles = {
     scrollView: {
         // paddingHorizontal: Platform.OS != 'web' ? '5%' : '5%',
         flex: 1,
-        // height: '100%',
-        // width: '100%',
-        borderWidth: 1
-        // alignSelf: 'center',
     },
     section: {
         width: 350,
@@ -150,7 +146,9 @@ const styles = {
         alignSelf: 'center',
         bottom: 110,
         width: 300,
-        height: 36,
+        paddingVertical: 5,
+        paddingHorizontal: 3,
+        // height: 36,
         justifyContent: 'center',
         backgroundColor: 'rgb(30,30,30)',
         borderWidth: 1,

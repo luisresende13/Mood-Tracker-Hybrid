@@ -144,7 +144,11 @@ class LoginScreen extends Component {
   submitButton(sign) {
     const signIn = sign == 'signin'
     return(
-      <Pressable disabled={this.state.isDataLoading} onPress={signIn ? this.onSignIn : this.onSignUp} style={[styles.login.button]}>
+      <Pressable
+      disabled={this.state.isDataLoading}
+      onPress={signIn ? this.onSignIn : this.onSignUp}
+      style={[styles.login.button]}
+      >
         <Text style={styles.login.buttonLabel}>{ signIn ? 'Entrar' : 'Cadastrar' }</Text>
       </Pressable>
     )
@@ -322,7 +326,7 @@ class LoginScreen extends Component {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify( { ...info, emotions: defaultEmotions, entries: [] } )
+          body: JSON.stringify( { ...info, emotions: defaultEmotions, entries: [], layout: 'grid' } )
         }
 
         postUserResult = await fetch( corsURI + appServerURI +  'Users/' + info.username, postUserOpts );

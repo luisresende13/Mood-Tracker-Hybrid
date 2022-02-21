@@ -9,7 +9,7 @@ const corsURI = Platform.OS == 'web' ? 'https://morning-journey-78874.herokuapp.
 const appServerURI = 'https://mood-tracker-server.herokuapp.com/'
 
 function capitalize(multipleWordString) {
-    var words = multipleWordString.split(' ');
+    var words = multipleWordString.trim().split(' ');
     var CapitalizedWords = [];
     words.forEach(element => {
     CapitalizedWords.push(element[0].toUpperCase() + element.slice(1, element.length));
@@ -38,6 +38,12 @@ export default class EditEmotions extends Component {
 
         const emotionTypes = ['Positiva', 'Negativa']
         const emotionEnergy = ['Calmo(a)', 'Energizado(a)']
+        const emotionLayoutMap = {
+            'Positiva ou Negativa': 'type',
+            'Calmo(a) ou Energizado(a)': 'energy',
+            'Grade': 'grid',
+            'Espalhado': 'spread'
+        }
 
         const inputSectionStyle = {marginTop: 0, marginTop: 0   , alignItems: 'center'}
         const textStyle = {color: 'white', fontSize: 16, alignSelf: 'center', marginBottom: 8}
@@ -49,6 +55,8 @@ export default class EditEmotions extends Component {
             'Salvar': false,
             'Voltar': false,
             'Terminar': false,
+            'Salvar-Layout': false,
+            'Voltar-Layout': false
         })
         function highlightButtonFor(label) {
             function highlightButton() {
@@ -73,7 +81,6 @@ export default class EditEmotions extends Component {
                 return null
 
             case 'create':
-
                 return(
                     <View style={createEmotionViewStyle}>
                         <Text style={{color: 'white', fontSize: 22, alignSelf: 'center'}}>Criar emoção</Text>
@@ -146,13 +153,13 @@ export default class EditEmotions extends Component {
                                 }]}>
                                 <Text style={[styles.editButtonLabel, {color: isLoading ? '#fff5' : '#ffff'}]}>Voltar</Text>
                             </Pressable>
-                            </View>
+                        </View>
                     </View>
                 )
 
             case 'delete':
                 return(
-                    <View style={[createEmotionViewStyle, {height: 150}]}>
+                    <View style={[createEmotionViewStyle, {height: 180}]}>
                         <Text style={{color: 'white', fontSize: 22, alignSelf: 'center'}}>Excluir emoções</Text>
                         <Text style={{color: 'white', fontSize: 16, textAlign: 'center'}}>Pressione e segure para excluir uma emoção.</Text>
                         <View style={[styles.cardRow, {justifyContent: 'space-evenly'}]}>
@@ -177,6 +184,59 @@ export default class EditEmotions extends Component {
                     </View>
                 )
 
+            case 'layout':
+                return(
+
+                    <View style={[createEmotionViewStyle, {height: 320}]}>
+                        <View style={inputSectionStyle}>
+                            <Text style={{color: 'white', fontSize: 22, alignSelf: 'center', paddingBottom: 25}}>Escolha o layout</Text>
+                            { ['Positiva ou Negativa', 'Calmo(a) ou Energizado(a)', 'Grade', 'Espalhado'].map((layout) => {
+                                const isLayoutSelected = this.props.selectedEmotionLayout === emotionLayoutMap[layout]
+                                return(
+                                    <Pressable
+                                    key={'emotion-'+layout}
+                                    onPress={() => this.props.setParentState({selectedEmotionLayout: emotionLayoutMap[layout] })}
+                                    style={[tagStyle, {width: 230, height: 30, borderRadius: 15, marginBottom: 10, backgroundColor: isLayoutSelected ? 'rgba(0,0,0,0.8)' : 'rgba(0,0,0,0.3)'}]}>
+                                        <Text style={[{fontSize: 15, color: 'white'}]}>{layout}</Text>
+                                    </Pressable>
+                                )
+                            }) }
+                        </View>
+                        <View style={[inputSectionStyle, {flexDirection: 'row', justifyContent: 'space-evenly'}]}>
+                            <Pressable
+                            onPress={() => {
+                                highlightButtonFor('Salvar-Layout')()
+                                this.onSaveEmotionLayoutButtonPress()
+                                setIsButtonPressed({'Salvar-Layout': false})
+                            }}
+                            onPressIn={highlightButtonFor('Salvar-Layout')}
+                            disabled={ isLoading }
+                            style={[styles.editButton, {
+                                alignSelf: 'center',
+                                backgroundColor: isButtonPressed['Salvar-Layout'] ? '#fff5' : '#fff0',
+                                borderColor: isLoading ? '#fff5' : '#ffff',
+                                }]}>
+                                <Text style={[styles.editButtonLabel, {color: isLoading ? '#fff5' : '#ffff'}]}>Salvar</Text>
+                            </Pressable>
+                            <Pressable
+                            onPress={() => {
+                                highlightButtonFor('Voltar-Layout')()
+                                this.setState({showEditMenu: true, showExpandMenuButton: true, mode: 'hidden'})
+                                setIsButtonPressed({'Voltar-Layout': false})
+                            }}
+                            onPressIn={highlightButtonFor('Voltar-Layout')}
+                            disabled={isLoading}
+                            style={[styles.editButton, {
+                                alignSelf: 'center',
+                                borderColor: isLoading ? '#fff5' : '#ffff',
+                                backgroundColor: isButtonPressed['Voltar-Layout'] ? '#fff5' : '#fff0'
+                                }]}>
+                                <Text style={[styles.editButtonLabel, {color: isLoading ? '#fff5' : '#ffff'}]}>Voltar</Text>
+                            </Pressable>
+                        </View>
+                    </View>
+                )
+
             default:
                 return null
 
@@ -193,7 +253,7 @@ export default class EditEmotions extends Component {
                 this.props.setParentState({deleteEmotionMode: !this.props.deleteEmotionMode})
                 this.setState({showEditMenu: false , showExpandMenuButton: false, mode: 'delete'})
             },
-            'Layout': () => {}
+            'Layout': () => this.setState({showEditMenu: false, showExpandMenuButton: false, mode: 'layout'})
         }
         const [isButtonPressed, setIsButtonPressed] = useState({
             'Criar': false,
@@ -262,7 +322,7 @@ export default class EditEmotions extends Component {
 
         const newEmotionAlreadyExists = Object.keys(this.props.isSelectedEmotions).includes(capitalize(this.state.newEmotionName))
         if (newEmotionAlreadyExists) {
-            this.props.setAlertMsg('Esse nome já está sendo usado, escolha outro para continuar.')
+            this.props.setAlertMsg('Essa emoção já foi criada, escolha outro nome para continuar.')
             return
         }
 
@@ -320,10 +380,61 @@ export default class EditEmotions extends Component {
                 this.props.updateUserData();
                 this.props.setParentState({ isUpdateUserDataLoading: false });
             }
-        }
- 
+        } 
     }
     
+    async onSaveEmotionLayoutButtonPress() {
+
+        try {
+            this.props.setParentState({ isSaveEmotionLayoutLoading: true });
+            var user = this.props.route.params.user;
+            
+            console.log('POST EMOTION LAYOUT STATUS: Started...')
+            var postEmotionLayoutResult = {ok: false, status: '999', statusText: 'Post not fetched yet.'}
+            const postEmotionLayoutOpts = { 
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify( {layout: this.props.selectedEmotionLayout} ),
+            }
+            postEmotionLayoutResult = await fetch( corsURI + appServerURI + 'Users/' + user.username + '/layout', postEmotionLayoutOpts);
+            // var postUserEntryResult = await fetch('http://localhost:3000/Users/' + info.username + '/emotions', postEmotionLayoutOpts);
+            const postEmotionLayoutStatus = 'Status: ' + postEmotionLayoutResult.status + ', ' + postEmotionLayoutResult.statusText
+
+            if (postEmotionLayoutResult.ok) {
+                console.log('POST EMOTION LAYOUT STATUS: Successful.')
+                console.log(postEmotionLayoutStatus)
+                this.setState({
+                    showEditMenu: true,
+                    showExpandMenuButton: true,
+                    mode: 'hidden',
+                })
+                    
+            } else {
+                console.log('POST EMOTION LAYOUT STATUS: Failed. Throwing error...')
+                throw new Error(postEmotionLayoutStatus)
+            }
+
+        } catch (error) {
+            this.props.setAlertMsg('Erro no servidor. Tente novamente...')
+            console.log('Erro capturado:')
+            console.log(error);
+
+        } finally {
+            console.log('POST EMOTION LAYOUT STATUS: Finished.')
+            this.props.setParentState({ isSaveEmotionLayoutLoading: false });
+            if (postEmotionLayoutResult.ok) {
+                this.props.setParentState({ isUserDataSyncing: true });
+                await this.props.route.params.syncUserData();
+                this.props.setParentState({ isUserDataSyncing: false, isUpdateUserDataLoading: true });
+                this.props.updateUserData();
+                this.props.setParentState({ isUpdateUserDataLoading: false });
+            }
+        } 
+    }
+
+
     render() {
         return(
             <>

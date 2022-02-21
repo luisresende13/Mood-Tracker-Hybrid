@@ -34,7 +34,6 @@ function getTime() {
     //Wed,Jan,26,2022,15:12:37,GMT-0300,(Horário,Padrão,de,Brasília)
     const now = Date().toString().split(' ')
     const time = now[4]
-    // const time = new Date().toLocaleTimeString()
     return time
 }
 function formatDate(selDate) {
@@ -70,28 +69,20 @@ export default class EntrancesScreen extends Component {
             date: Today(),
             time: getTime(),
             selectedDate: Today(),
-            // entriesLoading: false,
-            userDataSynced: false,
+            isUserDataSynced: false,
             isUserDataSyncing: false,
             isDeleteEntryLoading: false,
             alertMsg: '',
             locationPermission: null,
         };
         this.onNextButtonPress = this.onNextButtonPress.bind(this);
-        this.forgetPosted = this.forgetPosted.bind(this);
         this.setAlertMsg = this. setAlertMsg.bind(this);
-        this.setSelectedEntryId = this.setSelectedEntryId.bind(this);
-        this.setUserInfo = this.setUserInfo.bind(this);
-        this.setIsDeleteEntryLoading = this.setIsDeleteEntryLoading.bind(this);
         this.syncUserData = this.syncUserData.bind(this);
-        // this.passUserData = this.passUserData.bind(this);
         this.getMainScreenState = this.getMainScreenState.bind(this);
     }
     
     componentDidMount() {
-        console.log('"Entries" screen component did mount...')      
-        // this.props.navigation.setParams({posted: {status: false, entry: null}});
-        // this.syncUserData()
+        console.log('"Entries" screen component did mount...')
     }
 
     componentWillUnmount() {
@@ -100,14 +91,6 @@ export default class EntrancesScreen extends Component {
 
     getMainScreenState() {
         return this.state
-    }
-
-    setSelectedEntryId(id) {
-        this.setState({selectedEntryId: id})
-    }
-
-    setIsDeleteEntryLoading(value) {
-        this.setState({isDeleteEntryLoading: value})
     }
 
     onNextButtonPress(next='next') {
@@ -120,14 +103,6 @@ export default class EntrancesScreen extends Component {
         return setSelectedDate.bind(this);
     }
 
-    forgetPosted() {
-        this.setState({
-            selectedEntryId: null,
-            selectedDate: this.props.route.params.posted.entry.type == 'new' ? Today() : this.state.selectedDate,
-        });
-        this.props.navigation.setParams({posted: {status: false, entry: null}});
-    }
-
     setAlertMsg(msg) {
         this.setState({alertMsg: msg})
         setTimeout( () => this.setState({alertMsg: ''}) , 1000 * 5 )
@@ -135,7 +110,7 @@ export default class EntrancesScreen extends Component {
     
     alertMsg() {
         return(
-            <View style={[styles.msgBox, this.state.alertMsg ? {} : {backgroundColor: 'transparent', borderColor: 'transparent'} ]}>
+            <View style={[styles.msgBox, this.state.alertMsg ? {} : {height: 0, backgroundColor: 'transparent', borderColor: 'transparent'} ]}>
                 <Text style={styles.msg}>{this.state.alertMsg}</Text>
             </View>
         )
@@ -149,14 +124,6 @@ export default class EntrancesScreen extends Component {
             </Pressable>
         )
     }
-
-    setUserInfo(user) {
-        this.setState({user: user, userDataSynced: true})
-    }
-
-    // passUserData() {
-    //     return this.state.user
-    // }
 
     async syncUserData() {
 
@@ -216,22 +183,21 @@ export default class EntrancesScreen extends Component {
                             <this.DateNavigationButton icon='arrow-forward' next='next' today={today} />
                         </View>
                         <UserEntryCards
-                        date={this.state.selectedDate}
-                        selectedEntryId={this.state.selectedEntryId}
-                        posted={this.props.route.params.posted}
-                        user={this.state.user}
-                        isUserDataSyncing={this.state.isUserDataSyncing}
-                        setUserInfo={this.setUserInfo}
+                        parentState={{
+                            date: this.state.selectedDate,
+                            selectedEntryId: this.state.selectedEntryId,
+                            user: this.state.user,
+                            isUserDataSynced: this.state.isUserDataSynced,
+                            isUserDataSyncing: this.state.isUserDataSyncing,
+                            isDeleteEntryLoading: this.state.isDeleteEntryLoading,
+                        }}
+                        parentProps={{
+                            navigation: this.props.navigation
+                        }}
                         syncUserData={this.syncUserData}
-                        // passUserData={this.passUserData}
                         setMainScreenState ={this.setState.bind(this)}
                         getMainScreenState={this.getMainScreenState}
-                        setSelectedEntryId={this.setSelectedEntryId}
-                        isDeleteEntryLoading={this.state.isDeleteEntryLoading}
-                        setIsDeleteEntryLoading={this.setIsDeleteEntryLoading}
-                        forgetPosted={this.forgetPosted}
                         setAlertMsg = {this.setAlertMsg}
-                        navigation = {this.props.navigation}
                         />
                     </View>
                 </ScrollView>
@@ -249,15 +215,12 @@ export default class EntrancesScreen extends Component {
                     ) : (
                         <Icon name='plus-circle' width={72} height={72} fill='white' style={styles.postButtonLabel}/>
                     )
-                )
-                
-}
+                )}
                 </Pressable>
 
                 {this.alertMsg()}
   
             </ImageBackground>
             )
-
     }
   }
