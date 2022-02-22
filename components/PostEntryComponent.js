@@ -96,7 +96,7 @@ function formattedAddress(addressObj) {
 
 function mapEmotions(emotions, layout='grid') {
     var userEmotionGroups = layout=='grid' ? [[],[],[],[]] : ( layout=='spread' ? [[]] : [[],[]] )
-    var emotionLabels = layout=='grid' ? emotionGroupsNames : ( layout=='type' ? emotionTypes : (layout=='spread' ? ['Minhas emoções'] : emotionEnergy ) )
+    var emotionLabels = layout=='grid' ? emotionGroupsNames : ( layout=='type' ? emotionTypes : (layout=='spread' ? [''] : emotionEnergy ) )
     for (let emotion of emotions) {
         if (layout=='grid') {
             if (emotion.type=='Positiva') {
@@ -309,7 +309,7 @@ export default class PostEntranceScreen extends Component {
                     <>
                         { userEmotionGroups.map((emotions, index) => (
                             <View key={'emotion-group-' + index} style={{width: '100%', alignItems: 'center', marginVertical: 10}}>
-                                <Text style={{fontSize: 15, color: 'white', marginVertical: 8}}>{emotionLabels[index]}</Text>
+                                { emotionLabels[index] ? <Text style={{fontSize: 15, color: 'white', marginVertical: 8}}>{emotionLabels[index]}</Text> : null }
                                 <View key={index} style={[styles.cardRow, cardBodyStyle]}>
                                     {cardBodyContent(emotions)}
                                 </View>

@@ -28,6 +28,7 @@ export default class EditEmotions extends Component {
             newEmotionName: '',
             selectedEmotionType: null,
             selectedEmotionEnergy: null,
+            initialEmotionLayout: null,
         }
         this.EditEmotionsMenu = this.EditEmotionsMenu.bind(this);
         this.EditEmotionsSection = this.EditEmotionsSection.bind(this);
@@ -49,7 +50,7 @@ export default class EditEmotions extends Component {
         const textStyle = {color: 'white', fontSize: 16, alignSelf: 'center', marginBottom: 8}
         const inputStyle = {width: '70%', height: 35, borderRadius: 16.5, color: 'white', backgroundColor: 'rgba(0,0,0,0.7)', fontSize: 15, textAlign: 'center' }
         const tagStyle = {width: '45%', height: 28, borderRadius: 13.5,  marginBottom: 7, color: 'white', alignItems: 'center', justifyContent: 'center'}
-        const createEmotionViewStyle = {height: 420, marginTop: 20, paddingTop: 10, justifyContent: 'space-evenly', borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.2)'}
+        const createEmotionViewStyle = {height: 420, marginTop: 10, paddingTop: 10, justifyContent: 'space-evenly', borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.2)'}
 
         const [isButtonPressed, setIsButtonPressed] = useState({
             'Salvar': false,
@@ -186,7 +187,6 @@ export default class EditEmotions extends Component {
 
             case 'layout':
                 return(
-
                     <View style={[createEmotionViewStyle, {height: 320}]}>
                         <View style={inputSectionStyle}>
                             <Text style={{color: 'white', fontSize: 22, alignSelf: 'center', paddingBottom: 25}}>Escolha o layout</Text>
@@ -221,7 +221,8 @@ export default class EditEmotions extends Component {
                             <Pressable
                             onPress={() => {
                                 highlightButtonFor('Voltar-Layout')()
-                                this.setState({showEditMenu: true, showExpandMenuButton: true, mode: 'hidden'})
+                                this.props.setParentState({selectedEmotionLayout: this.state.initialEmotionLayout})
+                                this.setState({showEditMenu: true, showExpandMenuButton: true, mode: 'hidden', initialEmotionLayout: null})
                                 setIsButtonPressed({'Voltar-Layout': false})
                             }}
                             onPressIn={highlightButtonFor('Voltar-Layout')}
@@ -253,7 +254,7 @@ export default class EditEmotions extends Component {
                 this.props.setParentState({deleteEmotionMode: !this.props.deleteEmotionMode})
                 this.setState({showEditMenu: false , showExpandMenuButton: false, mode: 'delete'})
             },
-            'Layout': () => this.setState({showEditMenu: false, showExpandMenuButton: false, mode: 'layout'})
+            'Layout': () => this.setState({showEditMenu: false, showExpandMenuButton: false, mode: 'layout', initialEmotionLayout: this.props.selectedEmotionLayout})
         }
         const [isButtonPressed, setIsButtonPressed] = useState({
             'Criar': false,
@@ -283,7 +284,7 @@ export default class EditEmotions extends Component {
         return(
             <>
                 { showExpandMenuButton ? (
-                    <View style={[styles.cardRow, {height: 50, marginTop: 25, paddingTop: 10, justifyContent: showEditMenu ? 'space-between' : 'center', borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.2)'}]}>
+                    <View style={[styles.cardRow, {height: 50, marginTop: 10, paddingTop: 10, justifyContent: showEditMenu ? 'space-between' : 'center', borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.2)'}]}>
                         { showEditMenu ? ( 
                             buttonLabels.map((label) => (
                                 <Pressable
@@ -409,6 +410,7 @@ export default class EditEmotions extends Component {
                     showEditMenu: true,
                     showExpandMenuButton: true,
                     mode: 'hidden',
+                    initialEmotionLayout: null,
                 })
                     
             } else {
