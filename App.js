@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
-import { Text, ImageBackground} from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import NetInfo from "@react-native-community/netinfo";
 
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -84,6 +85,8 @@ export default class App extends Component {
     console.log('User authenticated. Navigating to "HomeScreen"...')
     this.setState( {isUserAuth: true, user} )
   }
+
+
 
   render() {
 

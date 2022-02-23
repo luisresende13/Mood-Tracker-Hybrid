@@ -1,3 +1,4 @@
+import { StatusBar } from 'expo-status-bar';
 var styles = {
     login: {
         mainView: {
@@ -10,7 +11,8 @@ var styles = {
             flexDirection: 'row',
             justifyContent: 'center',
             alignItems: 'center',
-            minHeight: 60,
+            minHeight: 50,
+            marginTop: 30,
         },
         title: {
             fontSize: 30,
@@ -25,31 +27,35 @@ var styles = {
             paddingTop: 3,
         },
         card: {
-            height: '55%',
-            minHeight: 390,
+            height: 440,
+            minHeight: 430,
             width: 350,
             paddingHorizontal: 10,
             paddingVertical: 10,
-            borderWidth: 1,
+            borderWidth: 4,
             borderRadius: 10,
+            borderColor: 'rgba(0,0,0,0.1)',
+            justifyContent: 'space-between',
             backgroundColor: 'azure',
         },
         cardHeader: {
-            height: '25%',
+            height: 90,
             width: '100%',
+            justifyContent: 'center'
+            // borderWidth: 1
         },
         cardTitle: {
             position: 'relative',
-            top: '30%',
-            left: '5%',
+            left: 5,
             fontSize: 24,
             fontWeight: 'bold',
             color: 'black',
         },
         cardSection: {
-            height: '25%',
-            justifyContent: 'space-evenly',
+            height: 85,
+            justifyContent: 'space-between',
             alignItems: 'center',
+            // borderWidth: 1
         },
         loadingIcon: {
             alignSelf: 'center'
@@ -61,6 +67,7 @@ var styles = {
             fontSize: 14,
             borderWidth: 1,
             borderRadius: 5,
+            borderColor: 'rgba(0,0,0,0.1)',
             backgroundColor: 'white'
         },
         button: {
@@ -71,7 +78,7 @@ var styles = {
             justifyContent: 'center',
             borderWidth: 1,
             borderRadius: 5,
-            borderColor: 'white',
+            borderColor: 'rgba(0,0,0,0)',
             backgroundColor: 'lightblue',        
         },
         buttonLabel: {

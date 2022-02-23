@@ -117,10 +117,9 @@ export default class EntrancesScreen extends Component {
     }
 
     DateNavigationButton = ({next, today}) => {
-        const buttonColor = next=='next' ? (today ? 'rgba(255,255,255,0.1)' : 'white') : 'white'
         return(
-            <Pressable onPress={ this.onNextButtonPress(next) } disabled={ next=='next' & today }>
-                <Icon name={ next=='next' ? 'arrow-forward' : 'arrow-back'} width={35} height={35} fill={buttonColor} />
+            <Pressable onPress={this.onNextButtonPress(next)} hitSlop={15} >
+                <Icon name={ next=='next' ? 'arrow-forward' : 'arrow-back'} width={26} height={26} fill='white' />
             </Pressable>
         )
     }

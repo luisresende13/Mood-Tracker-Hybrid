@@ -4,7 +4,10 @@ import { Icon } from 'react-native-eva-icons'
 // import { WiDaySunny } from "weather-icons-react";
 
 import React, { Component } from 'react';
-import { View, Text, ImageBackground, TextInput, Pressable, Platform, ActivityIndicator } from 'react-native';
+import { View, Text, ImageBackground, TextInput, Pressable, Platform, ActivityIndicator, Switch } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import NetInfo from "@react-native-community/netinfo";
+
 const defaultEmotions = require('../shared/emotionsConfig')
 import styles from '../styles/loginStyles'
 
@@ -81,6 +84,46 @@ function validatePassword(password) {
   return res
 }
 
+async function registerLocallyIfUserIsNewToDevice(user) {
+  var localAuthInfo = await AsyncStorage.getItem('LocalAuthenticationInfo')
+  localAuthInfo = JSON.parse(localAuthInfo)  
+  if ( !localAuthInfo.users.filter(localUser => localUser._id == user._id)[0] ) {
+    console.log('SIGNIN STATUS: Primeiro login do usuário nesse aparelho. Adicionando informações do usuário no armazenamento local...')
+    const updatedLocalAuthInfo = {
+      ...localAuthInfo,
+      users: [ 
+        ...localAuthInfo.users,
+        {
+          _id: user._id,
+          username: user.username,
+          email: user.email,
+          password: user.password
+        }
+      ]
+    }
+    await AsyncStorage.setItem('LocalAuthenticationInfo', JSON.stringify(updatedLocalAuthInfo))
+  } else {
+    console.log('SIGNIN STATUS: Informações do usuário já registradas nesse aparelho. Pulando registro do usuário no armazenamento local...')
+  } 
+}
+
+async function keepUserConnectionAlive(userId) {
+  var localAuthInfo = await AsyncStorage.getItem('LocalAuthenticationInfo')
+  localAuthInfo = JSON.parse(localAuthInfo)
+
+  console.log('SIGNIN STATUS: Usuário optou por manter conexão ativa. Configurando conexão ativa para o usuário...')
+  const updatedLocalAuthInfo = {
+    ...localAuthInfo,
+    keepConnected: {
+      status: true,
+      userId: userId
+    }
+  }
+  await AsyncStorage.setItem('LocalAuthenticationInfo', JSON.stringify(updatedLocalAuthInfo))
+}
+
+
+
 class LoginScreen extends Component {
 
   constructor(props) {
@@ -92,6 +135,7 @@ class LoginScreen extends Component {
         email: '',
         username: '',
       },
+      keepConnected: true,
       loginMsg: '',
       isUserAuth: false,
       isDataLoading: false,
@@ -106,6 +150,7 @@ class LoginScreen extends Component {
 
   componentDidMount() {
     console.log('"LoginScreen" component did mount...')
+    this.restoreUserToken()
   }
 
   componentWillUnmount() {
@@ -187,11 +232,22 @@ class LoginScreen extends Component {
             >
             </TextInput>
           </View>
-          <View style={styles.login.cardSection}>
+          <View style={[styles.login.cardSection, {height: 138}]}>
             {this.submitButton('signin')}
             {this.submitButton('signup')}
+            <View style={{flexDirection: 'row', height: 48, alignSelf: 'stretch', alignItems: 'center', justifyContent: 'flex-end'}}>
+              <Text style={{marginRight: Platform.OS=='web' ? 10 : null }}>Manter-me conectado</Text>
+              <Switch
+                disabled={this.state.isDataLoading}
+                trackColor={{ false: "#767577", true: "#81b0ff" }}
+                thumbColor={this.state.keepConnected ? "#f4f3f4" : "#f4f3f4"}
+                ios_backgroundColor="#3e3e3e" 
+                onValueChange={() => this.setState({keepConnected: !this.state.keepConnected})}
+                value={this.state.keepConnected}
+              />
+            </View>
           </View>
-          <View style={[styles.login.cardSection]}>
+          <View style={[styles.login.cardSection, {height: 80, justifyContent: 'center'}]}>
             {this.LoginIcon()}
           </View>
         </View>
@@ -215,6 +271,61 @@ class LoginScreen extends Component {
       return true
     } else return false
   }
+
+  async restoreUserToken() {
+    try {
+      console.log('RESTORE USER TOKE STATUS: STARTED...')
+      var localAuthInfo = await AsyncStorage.getItem('LocalAuthenticationInfo')
+      
+      if (localAuthInfo) {
+        localAuthInfo = JSON.parse(localAuthInfo)
+
+        console.log('RESTORE USER TOKE STATUS: LOCAL AUTH INFO ALREADY CONFIGURED.')
+        // console.log(localAuthInfo)
+
+        if (localAuthInfo.keepConnected.status) {
+          console.log(`RESTORE USER TOKEN STATUS: USER CONNECTION IS ALIVE FOR USER ID: ${localAuthInfo.keepConnected.userId}. PROCEDING TO SIGNIN...`)
+          const user = localAuthInfo.users.filter(user => user._id = localAuthInfo.keepConnected.userId)[0]
+  
+          this.setState({
+            userInfo: {
+              username: user.username,
+              email: user.email,
+              password: user.password,  
+            }
+          })
+          this.onSignIn()
+        }
+
+        else {
+          console.log('RESTORE USER TOKEN STATUS: NO USER CONNECTION ALIVE. PROCEEDING TO SIGNIN/SIGNUP ...')
+        }
+
+      } else {
+        console.log('RESTORE USER TOKEN STATUS: NO LOCAL AUTH INFO CONFIGURED IN THIS DEVICE. SETTING DEVICE LOCAL AUTH INFO FOR THE FIRST TIME...')
+
+        var DEVICE_IP_ADDRESS
+        NetInfo.fetch("wifi").then(state => {
+          DEVICE_IP_ADDRESS = state.details.ipAddress
+          console.log("RESTORE USER TOKEN STATUS: IP ADDRESS REQUEST SUCCESSFUL. IP ADDRESS: " + DEVICE_IP_ADDRESS);
+        });
+        const initialLocalAuthInfo = {
+          IP_ADDRESS: DEVICE_IP_ADDRESS,
+          users: [],
+          keepConnected: {
+            status: false,
+            userId: null
+          }
+        }
+        await AsyncStorage.setItem('LocalAuthenticationInfo', JSON.stringify(initialLocalAuthInfo))
+        console.log('RESTORE USER TOKEN STATUS: DEVICE LOCAL AUTH INFO CONFIGURED FOR THE FIRST TIME. PROCEEDING TO SIGNIN/SIGNUP ...')
+      }
+
+    } catch(error) {
+      console.log('RESTORE USER TOKEN STATUS: ERROR. LOGGING ERROR...')
+      console.log(error)
+    }
+  }  
 
   async onSignIn() {
 
@@ -245,6 +356,13 @@ class LoginScreen extends Component {
       if ( user ) {          
         
         if (user.password === info.password) {
+
+          await registerLocallyIfUserIsNewToDevice(user)
+
+          if (this.state.keepConnected) {
+            await keepUserConnectionAlive(user._id)
+          }
+
           this.setState( {isUserAuth: true, userInfo: user} )
           const successMsg = 'Login realizado com sucesso!'
           this.setLoginMsg(successMsg)

@@ -58,7 +58,7 @@ const styles = {
     },
     sectionTitle: {
         paddingVertical: 7.5,
-        fontSize: 18,
+        fontSize: 19,
         color: 'white',
         fontWeight: '400',
     },
