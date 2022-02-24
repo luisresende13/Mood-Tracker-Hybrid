@@ -119,13 +119,11 @@ function Jornal({ entry }) {
 function EmptyCard(props) {
     const today = props.date == Today()
     const navigateParams = {
-        user: props.parentState.user,
         currentEntry: {
             type: today ? 'new' : 'custom-date',
             date: props.parentState.date,
             entry: null
         },
-        syncUserData: props.syncUserData,
         setMainScreenState: props.setMainScreenState,
         getMainScreenState: props.getMainScreenState,
 
@@ -251,13 +249,11 @@ export default class UserEntryCards extends Component {
     editUserEntry() {
         const selectedEntry = this.props.parentState.user.entries.filter( (entry) => entry._id == this.props.parentState.selectedEntryId )[0]
         const navigateParams = {
-            user: this.props.parentState.user,
             currentEntry: {
                 type: 'edit',
                 date: selectedEntry.date,
                 entry: selectedEntry
             },
-            syncUserData: this.props.syncUserData,
             setMainScreenState: this.props.setMainScreenState,
             getMainScreenState: this.props.getMainScreenState,
     

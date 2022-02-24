@@ -143,7 +143,7 @@ export default class PostEntranceScreen extends Component {
         super(props);
 
         this.state = {
-            user: this.props.route.params.user,
+            user: this.props.appState.user,
 
             date: '',
             startTime: '',
@@ -161,15 +161,14 @@ export default class PostEntranceScreen extends Component {
 
             selectedEntry: 'Avaliação',
             isMoodUnmarked: true,
-            isSelectedEmotions: buildIsSelectedEmotions(this.props.route.params.user.emotions),
-            selectedEmotionLayout: this.props.route.params.user.layout,
+            isSelectedEmotions: buildIsSelectedEmotions(this.props.appState.user.emotions),
+            selectedEmotionLayout: this.props.appState.user.layout,
             isFetchingLocationOrWeather: false,
             isPostEntryLoading: false,
             isDeleteEmotionLoading: false,
             isSaveEmotionLoading: false,
             deleteEmotionMode: false,
             isUpdateUserDataLoading: false,
-            isUserDataSyncing:  false,
 
             userCoordinates: null,
             loginMsg: '',
@@ -202,14 +201,14 @@ export default class PostEntranceScreen extends Component {
     postEntryHeader() {
         return(
             <View style={[styles.cardRow, {justifyContent: 'space-between'}]}>
-                <Pressable onPress={() => {this.props.navigation.goBack()}}  style={styles.postButton}>
-                    <Icon name='arrow-back' fill='white' height={30} width={30}/>
+                <Pressable onPress={() => {this.props.navigation.goBack()}} hitSlop={10} style={styles.postButton}>
+                    <Icon name='arrow-back' fill='white' height={29} width={29}/>
                 </Pressable>
                 <View style={[styles.entryCardEmotionBadge, {flexDirection: 'row', alignItems: 'center'}]}>
                     <Text style={styles.datetimeTitle}> { formatPostEntryDatetimeTitle(this.props.route.params.currentEntry.date, this.state.startTime) } </Text>
                     <Icon name='edit' fill='rgba(75,75,75,1)' height={20} width={20}/>
                 </View>
-                <Pressable onPress={() => {this.setState({star: !this.state.star})}}  style={styles.postButton}>
+                <Pressable onPress={() => {this.setState({star: !this.state.star})}}  hitSlop={10} style={styles.postButton}>
                     <Icon name={this.state.star ? 'star' : 'star-outline'} fill='rgba(245,245,245,0.7)' height={30} width={30}/>
                 </Pressable>
             </View>
@@ -304,7 +303,7 @@ export default class PostEntranceScreen extends Component {
     inputCardBody(sectionName, cardBodyStyle, cardBodyContent) {
         if (this.state.selectedEntry === sectionName) {
             if (sectionName == 'Emoções') {
-                const [userEmotionGroups, emotionLabels] = mapEmotions(this.state.user.emotions, this.state.selectedEmotionLayout)
+                const [userEmotionGroups, emotionLabels] = mapEmotions(this.props.appState.user.emotions, this.state.selectedEmotionLayout)
                 return(
                     <>
                         { userEmotionGroups.map((emotions, index) => (
@@ -374,7 +373,7 @@ export default class PostEntranceScreen extends Component {
 
     async initializeEntry() {
         const currentEntry = this.props.route.params.currentEntry
-        const user = this.state.user
+        const user = this.props.appState.user
         switch (currentEntry.type) {
             case 'new':
                 console.log('POST ENTRY STATUS: INITIATING BLANK NEW ENTRY! FETCHING LOCATION AND WEATHER DATA...')
@@ -432,7 +431,7 @@ export default class PostEntranceScreen extends Component {
     updateUserData() {
         console.log('UPDATING USER DATA IN "PostEntryComponent"...')
         this.setState({isUpdateUserDataLoading: true})
-        const user = this.props.route.params.getMainScreenState().user
+        const user = this.props.appState.user
 
         const oldEmotions = Object.keys(this.state.isSelectedEmotions)
         const currentEmotions = user.emotions.map(emotion => emotion.name)
@@ -445,7 +444,7 @@ export default class PostEntranceScreen extends Component {
         })
 
         this.setState({
-            user: user,
+            // user: user,
             isSelectedEmotions: newEmotionsSelected,
             isUpdateUserDataLoading: false
         })
@@ -457,7 +456,7 @@ export default class PostEntranceScreen extends Component {
             this.state.isPostEntryLoading |
             this.state.isSaveEmotionLoading |
             this.state.isDeleteEmotionLoading |
-            this.state.isUserDataSyncing |
+            this.props.appState.isUserDataSyncing |
             this.state.isUpdateUserDataLoading
         )
         var color;
@@ -475,7 +474,7 @@ export default class PostEntranceScreen extends Component {
             case this.state.isDeleteEmotionLoading:
                 color = 'red'
                 break;
-            case this.state.isUserDataSyncing:
+            case this.props.appState.isUserDataSyncing:
                 color = 'blue'
                 break;
             case this.state.isUpdateUserDataLoading:
@@ -533,7 +532,7 @@ export default class PostEntranceScreen extends Component {
             lastEdited: [ ...this.state.lastEdited, {date: Today(), time: lastEdited}],
             star: this.state.star,
             mood: this.state.selectedMood,
-            emotions: this.state.user.emotions.filter( emotion => this.state.isSelectedEmotions[emotion.name] ),
+            emotions: this.props.appState.user.emotions.filter( emotion => this.state.isSelectedEmotions[emotion.name] ),
             jornal: this.state.jornalEntry,
             address: this.state.address,
             location: this.state.location,
@@ -544,7 +543,7 @@ export default class PostEntranceScreen extends Component {
     
     async postNewEntryAsync(newEntry) {
         this.setState({ isPostEntryLoading: true });
-        var user = this.props.route.params.user;
+        var user = this.props.appState.user;
         const currentEntry = this.props.route.params.currentEntry
         const editMode = currentEntry.type === 'edit';
         try {
@@ -592,7 +591,7 @@ export default class PostEntranceScreen extends Component {
 
     async deleteEmotion(emotion) {
         this.setState({ isDeleteEmotionLoading: true });
-        var user = this.state.user;
+        var user = this.props.appState.user;
         try {
             console.log('DELETE EMOTION STATUS: Started...')
             var postEmotionResult = {ok: false, status: '999', statusText: 'Post not fetched yet.'}
@@ -624,9 +623,9 @@ export default class PostEntranceScreen extends Component {
             console.log('DELETE EMOTION STATUS: Finished.')
             this.setState({ isDeleteEmotionLoading: false });
             if (postEmotionResult.ok) {
-                this.setState({isUserDataSyncing: true})
+                // this.setState({isUserDataSyncing: true})
                 await this.props.route.params.syncUserData();
-                this.setState({isUserDataSyncing: false})
+                // this.setState({isUserDataSyncing: false})
                 this.updateUserData();
             }
         }
@@ -767,8 +766,11 @@ export default class PostEntranceScreen extends Component {
 
     render() {
         console.log('Rendering "PostEntry" component...')
+        const userBackgroundImage = this.props.appState.user.settings.backgroundImage
+        const imgURI =  userBackgroundImage ? userBackgroundImage.uri : ''
+        const backgroundColor = this.props.appState.user.settings.backgroundColor
         return(
-            <ImageBackground source={require('../assets/wallpaper.jpg')} style={styles.mainView}>
+            <ImageBackground source={{'uri' : imgURI}} style={[styles.mainView, {backgroundColor: backgroundColor}]}>
 
                 <ScrollView style={styles.scrollView}>
                     <View style={styles.section}>

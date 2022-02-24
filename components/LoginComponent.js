@@ -8,8 +8,10 @@ import { View, Text, ImageBackground, TextInput, Pressable, Platform, ActivityIn
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from "@react-native-community/netinfo";
 
-const defaultEmotions = require('../shared/emotionsConfig')
 import styles from '../styles/loginStyles'
+const defaultEmotions = require('../shared/emotionsConfig')
+const Imgs = require('../shared/unsplash_imgs.json')
+// console.log(Imgs)
 
 // App server connection settings
 const corsURI = Platform.OS == 'web' ? 'https://morning-journey-78874.herokuapp.com/' : ''
@@ -97,7 +99,11 @@ async function registerLocallyIfUserIsNewToDevice(user) {
           _id: user._id,
           username: user.username,
           email: user.email,
-          password: user.password
+          password: user.password,
+          // settings: {
+          //   backgroundColor: 'lightblue',
+          //   backgroundImage: null      
+          // }
         }
       ]
     }
@@ -107,22 +113,35 @@ async function registerLocallyIfUserIsNewToDevice(user) {
   } 
 }
 
-async function keepUserConnectionAlive(userId) {
+export async function keepUserConnectionAlive(userId) {
   var localAuthInfo = await AsyncStorage.getItem('LocalAuthenticationInfo')
   localAuthInfo = JSON.parse(localAuthInfo)
 
-  console.log('SIGNIN STATUS: Usuário optou por manter conexão ativa. Configurando conexão ativa para o usuário...')
+  console.log(`SIGNIN STATUS: Usuário optou por ${userId ? 'manter conexão ativa. Configurando conexão ativa para o usuário...' : 'desativar conexão ativa. Desativando...' }`)
   const updatedLocalAuthInfo = {
     ...localAuthInfo,
     keepConnected: {
-      status: true,
+      status: userId ? true : false,
       userId: userId
     }
   }
   await AsyncStorage.setItem('LocalAuthenticationInfo', JSON.stringify(updatedLocalAuthInfo))
 }
 
+// async function keepUserConnectionAlive(userId) {
+//   var localAuthInfo = await AsyncStorage.getItem('LocalAuthenticationInfo')
+//   localAuthInfo = JSON.parse(localAuthInfo)
 
+//   console.log('SIGNIN STATUS: Usuário optou por manter conexão ativa. Configurando conexão ativa para o usuário...')
+//   const updatedLocalAuthInfo = {
+//     ...localAuthInfo,
+//     keepConnected: {
+//       status: userId ? true : false,
+//       userId: userId
+//     }
+//   }
+//   await AsyncStorage.setItem('LocalAuthenticationInfo', JSON.stringify(updatedLocalAuthInfo))
+// }
 
 class LoginScreen extends Component {
 
@@ -146,6 +165,7 @@ class LoginScreen extends Component {
     this.setLoginMsg = this.setLoginMsg.bind(this);
     this.onSignIn = this.onSignIn.bind(this);
     this.onSignUp = this.onSignUp.bind(this);
+    this.LoginScreen = this.LoginScreen.bind(this);
   }
 
   componentDidMount() {
@@ -200,8 +220,21 @@ class LoginScreen extends Component {
   }
 
   LoginScreen = () => {
+    var imgURI, backgroundColor
+    if (this.state.isUserAuth) {
+      backgroundColor = this.state.userInfo.settings.backgroundColor
+      if (this.state.userInfo.settings.backgroundImage) {
+        imgURI = this.state.userInfo.settings.backgroundImage.uri
+      } else {
+        imgURI = null
+      }
+    } else {
+      imgURI = null
+      backgroundColor = 'lightblue'     
+    }
+
     return(
-      <ImageBackground source={require('../assets/wallpaper.jpg')} style={[styles.login.mainView ,{justifyContent: 'space-evenly'}]}>
+      <ImageBackground source={{uri: imgURI}} style={[styles.login.mainView ,{backgroundColor: backgroundColor, justifyContent: 'space-evenly'}]}>
         
         <View style={styles.login.titleView}>
           <Text style={styles.login.title}>Mood Tracker</Text>
@@ -390,7 +423,11 @@ class LoginScreen extends Component {
     } finally {
       this.setState({ isDataLoading: false });
       console.log('SIGNIN STATUS: Concluido.')
-      if (this.state.isUserAuth) this.props.authUser(this.state.userInfo)        // Father class component method that authenticates the user and redirects to entrances screen.
+      if (this.state.isUserAuth) {
+        console.log('User authenticated. Navigating to "HomeScreen"...')
+        this.props.setAppState({isUserAuth: true, user: this.state.userInfo})
+        // Parent class component method that authenticates the user and redirects to entrances screen.
+      }
     }
   }
 
@@ -444,7 +481,16 @@ class LoginScreen extends Component {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify( { ...info, emotions: defaultEmotions, entries: [], layout: 'grid' } )
+          body: JSON.stringify({ 
+            ...info,
+            emotions: defaultEmotions,
+            entries: [],
+            layout: 'grid',
+            settings: {
+              backgroundColor: 'lightblue',
+              backgroundImage: null,
+            },
+          })
         }
 
         postUserResult = await fetch( corsURI + appServerURI +  'Users/' + info.username, postUserOpts );

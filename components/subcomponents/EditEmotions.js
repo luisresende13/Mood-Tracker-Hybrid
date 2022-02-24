@@ -70,7 +70,7 @@ export default class EditEmotions extends Component {
             this.props.isDeleteEmotionLoading |
             this.props.isSaveEmotionLoading |
             this.props.isPostEntryLoading |
-            this.props.isUserDataSyncing |
+            this.props.appState.isUserDataSyncing |
             this.props.isUpdateUserDataLoading
         )
 
@@ -240,9 +240,7 @@ export default class EditEmotions extends Component {
 
             default:
                 return null
-
         }
-
     }
 
     EditEmotionsMenu() {
@@ -275,7 +273,7 @@ export default class EditEmotions extends Component {
 
         const isLoading = (
             this.props.isPostEntryLoading |
-            this.props.isUserDataSyncing |
+            this.props.appState.isUserDataSyncing |
             this.props.isUpdateUserDataLoading |
             this.props.isDeleteEmotionLoading |
             this.props.isSaveEmotionLoading
@@ -329,7 +327,7 @@ export default class EditEmotions extends Component {
 
         try {
             this.props.setParentState({ isSaveEmotionLoading: true });
-            var user = this.props.route.params.user;
+            var user = this.props.appState.user;
             const newEmotion = {
                 name: capitalize(this.state.newEmotionName),
                 type: this.state.selectedEmotionType,
@@ -375,11 +373,8 @@ export default class EditEmotions extends Component {
             console.log('POST EMOTION STATUS: Finished.')
             this.props.setParentState({ isSaveEmotionLoading: false });
             if (postEmotionResult.ok) {
-                this.props.setParentState({ isUserDataSyncing: true });
                 await this.props.route.params.syncUserData();
-                this.props.setParentState({ isUserDataSyncing: false, isUpdateUserDataLoading: true });
                 this.props.updateUserData();
-                this.props.setParentState({ isUpdateUserDataLoading: false });
             }
         } 
     }
@@ -388,7 +383,7 @@ export default class EditEmotions extends Component {
 
         try {
             this.props.setParentState({ isSaveEmotionLayoutLoading: true });
-            var user = this.props.route.params.user;
+            var user = this.props.appState.user;
             
             console.log('POST EMOTION LAYOUT STATUS: Started...')
             var postEmotionLayoutResult = {ok: false, status: '999', statusText: 'Post not fetched yet.'}
@@ -427,11 +422,8 @@ export default class EditEmotions extends Component {
             console.log('POST EMOTION LAYOUT STATUS: Finished.')
             this.props.setParentState({ isSaveEmotionLayoutLoading: false });
             if (postEmotionLayoutResult.ok) {
-                this.props.setParentState({ isUserDataSyncing: true });
                 await this.props.route.params.syncUserData();
-                this.props.setParentState({ isUserDataSyncing: false, isUpdateUserDataLoading: true });
                 this.props.updateUserData();
-                this.props.setParentState({ isUpdateUserDataLoading: false });
             }
         } 
     }

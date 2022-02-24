@@ -65,20 +65,21 @@ export default class EntrancesScreen extends Component {
         super(props);
         this.state = {
             
-            user: this.props.route.params.user,
+            // user: this.props.route.params.user,
             date: Today(),
             time: getTime(),
             selectedDate: Today(),
-            isUserDataSynced: false,
-            isUserDataSyncing: false,
+            // isUserDataSynced: true,
+            // isUserDataSyncing: false,
             isDeleteEntryLoading: false,
             alertMsg: '',
             locationPermission: null,
         };
         this.onNextButtonPress = this.onNextButtonPress.bind(this);
         this.setAlertMsg = this. setAlertMsg.bind(this);
-        this.syncUserData = this.syncUserData.bind(this);
+        // this.syncUserData = this.syncUserData.bind(this);
         this.getMainScreenState = this.getMainScreenState.bind(this);
+        
     }
     
     componentDidMount() {
@@ -124,55 +125,58 @@ export default class EntrancesScreen extends Component {
         )
     }
 
-    async syncUserData() {
+    // async syncUserData() {
 
-        console.log('SYNC ENTRIES STATUS: Started...')
-        this.setState({ isUserDataSyncing: true, userDataSynced: false });
+    //     console.log('SYNC ENTRIES STATUS: Started...')
+    //     this.setState({ isUserDataSyncing: true, userDataSynced: false });
     
-        try {
+    //     try {
 
-            var UsersResult = await fetch( corsURI + appServerURI + 'Users', { method: 'GET' });
-            const usersStatus =  'Status: ' + UsersResult.status + ', ' + UsersResult.statusText
+    //         var UsersResult = await fetch( corsURI + appServerURI + 'Users', { method: 'GET' });
+    //         const usersStatus =  'Status: ' + UsersResult.status + ', ' + UsersResult.statusText
 
-            if (UsersResult.ok) {
-                const users = await UsersResult.json();
-                const user = users.filter((user) => user.email === this.state.user.email)[0]
-                console.log('fetch GET request for user entries successful.')
-                console.log(usersStatus)
+    //         if (UsersResult.ok) {
+    //             const users = await UsersResult.json();
+    //             const user = users.filter((user) => user.email === this.props.appState.user.email)[0]
+    //             console.log('fetch GET request for user entries successful.')
+    //             console.log(usersStatus)
 
-                this.setState({user: user, userDataSynced: true})
-                console.log('SYNC ENTRIES STATUS: Successful.')
+    //             this.setState({user: user, userDataSynced: true})
+    //             this.props.setAppState({user: user})
+    //             console.log('SYNC ENTRIES STATUS: Successful.')
 
-            } else {
-                console.log( new Error('"fetch" GET request for user entries failed. Throwing error...') )
-                throw new Error(usersStatus)
-            }
+    //         } else {
+    //             console.log( new Error('"fetch" GET request for user entries failed. Throwing error...') )
+    //             throw new Error(usersStatus)
+    //         }
     
-        } catch (error) {
-                console.log('SYNC ENTRIES STATUS: Error captured. Printing error...')
-                console.log(error);
-                this.setAlertMsg('Não foi possível sincronizar as entradas. Por favor, aguarde..')
+    //     } catch (error) {
+    //             console.log('SYNC ENTRIES STATUS: Error captured. Printing error...')
+    //             console.log(error);
+    //             this.setAlertMsg('Não foi possível sincronizar as entradas. Por favor, aguarde..')
 
-        } finally {
-            this.setState({ isUserDataSyncing: false });
-            console.log('SYNC ENTRIES STATUS: Finished.')
-        }    
-    }
+    //     } finally {
+    //         this.setState({ isUserDataSyncing: false });
+    //         console.log('SYNC ENTRIES STATUS: Finished.')
+    //     }    
+    // }
 
     render() {
         console.log('Rendering "EntriesScreen" component...')
 
         const today = this.state.selectedDate === Today()
         const navigateParams = {
-            user: this.state.user,
             currentEntry: {type: 'new', date: Today(), entry: null},
-            syncUserData: this.syncUserData,
             setMainScreenState: this.setState.bind(this),
             getMainScreenState: this.getMainScreenState,
         }
-        const isLoading = this.state.isUserDataSyncing | this.state.isDeleteEntryLoading
+        const isLoading = this.props.appState.isUserDataSyncing | this.state.isDeleteEntryLoading
+        const userBackgroundImage = this.props.appState.user.settings.backgroundImage
+        const imgURI =  userBackgroundImage ? userBackgroundImage.uri : ''
+        const backgroundColor = this.props.appState.user.settings.backgroundColor
+
         return(
-            <ImageBackground source={require('../assets/wallpaper.jpg')} style={[styles.mainView]}>
+            <ImageBackground source={{uri: imgURI}} style={[styles.mainView, {backgroundColor: backgroundColor}]}>
                 
                 <ScrollView style={styles.scrollView}>
                     <View style={styles.section}>
@@ -185,15 +189,15 @@ export default class EntrancesScreen extends Component {
                         parentState={{
                             date: this.state.selectedDate,
                             selectedEntryId: this.state.selectedEntryId,
-                            user: this.state.user,
-                            isUserDataSynced: this.state.isUserDataSynced,
-                            isUserDataSyncing: this.state.isUserDataSyncing,
+                            user: this.props.appState.user,
+                            // isUserDataSynced: this.props.appState.isUserDataSynced,
+                            isUserDataSyncing: this.props.appState.isUserDataSyncing,
                             isDeleteEntryLoading: this.state.isDeleteEntryLoading,
                         }}
                         parentProps={{
                             navigation: this.props.navigation
                         }}
-                        syncUserData={this.syncUserData}
+                        syncUserData={this.props.route.params.syncUserData}
                         setMainScreenState ={this.setState.bind(this)}
                         getMainScreenState={this.getMainScreenState}
                         setAlertMsg = {this.setAlertMsg}
@@ -206,13 +210,13 @@ export default class EntrancesScreen extends Component {
                 style={[styles.postButton, {backgroundColor: isLoading ? 'white' : 'black'}]}
                 disabled={isLoading}
                 >
-                { this.state.isUserDataSyncing ? (
+                { this.props.appState.isUserDataSyncing ? (
                         <ActivityIndicator color='black' size={'large'} />
                 ) : (
                     this.state.isDeleteEntryLoading ? (
                         <ActivityIndicator color='red' size={'large'} />
                     ) : (
-                        <Icon name='plus-circle' width={72} height={72} fill='white' style={styles.postButtonLabel}/>
+                        <Icon name='plus-circle' width={72} height={72} fill='#f4f3f4' style={styles.postButtonLabel}/>
                     )
                 )}
                 </Pressable>
