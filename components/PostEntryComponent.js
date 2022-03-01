@@ -766,12 +766,14 @@ export default class PostEntranceScreen extends Component {
 
     render() {
         console.log('Rendering "PostEntry" component...')
-        const userBackgroundImage = this.props.appState.user.settings.backgroundImage
-        const imgURI =  userBackgroundImage ? userBackgroundImage.uri : ''
-        const backgroundColor = this.props.appState.user.settings.backgroundColor
+
+        const settings = this.props.appState.user.settings
+        const backgroundImage = settings.backgroundImage
+        const imgURI =  settings.displayBackgroundImage ? (backgroundImage ? backgroundImage.urls.regular : null ) : null
+        const backgroundColor = settings.backgroundColor
+
         return(
             <ImageBackground source={{'uri' : imgURI}} style={[styles.mainView, {backgroundColor: backgroundColor}]}>
-
                 <ScrollView style={styles.scrollView}>
                     <View style={styles.section}>
                             {this.postEntryHeader()}
@@ -780,11 +782,8 @@ export default class PostEntranceScreen extends Component {
                             {this.InputCard('Jornal', 'book', {flexDirection: 'column', minHeight: 130}, this.JornalInput())}
                     </View>
                 </ScrollView>  
-
                 <this.saveButton />
-
                 {this.loginMsg()}
-
             </ImageBackground>
         )    
     }

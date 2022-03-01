@@ -125,42 +125,6 @@ export default class EntrancesScreen extends Component {
         )
     }
 
-    // async syncUserData() {
-
-    //     console.log('SYNC ENTRIES STATUS: Started...')
-    //     this.setState({ isUserDataSyncing: true, userDataSynced: false });
-    
-    //     try {
-
-    //         var UsersResult = await fetch( corsURI + appServerURI + 'Users', { method: 'GET' });
-    //         const usersStatus =  'Status: ' + UsersResult.status + ', ' + UsersResult.statusText
-
-    //         if (UsersResult.ok) {
-    //             const users = await UsersResult.json();
-    //             const user = users.filter((user) => user.email === this.props.appState.user.email)[0]
-    //             console.log('fetch GET request for user entries successful.')
-    //             console.log(usersStatus)
-
-    //             this.setState({user: user, userDataSynced: true})
-    //             this.props.setAppState({user: user})
-    //             console.log('SYNC ENTRIES STATUS: Successful.')
-
-    //         } else {
-    //             console.log( new Error('"fetch" GET request for user entries failed. Throwing error...') )
-    //             throw new Error(usersStatus)
-    //         }
-    
-    //     } catch (error) {
-    //             console.log('SYNC ENTRIES STATUS: Error captured. Printing error...')
-    //             console.log(error);
-    //             this.setAlertMsg('Não foi possível sincronizar as entradas. Por favor, aguarde..')
-
-    //     } finally {
-    //         this.setState({ isUserDataSyncing: false });
-    //         console.log('SYNC ENTRIES STATUS: Finished.')
-    //     }    
-    // }
-
     render() {
         console.log('Rendering "EntriesScreen" component...')
 
@@ -171,9 +135,10 @@ export default class EntrancesScreen extends Component {
             getMainScreenState: this.getMainScreenState,
         }
         const isLoading = this.props.appState.isUserDataSyncing | this.state.isDeleteEntryLoading
-        const userBackgroundImage = this.props.appState.user.settings.backgroundImage
-        const imgURI =  userBackgroundImage ? userBackgroundImage.uri : ''
-        const backgroundColor = this.props.appState.user.settings.backgroundColor
+        const settings = this.props.appState.user.settings
+        const backgroundImage = settings.backgroundImage
+        const imgURI =  settings.displayBackgroundImage ? (backgroundImage ? backgroundImage.urls.regular : null) : null
+        const backgroundColor = settings.backgroundColor
 
         return(
             <ImageBackground source={{uri: imgURI}} style={[styles.mainView, {backgroundColor: backgroundColor}]}>

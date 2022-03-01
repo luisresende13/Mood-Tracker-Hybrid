@@ -8,7 +8,7 @@ import styles from '../../styles/postEntryStyles'
 const corsURI = Platform.OS == 'web' ? 'https://morning-journey-78874.herokuapp.com/' : ''
 const appServerURI = 'https://mood-tracker-server.herokuapp.com/'
 
-function capitalize(multipleWordString) {
+export function capitalize(multipleWordString) {
     var words = multipleWordString.trim().split(' ');
     var CapitalizedWords = [];
     words.forEach(element => {

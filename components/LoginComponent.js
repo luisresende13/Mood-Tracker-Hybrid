@@ -1,7 +1,4 @@
-// import Icon from 'react-native-vector-icons/FontAwesome';
-// import { Ionicons } from '@expo/vector-icons';
 import { Icon } from 'react-native-eva-icons'
-// import { WiDaySunny } from "weather-icons-react";
 
 import React, { Component } from 'react';
 import { View, Text, ImageBackground, TextInput, Pressable, Platform, ActivityIndicator, Switch } from 'react-native';
@@ -10,8 +7,6 @@ import NetInfo from "@react-native-community/netinfo";
 
 import styles from '../styles/loginStyles'
 const defaultEmotions = require('../shared/emotionsConfig')
-const Imgs = require('../shared/unsplash_imgs.json')
-// console.log(Imgs)
 
 // App server connection settings
 const corsURI = Platform.OS == 'web' ? 'https://morning-journey-78874.herokuapp.com/' : ''
@@ -24,6 +19,7 @@ const emailVerification_APIKEY = "at_TPKXmSQnStekLzTbstLO9GyHvd7or"
 // let verifier = new Verifier(emailVerification_APIKEY);
 const emailVerification_APIURI = (emailAddress) => `https://emailverification.whoisxmlapi.com/api/v2?apiKey=${emailVerification_APIKEY}&emailAddress=${emailAddress}`
 const falseParams = ['validateDNS', 'checkCatchAll', 'checkFree', 'checkDisposable']
+
 function appendValueToUri(uri, params, value) {
   for (let param of params) {
     uri += '&' + param + '=' + value
@@ -128,21 +124,6 @@ export async function keepUserConnectionAlive(userId) {
   await AsyncStorage.setItem('LocalAuthenticationInfo', JSON.stringify(updatedLocalAuthInfo))
 }
 
-// async function keepUserConnectionAlive(userId) {
-//   var localAuthInfo = await AsyncStorage.getItem('LocalAuthenticationInfo')
-//   localAuthInfo = JSON.parse(localAuthInfo)
-
-//   console.log('SIGNIN STATUS: Usuário optou por manter conexão ativa. Configurando conexão ativa para o usuário...')
-//   const updatedLocalAuthInfo = {
-//     ...localAuthInfo,
-//     keepConnected: {
-//       status: userId ? true : false,
-//       userId: userId
-//     }
-//   }
-//   await AsyncStorage.setItem('LocalAuthenticationInfo', JSON.stringify(updatedLocalAuthInfo))
-// }
-
 class LoginScreen extends Component {
 
   constructor(props) {
@@ -224,7 +205,7 @@ class LoginScreen extends Component {
     if (this.state.isUserAuth) {
       backgroundColor = this.state.userInfo.settings.backgroundColor
       if (this.state.userInfo.settings.backgroundImage) {
-        imgURI = this.state.userInfo.settings.backgroundImage.uri
+        imgURI = this.state.userInfo.settings.backgroundImage.urls.regular
       } else {
         imgURI = null
       }
