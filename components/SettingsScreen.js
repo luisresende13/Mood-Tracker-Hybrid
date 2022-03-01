@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
     color: 'white'
   },
   h2: {
-    fontSize: 19,
+    fontSize: 20,
     color: 'white',
   },
   h3: {
@@ -98,6 +98,44 @@ function blinkButton(setPressed, timeSpan=200) {
     setPressed(false)
   }, timeSpan);
 }
+
+export async function postDisplayBackgroundImage(value, username) {
+  // fetch post display background image value to user settings in server
+  try {
+   console.log('POST DISPLAY BACKGROUND IMAGE STATUS: Started...')
+   const displaySetting = {
+     displayBackgroundImage: value
+   }
+   var postDisplayResult = {ok: false, status: '999', statusText: 'Post not fetched yet.'}
+   const postDisplaySettingOpts = { 
+     method: 'POST',
+     headers: {
+         'Content-Type': 'application/json',
+     },
+     body: JSON.stringify( displaySetting ),
+   }
+   // var postDisplayResult = await fetch('http://localhost:3000/Users/' + this.context.username + '/settings', postColorSettingOpts);
+   postDisplayResult = await fetch( `${corsURI + appServerURI}Users/${username}/settings`, postDisplaySettingOpts);
+   const postDisplayStatus = 'Status: ' + postDisplayResult.status + ', ' + postDisplayResult.statusText
+
+   if (postDisplayResult.ok) {
+     console.log('POST DISPLAY BACKGROUND IMAGE STATUS: Successful.')
+     console.log(postDisplayStatus)
+         
+   } else {
+     console.log('POST DISPLAY BACKGROUND IMAGE STATUS: Failed. Throwing error...')
+     throw new Error(postDisplayStatus)
+   }
+ } catch (error) {
+   alert('Erro no servidor. Tente novamente...')
+   console.log('Erro capturado:')
+   console.log(error);
+
+ } finally {
+   console.log('POST DISPLAY BACKGROUND IMAGE STATUS: Finished.')
+   return postDisplayResult
+ }
+} 
 
 export default class SettingsScreen extends Component {
 
@@ -149,15 +187,12 @@ export default class SettingsScreen extends Component {
       style={[ styles.background, {backgroundColor: this.state.selectedColor} ]}
       >
         <ScrollView style={styles.foreground}>
-          
           <View style={styles.header}>
             <Text style={styles.h1}>Configurações</Text>
           </View>
           <this.ScreenSettings />
           <this.logoutPressable />
-
         </ScrollView>
-
       </ImageBackground>
     )
   }
@@ -180,7 +215,7 @@ export default class SettingsScreen extends Component {
       disabled={isLoading}
       style={[ styles.settingsRow, {
         justifyContent: 'flex-start',
-        marginBottom: 50,
+        marginBottom: 30,
         backgroundColor: this.state.isLogoutButtonPressed ? '0004' : null
       }]}
       >
@@ -266,7 +301,8 @@ export default class SettingsScreen extends Component {
                 >
                   <View style={{flexDirection: 'row', alignItems: 'center'}}>
                     <Icon name='eye-outline' width={30} height={30} fill='white' />
-                    <Text style={[styles.h2, {marginLeft: 10}]}>Habilitar fundo</Text>
+                    <Text style={[styles.h2, {marginLeft: 10, marginRight: 20}]}>Habilitar fundo</Text>
+                    { this.state.isDisplayBackgroundImageLoading ? <ActivityIndicator color='blue' /> : null }
                   </View>
 
                   <Switch
@@ -277,7 +313,7 @@ export default class SettingsScreen extends Component {
                   onPress={() => {}}
                   onValueChange={() => {
                     blinkButton(setIsExposeImageButtonPressed)
-                    this.onDisplayBackgroundImageSwitch()
+                    this.onDisplayBackgroundImageSwitch(!this.props.appState.user.settings.displayBackgroundImage)
                   }}
                   value={this.props.appState.user.settings.displayBackgroundImage}
                   />
@@ -358,51 +394,14 @@ export default class SettingsScreen extends Component {
     )
   }
 
-  async onDisplayBackgroundImageSwitch() {
-       // fetch post display background image value to user settings in server
-       try {
-        console.log('POST DISPLAY BACKGROUND IMAGE STATUS: Started...')
-        this.setState({ isDisplayBackgroundImageLoading: true });
-        const displaySetting = {
-          displayBackgroundImage: !this.props.appState.user.settings.displayBackgroundImage
-        }
-        var postDisplayResult = {ok: false, status: '999', statusText: 'Post not fetched yet.'}
-        const postDisplaySettingOpts = { 
-          method: 'POST',
-          headers: {
-              'Content-Type': 'application/json',
-          },
-          body: JSON.stringify( displaySetting ),
-        }
-        // var postDisplayResult = await fetch('http://localhost:3000/Users/' + this.context.username + '/settings', postColorSettingOpts);
-        postDisplayResult = await fetch( `${corsURI + appServerURI}Users/${this.props.appState.user.username}/settings`, postDisplaySettingOpts);
-        const postDisplayStatus = 'Status: ' + postDisplayResult.status + ', ' + postDisplayResult.statusText
-  
-        if (postDisplayResult.ok) {
-          console.log('POST DISPLAY BACKGROUND IMAGE STATUS: Successful.')
-          console.log(postDisplayStatus)
-              
-        } else {
-          console.log('POST DISPLAY BACKGROUND IMAGE STATUS: Failed. Throwing error...')
-          throw new Error(postDisplayStatus)
-        }
-  
-      } catch (error) {
-        alert('Erro no servidor. Tente novamente...')
-        console.log('Erro capturado:')
-        console.log(error);
-  
-      } finally {
-        console.log('POST DISPLAY BACKGROUND IMAGE STATUS: Finished.')
-        if (postDisplayResult.ok) {
-          // sync user data with app or entries component
-          await this.props.route.params.syncUserData()
-          // initialize settings
-          // this.syncUserSettings()
-        }
-        this.setState({ isDisplayBackgroundImageLoading: false });
-      } 
-  
+  async onDisplayBackgroundImageSwitch(value) {
+    this.setState({ isDisplayBackgroundImageLoading: true });
+    const postDisplayResult = await postDisplayBackgroundImage(value, this.props.appState.user.username)
+    if (postDisplayResult.ok) {
+      // sync user data with app or entries component
+      await this.props.route.params.syncUserData()
+    }
+    this.setState({ isDisplayBackgroundImageLoading: false });
   }
 
   async onSaveColorButtonPress() {
@@ -442,8 +441,12 @@ export default class SettingsScreen extends Component {
     } finally {
       console.log('POST COLOR STATUS: Finished.')
       if (postColorResult.ok) {
-        // sync user data with app or entries component
-        await this.props.route.params.syncUserData()
+        if (this.props.appState.user.settings.displayBackgroundImage) {
+          await this.onDisplayBackgroundImageSwitch(false)
+        } else {
+          // sync user data with app or entries component
+          await this.props.route.params.syncUserData()
+        }
         // initialize settings
         this.syncUserSettings()
         this.setState({
