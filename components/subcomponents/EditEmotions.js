@@ -1,7 +1,7 @@
 import React, { Component, useState } from 'react';
 import { View, Text,  Pressable, TextInput, ActivityIndicator, Platform } from 'react-native';
 import { Icon } from 'react-native-eva-icons'
-import VectorIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+// import VectorIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import styles from '../../styles/postEntryStyles'
 
 // cors-midpoint uri (needed to avoid cors' allow-cross-origin error when fetching in web platforms)
@@ -47,8 +47,8 @@ export default class EditEmotions extends Component {
         }
 
         const inputSectionStyle = {marginTop: 0, marginTop: 0   , alignItems: 'center'}
-        const textStyle = {color: 'white', fontSize: 16, alignSelf: 'center', marginBottom: 8}
-        const inputStyle = {width: '70%', height: 35, borderRadius: 16.5, color: 'white', backgroundColor: 'rgba(0,0,0,0.7)', fontSize: 15, textAlign: 'center' }
+        const textStyle = {color: styles.theme.color, fontSize: 16, alignSelf: 'center', marginBottom: 8}
+        const inputStyle = {width: '70%', height: 35, borderRadius: 16.5, color: styles.theme.color, backgroundColor: styles.altTheme.color+'8', fontSize: 15, textAlign: 'center' }
         const tagStyle = {width: '45%', height: 28, borderRadius: 13.5,  marginBottom: 7, color: 'white', alignItems: 'center', justifyContent: 'center'}
         const createEmotionViewStyle = {height: 420, marginTop: 10, paddingTop: 10, justifyContent: 'space-evenly', borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.2)'}
 
@@ -84,12 +84,12 @@ export default class EditEmotions extends Component {
             case 'create':
                 return(
                     <View style={createEmotionViewStyle}>
-                        <Text style={{color: 'white', fontSize: 22, alignSelf: 'center'}}>Criar emoção</Text>
+                        <Text style={[ styles.theme, {fontSize: 22, alignSelf: 'center'}]}>Criar emoção</Text>
                         <View style={inputSectionStyle}>
                             <Text style={textStyle}>Nome</Text>
                             <TextInput
                             placeholder='Nome da emoção...'
-                            placeholderTextColor={'rgba(255,255,255,0.4)'}
+                            placeholderTextColor={styles.theme.color+'8'}
                             style={inputStyle}
                             onChangeText={text => this.setState({newEmotionName: text})}
                             value={this.state.newEmotionName}
@@ -103,8 +103,8 @@ export default class EditEmotions extends Component {
                                     <Pressable
                                     key={'emotion-'+type}
                                     onPress={() => this.setState({selectedEmotionType: typeSelected ? null : type })}
-                                    style={[tagStyle, {backgroundColor: typeSelected ? 'rgba(0,0,0,0.8)' : 'rgba(0,0,0,0.3)'}]}>
-                                        <Text style={[{fontSize: 15, color: 'white'}]}>{type}</Text>
+                                    style={[tagStyle, { backgroundColor: styles.altTheme.color + (typeSelected ? 'd' : '6') }]}>
+                                        <Text style={[{fontSize: 15}, styles.theme]}>{type}</Text>
                                     </Pressable>
                                 )
                             }) }
@@ -117,8 +117,8 @@ export default class EditEmotions extends Component {
                                     <Pressable
                                     key={'emotion-'+type}
                                     onPress={() => this.setState({selectedEmotionEnergy: typeSelected ? null : type })}
-                                    style={[tagStyle, {backgroundColor: typeSelected ? 'rgba(0,0,0,0.8)' : 'rgba(0,0,0,0.3)'}]}>
-                                        <Text style={[{fontSize: 15, color: 'white'}]}>{type}</Text>
+                                    style={[tagStyle, { backgroundColor: styles.altTheme.color + (typeSelected ? 'd' : '6') }]}>
+                                        <Text style={[{fontSize: 15}, styles.theme]}>{type}</Text>
                                     </Pressable>
                                 )
                             }) }
@@ -134,10 +134,15 @@ export default class EditEmotions extends Component {
                             disabled={isLoading | isNewEmotionFormComplete}
                             style={[styles.editButton, {
                                 alignSelf: 'center',
-                                backgroundColor: isButtonPressed['Salvar'] ? '#fff5' : '#fff0',
-                                borderColor: isLoading | isNewEmotionFormComplete ? '#fff5' : '#ffff',
+                                backgroundColor: isButtonPressed['Salvar'] ? styles.theme.color+'5' : '#0000',
+                                borderColor: isLoading | isNewEmotionFormComplete ? styles.theme.color+'5' : styles.theme.color,
                                 }]}>
-                                <Text style={[styles.editButtonLabel, {color: isLoading | isNewEmotionFormComplete ? '#fff5' : '#ffff'}]}>Salvar</Text>
+                                <Text style={[ styles.editButtonLabel, {
+                                    color: isLoading | isNewEmotionFormComplete ? styles.theme.color+'5' : styles.theme.color
+                                }]}
+                                >
+                                {'Salvar'}
+                                </Text>
                             </Pressable>
                             <Pressable
                             onPress={() => {
@@ -149,10 +154,10 @@ export default class EditEmotions extends Component {
                             disabled={isLoading}
                             style={[styles.editButton, {
                                 alignSelf: 'center',
-                                borderColor: isLoading ? '#fff5' : '#ffff',
-                                backgroundColor: isButtonPressed['Voltar'] ? '#fff5' : '#fff0'
+                                backgroundColor: isButtonPressed['Voltar'] ? styles.theme.color+'5' : '#0000',
+                                borderColor: isLoading ? styles.theme.color+'5' : styles.theme.color,
                                 }]}>
-                                <Text style={[styles.editButtonLabel, {color: isLoading ? '#fff5' : '#ffff'}]}>Voltar</Text>
+                                <Text style={[styles.editButtonLabel, {color: isLoading ? styles.theme.color+'5' : styles.theme.color}]}>Voltar</Text>
                             </Pressable>
                         </View>
                     </View>
@@ -161,8 +166,8 @@ export default class EditEmotions extends Component {
             case 'delete':
                 return(
                     <View style={[createEmotionViewStyle, {height: 180}]}>
-                        <Text style={{color: 'white', fontSize: 22, alignSelf: 'center'}}>Excluir emoções</Text>
-                        <Text style={{color: 'white', fontSize: 16, textAlign: 'center'}}>Pressione e segure para excluir uma emoção.</Text>
+                        <Text style={{color: styles.theme.color, fontSize: 22, alignSelf: 'center'}}>Excluir emoções</Text>
+                        <Text style={{color: styles.theme.color, fontSize: 16, textAlign: 'center'}}>Pressione e segure para excluir uma emoção.</Text>
                         <View style={[styles.cardRow, {justifyContent: 'space-evenly'}]}>
                             <Pressable
                             onPress={() => {
@@ -175,11 +180,11 @@ export default class EditEmotions extends Component {
                             disabled={isLoading}
                             style={[styles.editButton, {
                                 alignSelf: 'center',
-                                borderColor: isLoading ? '#fff5' : '#ffff',
-                                backgroundColor: isButtonPressed['Terminar'] ? '#fff5' : '#fff0'
+                                borderColor: isLoading ? styles.theme.color+'5' : styles.theme.color,
+                                backgroundColor: isButtonPressed['Terminar'] ? styles.theme.color+'5' : '#0000'
                             }]}
                             >
-                                <Text style={[styles.editButtonLabel, {color: isLoading ? '#fff5' : '#ffff'}]}>Terminar</Text>
+                                <Text style={[styles.editButtonLabel, {color: isLoading ? styles.theme.color+'5' : styles.theme.color}]}>Terminar</Text>
                             </Pressable>
                         </View>
                     </View>
@@ -189,15 +194,15 @@ export default class EditEmotions extends Component {
                 return(
                     <View style={[createEmotionViewStyle, {height: 320}]}>
                         <View style={inputSectionStyle}>
-                            <Text style={{color: 'white', fontSize: 22, alignSelf: 'center', paddingBottom: 25}}>Escolha o layout</Text>
+                            <Text style={{color: styles.theme.color, fontSize: 22, alignSelf: 'center', paddingBottom: 25}}>Escolha o layout</Text>
                             { ['Positiva ou Negativa', 'Calmo(a) ou Energizado(a)', 'Grade', 'Espalhado'].map((layout) => {
                                 const isLayoutSelected = this.props.selectedEmotionLayout === emotionLayoutMap[layout]
                                 return(
                                     <Pressable
                                     key={'emotion-'+layout}
                                     onPress={() => this.props.setParentState({selectedEmotionLayout: emotionLayoutMap[layout] })}
-                                    style={[tagStyle, {width: 230, height: 30, borderRadius: 15, marginBottom: 10, backgroundColor: isLayoutSelected ? 'rgba(0,0,0,0.8)' : 'rgba(0,0,0,0.3)'}]}>
-                                        <Text style={[{fontSize: 15, color: 'white'}]}>{layout}</Text>
+                                    style={[tagStyle, {width: 230, height: 30, borderRadius: 15, marginBottom: 10, backgroundColor: isLayoutSelected ? styles.altTheme.color+'d' : styles.altTheme.color+'5'}]}>
+                                        <Text style={[{fontSize: 15, color: styles.theme.color}]}>{layout}</Text>
                                     </Pressable>
                                 )
                             }) }
@@ -213,10 +218,10 @@ export default class EditEmotions extends Component {
                             disabled={ isLoading }
                             style={[styles.editButton, {
                                 alignSelf: 'center',
-                                backgroundColor: isButtonPressed['Salvar-Layout'] ? '#fff5' : '#fff0',
-                                borderColor: isLoading ? '#fff5' : '#ffff',
+                                backgroundColor: isButtonPressed['Salvar-Layout'] ? styles.theme.color+'5' : '#0000',
+                                borderColor: isLoading ? styles.theme.color+'5' : styles.theme.color,
                                 }]}>
-                                <Text style={[styles.editButtonLabel, {color: isLoading ? '#fff5' : '#ffff'}]}>Salvar</Text>
+                                <Text style={[styles.editButtonLabel, {color: isLoading ? styles.theme.color+'5' : styles.theme.color}]}>Salvar</Text>
                             </Pressable>
                             <Pressable
                             onPress={() => {
@@ -229,10 +234,10 @@ export default class EditEmotions extends Component {
                             disabled={isLoading}
                             style={[styles.editButton, {
                                 alignSelf: 'center',
-                                borderColor: isLoading ? '#fff5' : '#ffff',
-                                backgroundColor: isButtonPressed['Voltar-Layout'] ? '#fff5' : '#fff0'
+                                borderColor: isLoading ? styles.theme.color+'5' : styles.theme.color,
+                                backgroundColor: isButtonPressed['Voltar-Layout'] ? styles.theme.color+'5' : '#0000'
                                 }]}>
-                                <Text style={[styles.editButtonLabel, {color: isLoading ? '#fff5' : '#ffff'}]}>Voltar</Text>
+                                <Text style={[styles.editButtonLabel, {color: isLoading ? styles.theme.color+'5' : styles.theme.color}]}>Voltar</Text>
                             </Pressable>
                         </View>
                     </View>
@@ -288,8 +293,8 @@ export default class EditEmotions extends Component {
                                 <Pressable
                                 key={`emotion-${label}`}
                                 style={[styles.editButton,  {
-                                    backgroundColor: isButtonPressed[label] ? '#fff5' : '#0000',
-                                    borderColor: isLoading ? '#fff5' : '#ffff',
+                                    backgroundColor: isButtonPressed[label] ? styles.theme.color+'5' : '#0000',
+                                    borderColor: isLoading ? styles.theme.color+'5' : styles.theme.color,
                                     width: 75
                                 }]}
                                 disabled={ isLoading }
@@ -299,7 +304,7 @@ export default class EditEmotions extends Component {
                                 } }
                                 onPressIn={highlightButtonFor(label)}
                                 >
-                                    <Text style={[styles.editButtonLabel, {color: isLoading ? '#fff5' : '#ffff'}]}>{label}</Text>                    
+                                    <Text style={[styles.editButtonLabel, {color: isLoading ? styles.theme.color+'5' : styles.theme.color}]}>{label}</Text>                    
                                 </Pressable>
                             ))
                         ) : null }
@@ -307,8 +312,8 @@ export default class EditEmotions extends Component {
                         onPress={() => this.setState({ showEditMenu:  !showEditMenu })}
                         // disabled={isLoading}
                         style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 5, width: 75}}>
-                            <Icon name={ !showEditMenu ? 'more-horizontal-outline' : 'arrow-back-outline' } fill='white' width={20} height={20} />
-                            <Text style={{color: 'white', fontSize: 15, marginLeft: 0}}> {anyOpen ? 'menos' : 'mais'}</Text>
+                            <Icon name={ !showEditMenu ? 'more-horizontal-outline' : 'arrow-back-outline' } fill={styles.theme.color} width={20} height={20} />
+                            <Text style={{color: styles.theme.color, fontSize: 15, marginLeft: 0}}> {anyOpen ? 'menos' : 'mais'}</Text>
                         </Pressable>
                     </View> 
                 ) :  null  }
@@ -428,6 +433,16 @@ export default class EditEmotions extends Component {
         } 
     }
 
+    setFontColor() {
+        const fontColorDark = this.props.appState.user.settings.fontColorDark
+        const fontColor = fontColorDark ? '#000' : '#fff'
+        const altFontColor = fontColorDark ? '#fff' : '#000'
+        for (let style of ['theme', ]) {
+            styles[style] = { ...styles[style], color: fontColor }
+        }
+        styles.altTheme.color = altFontColor
+        // styles.altTheme.backgroundColor = altFontColor
+    }    
 
     render() {
         return(

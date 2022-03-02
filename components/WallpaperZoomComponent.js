@@ -1,6 +1,7 @@
 import React, { useContext } from 'react';
 import { View, Text, ImageBackground, Pressable, ActivityIndicator, Platform } from 'react-native';
-import { postDisplayBackgroundImage } from './SettingsScreen';
+// import { postDisplayBackgroundImage } from './SettingsScreen';
+import { postSettings} from './SettingsScreen';
 import UserContext from '../shared/UserContext';
 
 // cors-midpoint uri (needed to avoid cors' allow-cross-origin error when fetching in web platforms)
@@ -14,54 +15,27 @@ export function WallpaperZoom(props) {
 
   async function onSaveImageButtonPress() {
     // fetch post selected color to user settings in server
-    try {
-      console.log('POST IMAGE STATUS: Started...');
-      setIsSaveImageLoading(true);
-      const imageSetting = {
-        backgroundImage: props.route.params.selectedImage
-      };
-      var postImageResult = { ok: false, status: '999', statusText: 'Post not fetched yet.' };
-      const postImageSettingOpts = {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(imageSetting),
-      };
-      // var postColorResult = await fetch('http://localhost:3000/Users/' + this.context.username + '/settings', postColorSettingOpts);
-      postImageResult = await fetch(`${corsURI + appServerURI}Users/${appState.user.username}/settings`, postImageSettingOpts);
-      const postColorStatus = 'Status: ' + postImageResult.status + ', ' + postImageResult.statusText;
+    console.log('POST IMAGE STATUS: Started...');
+    setIsSaveImageLoading(true);
+    const imageSetting = {
+      backgroundImage: props.route.params.selectedImage
+    };
 
-      if (postImageResult.ok) {
-        console.log('POST IMAGE STATUS: Successful.');
-        console.log(postColorStatus);
-
-      } else {
-        console.log('POST IMAGE STATUS: Failed. Throwing error...');
-        throw new Error(postColorStatus);
+    const postImageResult = await postSettings(imageSetting, appState.user.username)
+    if (postImageResult.ok) {
+      // sync user data with app or entries component
+      if (!appState.user.settings.displayBackgroundImage) {
+        await postSettings({displayBackgroundImage: true}, appState.user.username)
       }
 
-    } catch (error) {
-      alert('Erro no servidor. Tente novamente...');
-      console.log('Erro capturado:');
-      console.log(error);
-
-    } finally {
-      console.log('POST IMAGE STATUS: Finished.');
-      if (postImageResult.ok) {
-        // sync user data with app or entries component
-        if (!appState.user.settings.displayBackgroundImage) {
-          await postDisplayBackgroundImage(true, appState.user.username)
-        }
-
-        await props.route.params.syncUserData();
-        // navigate back to settings
-        setIsSaveImageLoading(false);
-        props.navigation.navigate('Settings');
-      } else {
-        setIsSaveImageLoading(false);
-      }
+      await props.route.params.syncUserData();
+      // navigate back to settings
+      setIsSaveImageLoading(false);
+      props.navigation.navigate('Settings');
+    } else {
+      setIsSaveImageLoading(false);
     }
+    console.log('POST IMAGE STATUS: Finished.');
   }
 
   console.log('Returning "WallpaperZoom" component...')

@@ -8,11 +8,11 @@ import UserEntryCards from './subcomponents/UserEntryCards';
 
 // Local imports
 import dateRange from '../shared/dateRange';
-import styles from '../styles/entrancesStyles';
+import styles  from '../styles/entrancesStyles';
 
 // cors-midpoint uri (needed to avoid cors' allow-cross-origin error when fetching in web platforms)
-const corsURI = Platform.OS == 'web' ? 'https://morning-journey-78874.herokuapp.com/' : ''
-const appServerURI = 'https://mood-tracker-server.herokuapp.com/'
+// const corsURI = Platform.OS == 'web' ? 'https://morning-journey-78874.herokuapp.com/' : ''
+// const appServerURI = 'https://mood-tracker-server.herokuapp.com/'
 
 // Defining pertinent constants
 const monthDict = {'Jan': '01', 'Feb': '02', 'Mar': '03', 'Apr': '04', 'May': '05', 'Jun': '06', 'Jul': '07', 'Ago': '08', 'Sep': '09', 'Oct': '10', 'Nov': '11', 'Dec': '12'}
@@ -76,6 +76,7 @@ export default class EntrancesScreen extends Component {
             locationPermission: null,
         };
         this.onNextButtonPress = this.onNextButtonPress.bind(this);
+        this.setFontColor = this.setFontColor.bind(this);
         this.setAlertMsg = this. setAlertMsg.bind(this);
         // this.syncUserData = this.syncUserData.bind(this);
         this.getMainScreenState = this.getMainScreenState.bind(this);
@@ -84,6 +85,7 @@ export default class EntrancesScreen extends Component {
     
     componentDidMount() {
         console.log('"Entries" screen component did mount...')
+        // this.setFontColor()
     }
 
     componentWillUnmount() {
@@ -117,18 +119,24 @@ export default class EntrancesScreen extends Component {
         )
     }
 
-    DateNavigationButton = ({next, today}) => {
+    DateNavigationButton = ({next}) => {
         return(
             <Pressable onPress={this.onNextButtonPress(next)} hitSlop={15} >
-                <Icon name={ next=='next' ? 'arrow-forward' : 'arrow-back'} width={26} height={26} fill='white' />
+                <Icon name={ next=='next' ? 'arrow-forward' : 'arrow-back'} width={29} height={29} fill={styles.theme.color} />
             </Pressable>
         )
+    }
+
+    setFontColor() {
+        const fontColor = this.props.appState.user.settings.fontColorDark ? '#000' : '#fff'
+        styles.theme = {color: fontColor}
     }
 
     render() {
         console.log('Rendering "EntriesScreen" component...')
 
-        const today = this.state.selectedDate === Today()
+        this.setFontColor()
+        // const today = this.state.selectedDate === Today()
         const navigateParams = {
             currentEntry: {type: 'new', date: Today(), entry: null},
             setMainScreenState: this.setState.bind(this),
@@ -147,8 +155,8 @@ export default class EntrancesScreen extends Component {
                     <View style={styles.section}>
                         <View style={[styles.cardRow, {justifyContent: 'space-between'}]}>
                             <this.DateNavigationButton icon='arrow-back' next='previous' />
-                            <Text style={styles.sectionTitle}> {'Suas entradas  •  ' + formatDate(this.state.selectedDate)} </Text>                                
-                            <this.DateNavigationButton icon='arrow-forward' next='next' today={today} />
+                            <Text style={[styles.sectionTitle, styles.theme]}> {'Suas entradas  •  ' + formatDate(this.state.selectedDate)} </Text>                                
+                            <this.DateNavigationButton icon='arrow-forward' next='next' />
                         </View>
                         <UserEntryCards
                         parentState={{

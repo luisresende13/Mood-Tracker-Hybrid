@@ -209,7 +209,7 @@ export class WallpapersComponent extends Component {
     } else {
       let endpoint = `topics/${route.params.selectedImage.id}/photos`
       let asyncResult = await getUnsplash(endpoint, {page: 1, per_page: 30, order_by: 'popular', orientation: 'portrait'})
-      this.setState({photos: asyncResult, page: 1}) 
+      this.setState({photos: [ route.params.selectedImage.cover_photo, ...asyncResult ], page: 1}) 
     }
     this.setState({isPhotosLoading: false}) 
   }  

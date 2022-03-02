@@ -1,33 +1,6 @@
-import { StatusBar } from 'expo-status-bar';
+// import { StatusBar } from 'expo-status-bar';
 
-//import StatusBar from 'react-native'
-// import { Platform } from 'react-native';
-
-// import { Dimensions } from 'react-native';
-// var windowWidth = Dimensions.get('window').width;
-// var windowHeight = Dimensions.get('window').height;
-
-// import DeviceInfo from 'react-native-device-info';
-// import AsyncStorage from '@react-native-community/async-storage';
-
-// // how can i do some code that will gives me if its "Handset"=> Smartphone , 
-// //if its "unknown"=> Laptop/Computer 
-// //and it will be saved as well in my async-storage.
-
-// //this some example that i wanna get it works well coz now its not work good
-
-// const funct1=  (type) => {
-// let type = DeviceInfo.getDeviceType();
-
-// if type==='Handset'{
-//   AsyncStorage.setItem('PLATFORM-TYPE', 'Smartphone');
-// }
-// if type==='unknown'{
-//   AsyncStorage.setItem('PLATFORM-TYPE', 'Laptop/Computer');
-// }
-// };
-
-const styles = {
+var styles = {
     mainView: {
         flex: 1,                 
         // marginTop: StatusBar.currentHeight,

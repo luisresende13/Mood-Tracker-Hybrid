@@ -5,7 +5,7 @@ import { Icon } from 'react-native-eva-icons'
 import VectorIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import EditEmotions from './subcomponents/EditEmotions'
 import styles from '../styles/postEntryStyles'
-
+styles.theme = {}; styles.altTheme = {};
 // Geocoding and weather dependencies and APIs
 import * as Location from 'expo-location';
 import GoogleMapsAPI from './subcomponents/GoogleMapsAPI'
@@ -202,14 +202,14 @@ export default class PostEntranceScreen extends Component {
         return(
             <View style={[styles.cardRow, {justifyContent: 'space-between'}]}>
                 <Pressable onPress={() => {this.props.navigation.goBack()}} hitSlop={10} style={styles.postButton}>
-                    <Icon name='arrow-back' fill='white' height={29} width={29}/>
+                    <Icon name='arrow-back' fill={styles.theme.color+'b'} height={29} width={29}/>
                 </Pressable>
                 <View style={[styles.entryCardEmotionBadge, {flexDirection: 'row', alignItems: 'center'}]}>
                     <Text style={styles.datetimeTitle}> { formatPostEntryDatetimeTitle(this.props.route.params.currentEntry.date, this.state.startTime) } </Text>
                     <Icon name='edit' fill='rgba(75,75,75,1)' height={20} width={20}/>
                 </View>
                 <Pressable onPress={() => {this.setState({star: !this.state.star})}}  hitSlop={10} style={styles.postButton}>
-                    <Icon name={this.state.star ? 'star' : 'star-outline'} fill='rgba(245,245,245,0.7)' height={30} width={30}/>
+                    <Icon name={this.state.star ? 'star' : 'star-outline'} fill={this.state.star ? 'gold' : styles.theme.color+'b' } height={30} width={30}/>
                 </Pressable>
             </View>
         )
@@ -294,7 +294,7 @@ export default class PostEntranceScreen extends Component {
             placeholderTextColor='rgba(255,255,255,0.6)'
             onChangeText={text => this.setState({jornalEntry: text})}
             value={this.state.jornalEntry}
-            style={styles.jornalText}
+            style={[styles.jornalText, styles.theme]}
             >
             </TextInput>
         )
@@ -342,7 +342,7 @@ export default class PostEntranceScreen extends Component {
         return(
             <View style={[styles.card]} >
                 <Pressable style={styles.cardRow} onPress={this.setSelectedEntry(sectionName)} >
-                    <Icon name={icon} fill='rgba(255,255,255,0.75)' height={28} width={28} style={styles.entryIcon} />
+                    <Icon name={icon} fill={styles.theme.color+'c'} height={28} width={28} style={styles.entryIcon} />
                     <Text style={styles.entryTitle}> {sectionName} </Text>
                 </Pressable>    
                 {this.inputCardBody(sectionName, cardBodyStyle, cardBodyContent)}  
@@ -764,9 +764,20 @@ export default class PostEntranceScreen extends Component {
         }
     };
 
+    setFontColor() {
+        const fontColorDark = this.props.appState.user.settings.fontColorDark
+        const fontColor = fontColorDark ? '#000' : '#fff'
+        const altFontColor = fontColorDark ? '#fff' : '#000'
+        for (let style of ['theme', 'entryTitle']) {
+            styles[style] = { ...styles[style], color: fontColor }
+        }
+        styles.altTheme.color = altFontColor
+        styles.altTheme.backgroundColor = altFontColor
+    }    
+
     render() {
         console.log('Rendering "PostEntry" component...')
-
+        this.setFontColor()
         const settings = this.props.appState.user.settings
         const backgroundImage = settings.backgroundImage
         const imgURI =  settings.displayBackgroundImage ? (backgroundImage ? backgroundImage.urls.regular : null ) : null

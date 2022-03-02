@@ -5,6 +5,7 @@ import { Icon } from 'react-native-eva-icons'
 
 // Local import
 import styles from '../../styles/entrancesStyles'
+styles.theme = {}; styles.altTheme = {}; 
 
 // cors-midpoint uri (needed to avoid cors' allow-cross-origin error when fetching in web platforms)
 const corsURI = Platform.OS == 'web' ? 'https://morning-journey-78874.herokuapp.com/' : ''
@@ -38,7 +39,7 @@ function MoodHeader({entry}) {
                 <Text style={[styles.moodBadge, {backgroundColor: moodColors[entry.mood]}]}>{entry.mood}</Text>
                     { entry.star ? (
                     <View style={{height: 30, width: 42, alignItems: 'flex-end', justifyContent: 'center'}}>
-                        <Icon name='star' fill='gold' width={28} height={28} style={{}} />
+                        <Icon name='star' fill='gold' width={28} height={28} />
                     </View>
                     ) : <></> }                    
                     { entry.weather ? (
@@ -48,7 +49,7 @@ function MoodHeader({entry}) {
                     ) : <></> }                    
                     { entry.weather ? (
                         <View style={{height: 30, width: 40, alignItems: 'flex-end', justifyContent: 'center'}}>
-                            <Text style={{fontSize: 14, fontWeight: '500', color:'#fffd'}}> { entry.weather.main.temp.toString().slice(0,2) + '°C' } </Text>
+                            <Text style={[styles.theme, {fontSize: 14}]}> { entry.weather.main.temp.toString().slice(0,2) + '°C' } </Text>
                         </View>
                     ) : <></> }                
                 
@@ -128,7 +129,7 @@ function EmptyCard(props) {
         getMainScreenState: props.getMainScreenState,
 
     }
-    const textStyle = {fontSize: 16, color: 'white', marginTop: 7}
+    const textStyle = [{fontSize: 16, marginTop: 7}, styles.theme]
     return (
         <Pressable
         onPress={ () => props.parentProps.navigation.navigate('PostEntrance', navigateParams) }
@@ -145,7 +146,7 @@ function CardsLoadingMessage() {
     return(
         <View style={[styles.card, {alignItems: 'center', justifyContent: 'center', height: 85}]}>
             <Icon name='sync-outline' fill='rgba(255,255,255,1)' width={25} height={25} />
-            <Text style={{marginTop: 10, fontSize: 16, color: 'white'}}>Sincronizando entradas...</Text>
+            <Text style={[styles.theme, {marginTop: 10, fontSize: 16}]}>Sincronizando entradas...</Text>
         </View>
     )
 }
@@ -160,6 +161,7 @@ export default class UserEntryCards extends Component {
         this.EditEntryButtons = this.EditEntryButtons.bind(this);
         this.editUserEntry = this.editUserEntry.bind(this);
         this.deleteUserEntry = this.deleteUserEntry.bind(this);
+        this.setFontColor = this.setFontColor.bind(this);
     }
 
     componentDidMount() {
@@ -175,7 +177,9 @@ export default class UserEntryCards extends Component {
             this.props.setMainScreenState({ selectedEntryId: this.props.parentState.selectedEntryId === entry._id ? null : entry._id })
         }
         return (
-        <Pressable onPress={onEntryCardPress.bind(this)} style={styles.card}>
+        <Pressable
+        onPress={onEntryCardPress.bind(this)}
+        style={[styles.card]}>
             <MoodHeader entry={entry} />
             <Emotions entry={entry} />
             <Address entry={entry} />
@@ -194,7 +198,6 @@ export default class UserEntryCards extends Component {
                     {/* { this.props.parentState.isUserDataSyncing ? <CardsLoadingMessage /> : null } */}
                 </>
             )
-       
         } else if (this.props.parentState.isUserDataSyncing ) {
             return <CardsLoadingMessage />
             
@@ -220,14 +223,17 @@ export default class UserEntryCards extends Component {
         }
 
         const isLoading = this.props.parentState.isDeleteLoading | this.props.parentState.isUserDataSyncing
-        const buttonLabel = (label) => <Text style={[styles.editButtonLabel, {color: label=='Excluir' ? 'red' : 'white' }]}>{label}</Text>
+        const buttonLabel = (label) => <Text style={[styles.editButtonLabel, {color: label=='Excluir' ? 'red' : styles.theme.color }]}>{label}</Text>
         if (this.props.parentState.selectedEntryId == props.entryId) {
             return(
                 <View style={styles.editButtonsView}>
                     { buttonLabels.map( (label) => (
                         <Pressable
                         key={`edit-${label}-${props.entryId}`}
-                        style={[styles.editButton,  {backgroundColor: isButtonPressed[label] ? (label=='Excluir' ? '#0008' : '#fff5') : '#0000', borderColor: label=='Excluir' ? 'red' : 'white' }]}
+                        style={[ styles.editButton, {
+                            backgroundColor: isButtonPressed[label] ? styles.theme.color + '6' : '#0000',
+                            borderColor: label=='Excluir' ? 'red' : styles.theme.color
+                        }]}
                         disabled={ isLoading }
                         onPress={() => {highlightButtonFor(label)(); onButtonPress[label]() }}
                         onPressIn={highlightButtonFor(label)}
@@ -297,8 +303,20 @@ export default class UserEntryCards extends Component {
         }    
     }
 
+    setFontColor() {
+        const fontColorDark = this.props.parentState.user.settings.fontColorDark
+        const fontColor = fontColorDark ? '#000' : '#fff'
+        const altFontColor = fontColorDark ? '#fff' : '#000'
+        for (let style of ['theme', 'text']) {
+            styles[style] = { ...styles[style], color: fontColor }
+        }
+        styles.altTheme.color = altFontColor
+        styles.altTheme.backgroundColor = altFontColor
+    }
+
     render() {
         console.log('"Rendering "UserEntryCards" sub-component..."')
+        this.setFontColor()
         return this.UserEntryCardsList()
     }
 }

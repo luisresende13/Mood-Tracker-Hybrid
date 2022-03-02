@@ -7,6 +7,18 @@ import NetInfo from "@react-native-community/netinfo";
 
 import styles from '../styles/loginStyles'
 const defaultEmotions = require('../shared/emotionsConfig')
+const userScheme = {
+  emotions: defaultEmotions,
+  entries: [],
+  layout: 'grid',
+  settings: {
+    backgroundColor: 'lightblue',
+    backgroundImage: null,
+    displayBackgroundImage: false,
+    maxBackgroundImageResolution: false,
+    fontColorDark: false,
+  }
+}
 
 // App server connection settings
 const corsURI = Platform.OS == 'web' ? 'https://morning-journey-78874.herokuapp.com/' : ''
@@ -464,13 +476,7 @@ class LoginScreen extends Component {
           },
           body: JSON.stringify({ 
             ...info,
-            emotions: defaultEmotions,
-            entries: [],
-            layout: 'grid',
-            settings: {
-              backgroundColor: 'lightblue',
-              backgroundImage: null,
-            },
+            ...userScheme
           })
         }
 

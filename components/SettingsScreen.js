@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { ImageBackground, View, Text, Pressable, ScrollView, StyleSheet, ActivityIndicator, Switch, StatusBar, Platform } from 'react-native';
+import { ImageBackground, View, Text, Pressable, ScrollView, ActivityIndicator, Switch, StatusBar, Platform } from 'react-native';
 import { Icon } from 'react-native-eva-icons';
 import { keepUserConnectionAlive } from './LoginComponent';
 import { capitalize } from './subcomponents/EditEmotions';
@@ -10,8 +10,9 @@ const appServerURI = 'https://mood-tracker-server.herokuapp.com/'
 
 const colorList = require('../shared/colorList.json')
 
-const styles = StyleSheet.create({
-  background: {
+// var styles = StyleSheet.create({
+var styles = {
+    background: {
     flex: 1,
     paddingTop: StatusBar.currentHeight,
     alignItems: 'center',
@@ -19,9 +20,6 @@ const styles = StyleSheet.create({
   },
   foreground: {
     width: 350,
-    // marginTop: '10%',
-    // marginBottom: '10%',
-    // borderWidth: 2,
   },
   header: {
     height: 110,
@@ -48,8 +46,6 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 60,
     paddingHorizontal: 10,
-    // paddingLeft: 5,
-    // paddingRight: 3,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -90,7 +86,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: 'white',
   },
-})
+}
 
 function blinkButton(setPressed, timeSpan=200) {
   setPressed(true)
@@ -99,32 +95,31 @@ function blinkButton(setPressed, timeSpan=200) {
   }, timeSpan);
 }
 
-export async function postDisplayBackgroundImage(value, username) {
+export async function postSettings(settings, username) {
   // fetch post display background image value to user settings in server
   try {
-   console.log('POST DISPLAY BACKGROUND IMAGE STATUS: Started...')
-   const displaySetting = {
-     displayBackgroundImage: value
-   }
-   var postDisplayResult = {ok: false, status: '999', statusText: 'Post not fetched yet.'}
-   const postDisplaySettingOpts = { 
+   console.log('POST SETTINGS STATUS: Started...')
+   console.log('POST SETTINGS STATUS: LOGGING NEW SETTING VALUES... ')
+   console.log(JSON.stringify(settings))
+   var postSettingsResult = {ok: false, status: '999', statusText: 'Post not fetched yet.'}
+   const postSettingsOpts = { 
      method: 'POST',
      headers: {
          'Content-Type': 'application/json',
      },
-     body: JSON.stringify( displaySetting ),
+     body: JSON.stringify( settings ),
    }
    // var postDisplayResult = await fetch('http://localhost:3000/Users/' + this.context.username + '/settings', postColorSettingOpts);
-   postDisplayResult = await fetch( `${corsURI + appServerURI}Users/${username}/settings`, postDisplaySettingOpts);
-   const postDisplayStatus = 'Status: ' + postDisplayResult.status + ', ' + postDisplayResult.statusText
+   postSettingsResult = await fetch( `${corsURI + appServerURI}Users/${username}/settings`, postSettingsOpts);
+   const postSettingsStatus = 'Status: ' + postSettingsResult.status + ', ' + postSettingsResult.statusText
 
-   if (postDisplayResult.ok) {
-     console.log('POST DISPLAY BACKGROUND IMAGE STATUS: Successful.')
-     console.log(postDisplayStatus)
+   if (postSettingsResult.ok) {
+     console.log('POST SETTINGS STATUS: Successful.')
+     console.log(postSettingsStatus)
          
    } else {
-     console.log('POST DISPLAY BACKGROUND IMAGE STATUS: Failed. Throwing error...')
-     throw new Error(postDisplayStatus)
+     console.log('POST SETTINGS STATUS: Failed. Throwing error...')
+     throw new Error(postSettingsStatus)
    }
  } catch (error) {
    alert('Erro no servidor. Tente novamente...')
@@ -133,7 +128,7 @@ export async function postDisplayBackgroundImage(value, username) {
 
  } finally {
    console.log('POST DISPLAY BACKGROUND IMAGE STATUS: Finished.')
-   return postDisplayResult
+   return postSettingsResult
  }
 } 
 
@@ -142,22 +137,31 @@ export default class SettingsScreen extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      selectedColor: null,
-      selectedImage: null,
-      displayBackgroundImage: false,
       isBackgroundColorSettingsOpen: false,
+      selectedColor: null,
 
-      isSaveColorLoading: false,
       isDisplayBackgroundImageLoading: false,
-      isLogoutButtonPressed: false,
+      isChangeFontColorLoading: false,
+      isRestoreColorLoading: false,
+      isSaveColorLoading: false,
     }
+    this.syncUserSettings = this.syncUserSettings.bind(this);
+    this.setFontColor = this.setFontColor.bind(this);
+    this.setBackgroundColor = this.setBackgroundColor.bind(this)
     this.SettingsScreen = this.SettingsScreen.bind(this);
+    this.ScreenSettings = this.ScreenSettings.bind(this);
+    this.ChooseImageSection = this.ChooseImageSection.bind(this);
+    this.DisplayBackgroundImageSection = this.DisplayBackgroundImageSection.bind(this);
+    this.ChangeFontColorSection = this.ChangeFontColorSection.bind(this);
+    this.ChangeBackgroundColorSection = this.ChangeBackgroundColorSection.bind(this);
+    this.ColorOptions = this.ColorOptions.bind(this);
+    this.ColorControl = this.ColorControl.bind(this);
     this.onLogoutButtonPress = this.onLogoutButtonPress.bind(this);
     this.onColorButtonPressFor = this.onColorButtonPressFor.bind(this);
     this.onSaveColorButtonPress = this.onSaveColorButtonPress.bind(this);
-    this.syncUserSettings = this.syncUserSettings.bind(this);
+    this.onChangeFontColorSwitch = this.onChangeFontColorSwitch.bind(this);
     this.ColorRow = this.ColorRow.bind(this);
-    this.ScreenSettings = this.ScreenSettings.bind(this);
+    this.isLoading = this.isLoading.bind(this);
     this.logoutPressable = this.logoutPressable.bind(this);
   }
 
@@ -165,16 +169,30 @@ export default class SettingsScreen extends Component {
     console.log('"SettingsScreen" component did mount')
     this.syncUserSettings()
   }
+  componentWillUnmount() {
+    console.log('"SettingsScreen" component will unmount...')
+  }
 
   syncUserSettings() {
-    console.log('INITIALIZE SETTINGS STATUS: INITIALIZING...')
+    console.log('SYNC SETTINGS STATUS: INITIALIZING...')
+    this.setFontColor()
+    this.setBackgroundColor()
+  }
 
+  setFontColor() {
+    const settings = this.props.appState.user.settings
+    const fontColor = settings.fontColorDark ? '#000' : '#fff'
+    for (let h of ['h1', 'h2', 'h3', 'h4']) {
+      styles[h] = { ...styles[h], color: fontColor }
+    }
+  }
+
+  setBackgroundColor() {
+    const settings = this.props.appState.user.settings
     this.setState({
-      selectedColor: this.props.appState.user.settings.backgroundColor,
-      // selectedImage: this.props.appState.user.settings.backgroundImage
-      // displayBackgroundImage: this.props.appState.user.settings.displayBackgroundImage
+      selectedColor: settings.backgroundColor,
     })
-    this.props.navigation.setParams({selectedColor: this.props.appState.user.settings.backgroundColor})  // Necessary to change the tab bar color dinamically in App.js
+    this.props.navigation.setParams({selectedColor: settings.backgroundColor})  // Necessary to change the tab bar color dinamically in App.js
   }
 
   SettingsScreen() {
@@ -197,36 +215,237 @@ export default class SettingsScreen extends Component {
     )
   }
 
-  async onLogoutButtonPress() {
-    this.setState({isLogoutButtonPressed: true});
-    setTimeout(() => {
-      this.setState({isLogoutButtonPressed: false});
-    }, 400);
-    await keepUserConnectionAlive(null); // kills user connection
-    this.props.route.params.logout();
+  ScreenSettings() {
+    const [isHighResulotionButtonPressed, setIsHighResulotionButtonPressed] = React.useState(false)
+    // const isLoading = this.state.isSaveColorLoading | this.state.isDisplayBackgroundImageLoading | this.state.isChangeFontColorLoading
+    return (
+      <>
+        <this.ChooseImageSection />
+        <this.DisplayBackgroundImageSection />
+        <this.ChangeFontColorSection />
+        <this.ChangeBackgroundColorSection />
+        <this.ColorOptions />
+      </>
+    )
+  }
+
+  ChooseImageSection() {
+    const [isChooseImageButtonPressed, setIsChooseImageButtonPressed] = React.useState(false)
+    let fontColor = styles.h1.color
+    let fontColorTransp = fontColor + '8'
+    return(
+      <Pressable
+      onPressIn={() => blinkButton(setIsChooseImageButtonPressed)}
+      onPress={() => this.props.navigation.navigate('WallpaperTopics')}
+      style={[styles.settingsRow, {backgroundColor: isChooseImageButtonPressed ? '#0003' : null }]}
+      >
+        <View style={{flexDirection: 'row', alignItems: 'center'}}>
+          <Icon name='image-outline' width={30} height={30} fill={fontColor} />
+          <Text style={[styles.h2, {marginLeft: 10}]}>Papel de parede</Text>
+        </View>
+        
+        <Icon
+        width={30} height={30}
+        name='arrow-ios-forward-outline'
+        fill={ fontColor } />
+      </Pressable>
+    )
+  }
+
+  DisplayBackgroundImageSection() {
+    const [isExposeImageButtonPressed, setIsExposeImageButtonPressed] = React.useState(false)
+    const displayBackgroundImageValue = this.props.appState.user.settings.displayBackgroundImage
+    const isLoading = this.state.isDisplayBackgroundImageLoading
+    return(
+      <Pressable
+      onPressIn={ () => blinkButton(setIsExposeImageButtonPressed) }
+      style={[styles.settingsRow, {backgroundColor: isExposeImageButtonPressed ? '#0003' : null }]}
+      >
+        <View style={{flexDirection: 'row', alignItems: 'center'}}>
+          <Icon name='eye-outline' width={30} height={30} fill={styles.h1.color} />
+          <Text style={[styles.h2, {marginLeft: 10, marginRight: 20}]}>Ver papel de parede</Text>
+          { isLoading ? <ActivityIndicator color='blue' /> : null }
+        </View>
+        <Switch
+        disabled={isLoading}
+        trackColor={{ false: "#767577", true: "#81b0ff" }}
+        thumbColor={displayBackgroundImageValue ? "#f4f3f4" : "#f4f3f4"}
+        ios_backgroundColor="#3e3e3e"
+        onValueChange={() => {
+          blinkButton(setIsExposeImageButtonPressed)
+          this.onDisplayBackgroundImageSwitch(!displayBackgroundImageValue)
+        }}
+        value={displayBackgroundImageValue}
+        />
+      </Pressable>
+    )
+  }
+
+  ChangeFontColorSection() {
+    const [isChangeFontColorButtonPressed, setIsChangeFontColorButtonPressed] = React.useState(false)
+    const changeFontColorValue = this.props.appState.user.settings.fontColorDark
+    const isLoading = this.state.isChangeFontColorLoading
+    return(
+      <Pressable
+      onPressIn={ () => blinkButton(setIsChangeFontColorButtonPressed)}
+      style={[styles.settingsRow, {backgroundColor: isChangeFontColorButtonPressed ? '#0003' : null }]}
+      >
+        <View style={{flexDirection: 'row', alignItems: 'center'}}>
+          <Icon name='moon-outline' width={30} height={30} fill={styles.h1.color} />
+          <Text style={[styles.h2, {marginLeft: 10, marginRight: 20}]}>Texto escuro</Text>
+          { isLoading ? <ActivityIndicator color='blue' /> : null }
+        </View>
+        <Switch
+        disabled={isLoading}
+        trackColor={{ false: "#767577", true: "#81b0ff" }}
+        thumbColor={changeFontColorValue ? "#f4f3f4" : "#f4f3f4"}
+        ios_backgroundColor="#3e3e3e"
+        onValueChange={() => {
+          blinkButton(setIsChangeFontColorButtonPressed)
+          this.onChangeFontColorSwitch(!changeFontColorValue)
+        }}
+        value={changeFontColorValue}
+        />
+      </Pressable>    
+    )
+  }
+
+  ChangeBackgroundColorSection() {
+    const [isColorButtonPressed, setIsColorButtonPressed] = React.useState(false)
+    const newColorUnselected = this.state.selectedColor == this.props.appState.user.settings.backgroundColor
+    let fontColor = styles.h1.color
+    let fontColorTransp = fontColor + '8'
+
+    return(
+      <Pressable
+      onPressIn={() => blinkButton(setIsColorButtonPressed)}
+      onPress={() => {
+        this.setState({ isBackgroundColorSettingsOpen: !this.state.isBackgroundColorSettingsOpen })
+        if (!newColorUnselected) this.syncUserSettings()
+      }}
+      style={[styles.settingsRow, {backgroundColor: isColorButtonPressed ? '#0003' : null }]}
+      >
+        <View style={{flexDirection: 'row', alignItems: 'center'} }>
+          <Icon name='color-palette-outline' height={30} width={30} fill={styles.h1.color} style={{marginRight: 0}} />
+          <Text style={[styles.h2, {marginLeft: 10}]}>Cor de fundo</Text>
+        </View>
+        <View style={{flexDirection: 'row', alignItems: 'center'} }>
+          <Icon
+          width={30} height={30}
+          name={this.state.isBackgroundColorSettingsOpen ? 'arrow-ios-upward-outline' : 'arrow-ios-downward-outline' }
+          fill={ fontColor } />
+        </View>
+      </Pressable>    
+    )
+  }
+
+  ColorOptions() {
+    return(
+      this.state.isBackgroundColorSettingsOpen ? (
+        <>
+          <ScrollView
+          nestedScrollEnabled
+          style={styles.colorBox}
+          >
+            { colorList.map(color => {
+              return (
+                <this.ColorRow color={color} key={'color-' + color} />
+              )
+            }) }
+          </ScrollView>
+          <this.ColorControl />
+        </>
+      ) : (
+        null
+      )
+    )
+  }
+
+  ColorRow({color}) {
+    const [isColorRowPressed, setIsColorRowPressed] = React.useState(false)
+    const isLoading = this.state.isRestoreColorLoading | this.state.isSaveColorLoading
+    return(
+      <Pressable
+      onPressIn={ () => blinkButton(setIsColorRowPressed, 300) }
+      onPress={ this.onColorButtonPressFor(color) }
+      disabled={isLoading}
+      style={[styles.colorRow, {backgroundColor: isColorRowPressed ? '#0003' : null }]}>
+        <Text style={[
+          styles.h3,
+          this.state.selectedColor == color
+          ? {fontStyle: 'italic', textDecorationLine: 'underline' }
+          : {fontStyle: 'italic', textDecorationLine: 'none' }
+        ]}>{ capitalize(color) }</Text>
+        <View style={[ styles.colorSquare, { backgroundColor: color, borderWidth: this.state.selectedColor==color ? 3 : 0 }]} />
+      </Pressable>
+    )
+  }
+
+  ColorControl() {
+    const newColorUnselected = this.state.selectedColor == this.props.appState.user.settings.backgroundColor
+    const isLoading = this.state.isRestoreColorLoading | this.state.isSaveColorLoading
+    return(
+      <View style={[styles.settingsRow, {justifyContent: 'space-between'}]}>
+        <Pressable
+        disabled={isLoading | newColorUnselected}
+        style={{ justifyContent: 'center', alignItems: 'center', width: 95 }}
+        onPress={() => {
+          this.setState({isRestoreColorLoading: true})
+          this.syncUserSettings()
+          this.setState({isRestoreColorLoading: false})
+        }}
+        >
+          <Text
+            style={[styles.h2, { 
+              textAlign: 'center',
+              color: isLoading | newColorUnselected ? styles.h1.color + '6' : styles.h1.color
+            }]}
+          >
+            { this.state.isRestoreColorLoading ? <ActivityIndicator color='blue' /> :  'Restaurar' }
+          </Text>
+        </Pressable>
+
+        <Pressable
+        disabled={isLoading | newColorUnselected}
+        onPress={this.onSaveColorButtonPress}
+        style={{ justifyContent: 'center', alignItems: 'center', width: 75 }}
+        >
+          <Text style={[styles.h2, {width: 63, textAlign: 'center', color: isLoading | newColorUnselected ? styles.h1.color + '6' : styles.h1.color}]}>
+            { this.state.isSaveColorLoading ? <ActivityIndicator color='blue' /> : 'Aplicar' }
+          </Text>
+        </Pressable>
+      </View>
+    )
+  }
+
+  isLoading() {
+    return (
+      this.state.isDisplayBackgroundImageLoading | 
+      this.state.isChangeFontColorLoading |
+      this.state.isRestoreColorLoading | 
+      this.state.isSaveColorLoading
+    )
   }
 
   logoutPressable() {
-    const isLoading = this.state.isSaveColorLoading
-    const logoutColor = isLoading ? 'rgba(255,255,255,0.4)' : 'red'
+    const [ isLogoutButtonPressed, setIsLogoutButtonPressed ] = React.useState(false)
+    const isLoading = this.isLoading()
+    const logoutColor = isLoading ? styles.h1.color+'8' : 'red'
     return(
       <Pressable   // logout pressable
-      onPress={this.onLogoutButtonPress}
+      onPress={() => {
+        blinkButton(setIsLogoutButtonPressed)
+        this.onLogoutButtonPress()
+      }}
       disabled={isLoading}
       style={[ styles.settingsRow, {
         justifyContent: 'flex-start',
         marginBottom: 30,
-        backgroundColor: this.state.isLogoutButtonPressed ? '0004' : null
+        backgroundColor: isLogoutButtonPressed ? styles.h1.color+'8' : null
       }]}
       >
-        {/* <View style={{flexDirection: 'row', alignItems: 'center'}}> */}
-          <Icon name='log-out' width={30} height={30} fill={logoutColor} />
-          <Text
-          style={[styles.h2, { marginLeft: 10, color: logoutColor }]}
-          >
-          Logout
-          </Text>
-        {/* </View> */}
+        <Icon name='log-out' width={30} height={30} fill={logoutColor} />
+        <Text style={[styles.h2, { marginLeft: 10, color: logoutColor }]}>Logout</Text>
       </Pressable>
     )
   }
@@ -239,164 +458,10 @@ export default class SettingsScreen extends Component {
     return onColorButtonPress.bind(this);
   }
 
-  ColorRow({color}) {
-    const [isColorRowPressed, setIsColorRowPressed] = React.useState(false)
-
-    return(
-      <Pressable
-      // android_ripple={{}}
-      onPressIn={() => {
-        blinkButton(setIsColorRowPressed, 200)
-      }}
-        onPress={() => {
-        this.onColorButtonPressFor(color)()
-        }}
-      style={[styles.colorRow, {backgroundColor: isColorRowPressed ? 'rgba(0,0,0,0.2)' : null }]}>
-        <Text style={[
-          styles.h3,
-          this.state.selectedColor == color
-          ? {fontStyle: 'italic', textDecorationLine: 'underline' }
-          : {fontStyle: 'italic', textDecorationLine: 'none' }
-        ]}>{ capitalize(color) }</Text>
-        <View style={[ styles.colorSquare, { backgroundColor: color, borderWidth: this.state.selectedColor==color ? 3 : 0 }]} />
-      </Pressable>
-    )
-  }
-
-  ScreenSettings() {
-    const [isColorButtonPressed, setIsColorButtonPressed] = React.useState(false)
-    const [isChooseImageButtonPressed, setIsChooseImageButtonPressed] = React.useState(false)
-    const [isExposeImageButtonPressed, setIsExposeImageButtonPressed] = React.useState(false)
-    const [isRestoreColorButtonPressed, setIsRestoreColorButtonPressed] = React.useState(false)
-
-
-    const newColorUnselected = this.state.selectedColor == this.props.appState.user.settings.backgroundColor
-    const isLoading = this.state.isSaveColorLoading | this.state.isDisplayBackgroundImageLoading
-    return (
-              <>
-                <Pressable
-                onPress={() => {
-                  blinkButton(setIsChooseImageButtonPressed)
-                  this.props.navigation.navigate('WallpaperTopics')
-                }}
-                style={[styles.settingsRow, {backgroundColor: isChooseImageButtonPressed ? 'rgba(0,0,0,0.2)' : null }]}
-                >
-                  <View style={{flexDirection: 'row', alignItems: 'center'}}>
-                    <Icon name='image-outline' width={30} height={30} fill='white' />
-                    <Text style={[styles.h2, {marginLeft: 10}]}>Escolher fundo</Text>
-                  </View>
-                  
-                  <Icon
-                  width={30} height={30}
-                  name='arrow-ios-forward-outline'
-                  fill={isChooseImageButtonPressed ? 'rgba(255,255,255,1)' : 'rgb(200,200,200)' } />
-                </Pressable>
-
-                <Pressable
-                onPress={ () => {
-                  blinkButton(setIsExposeImageButtonPressed)
-                  // this.onDisplayBackgroundImageSwitch()
-                }}
-                style={[styles.settingsRow, {backgroundColor: isExposeImageButtonPressed ? 'rgba(0,0,0,0.2)' : null }]}
-                >
-                  <View style={{flexDirection: 'row', alignItems: 'center'}}>
-                    <Icon name='eye-outline' width={30} height={30} fill='white' />
-                    <Text style={[styles.h2, {marginLeft: 10, marginRight: 20}]}>Habilitar fundo</Text>
-                    { this.state.isDisplayBackgroundImageLoading ? <ActivityIndicator color='blue' /> : null }
-                  </View>
-
-                  <Switch
-                  disabled={isLoading}
-                  trackColor={{ false: "#767577", true: "#81b0ff" }}
-                  thumbColor={this.state.keepConnected ? "#f4f3f4" : "#f4f3f4"}
-                  ios_backgroundColor="#3e3e3e"
-                  onPress={() => {}}
-                  onValueChange={() => {
-                    blinkButton(setIsExposeImageButtonPressed)
-                    this.onDisplayBackgroundImageSwitch(!this.props.appState.user.settings.displayBackgroundImage)
-                  }}
-                  value={this.props.appState.user.settings.displayBackgroundImage}
-                  />
-                </Pressable>
-
-            <Pressable
-            onPressIn={() => {
-              blinkButton(setIsColorButtonPressed)
-            }}
-            onPress={() => {
-              // blinkButton(setIsColorButtonPressed)
-              this.setState({
-                isBackgroundColorSettingsOpen: !this.state.isBackgroundColorSettingsOpen,
-              })
-              if (!newColorUnselected) this.syncUserSettings()
-            }}
-            style={[styles.settingsRow, {backgroundColor: isColorButtonPressed ? 'rgba(0,0,0,0.2)' : null }]}
-            >
-              <View style={{flexDirection: 'row', alignItems: 'center'} }>
-                <Icon name='color-palette-outline' height={30} width={30} fill='white' style={{marginRight: 0}} />
-                <Text style={[styles.h2, {marginLeft: 10}]}>Tema</Text>
-              </View>
-              <View style={{flexDirection: 'row', alignItems: 'center'} }>
-                {/* <View style={{ width: 25, height: 25, borderRadius: 6, marginRight: 15, backgroundColor: this.props.appState.user.settings.backgroundColor }} /> */}
-                <Icon
-                width={30} height={30}
-                name={this.state.isBackgroundColorSettingsOpen ? 'arrow-ios-upward-outline' : 'arrow-ios-downward-outline' }
-                fill={this.state.isBackgroundColorSettingsOpen ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.5)' } />
-              </View>
-            </Pressable>
-
-
-            { this.state.isBackgroundColorSettingsOpen ? (
-              <>
-                <ScrollView nestedScrollEnabled style={styles.colorBox}>
-                  { colorList.map(color => {
-                    return (
-                      <this.ColorRow color={color} key={'color-' + color} />
-                    )
-                  })}
-                </ScrollView>
-
-                <View style={[styles.settingsRow, {justifyContent: 'space-between'}]}>
-                  <Pressable
-                  disabled={this.state.isSaveColorLoading | newColorUnselected}
-                  style={{ justifyContent: 'center', alignItems: 'center', width: 95 }}
-                  onPressIn={() => setIsRestoreColorButtonPressed(true)}
-                  onPress={() => {
-                    this.syncUserSettings()
-                    setIsRestoreColorButtonPressed(false)
-                  }}
-                  >
-                    <Text
-                      style={[styles.h2, { 
-                        textAlign: 'center',
-                        color: newColorUnselected ? '#fff4' : '#ffff'
-                      }]}
-                    >
-                      { isRestoreColorButtonPressed ? <ActivityIndicator color='white' /> :  'Restaurar' }
-                    </Text>
-                  </Pressable>
-
-                  <Pressable
-                  disabled={this.state.isSaveColorLoading | newColorUnselected}
-                  onPress={this.onSaveColorButtonPress}
-                  style={{ justifyContent: 'center', alignItems: 'center', width: 75 }}
-                  >
-                    <Text style={[styles.h2, {width: 63, textAlign: 'center', color: newColorUnselected ? '#fff4' : 'white'}]}>
-                      { this.state.isSaveColorLoading ? <ActivityIndicator color='white' /> : 'Aplicar' }
-                    </Text>
-                  </Pressable>
-                </View>
-              </>
-            ) : (
-              null
-            )}
-          </>
-    )
-  }
-
   async onDisplayBackgroundImageSwitch(value) {
     this.setState({ isDisplayBackgroundImageLoading: true });
-    const postDisplayResult = await postDisplayBackgroundImage(value, this.props.appState.user.username)
+    const newSettings = {displayBackgroundImage: value}
+    const postDisplayResult = await postSettings(newSettings, this.props.appState.user.username)
     if (postDisplayResult.ok) {
       // sync user data with app or entries component
       await this.props.route.params.syncUserData()
@@ -404,57 +469,44 @@ export default class SettingsScreen extends Component {
     this.setState({ isDisplayBackgroundImageLoading: false });
   }
 
+  async onChangeFontColorSwitch(value) {
+    this.setState({ isChangeFontColorLoading: true });
+    const newSettings = {fontColorDark: value}
+    const postDisplayResult = await postSettings(newSettings, this.props.appState.user.username)
+    if (postDisplayResult.ok) {
+      // sync user data with app or entries component
+      await this.props.route.params.syncUserData()
+      // update style variable with new data
+      this.setFontColor()
+    }
+    this.setState({ isChangeFontColorLoading: false });
+  }
+
   async onSaveColorButtonPress() {
     // fetch post selected color to user settings in server
-    try {
-      console.log('POST COLOR STATUS: Started...')
-      this.setState({ isSaveColorLoading: true });
-      const colorSetting = {
-        backgroundColor: this.state.selectedColor
-      }
-      var postColorResult = {ok: false, status: '999', statusText: 'Post not fetched yet.'}
-      const postColorSettingOpts = { 
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify( colorSetting ),
-      }
-      // var postColorResult = await fetch('http://localhost:3000/Users/' + this.context.username + '/settings', postColorSettingOpts);
-      postColorResult = await fetch( `${corsURI + appServerURI}Users/${this.props.appState.user.username}/settings`, postColorSettingOpts);
-      const postColorStatus = 'Status: ' + postColorResult.status + ', ' + postColorResult.statusText
-
-      if (postColorResult.ok) {
-        console.log('POST COLOR STATUS: Successful.')
-        console.log(postColorStatus)
-            
+    console.log('POST COLOR STATUS: Started...')
+    this.setState({ isSaveColorLoading: true });
+    const colorSetting = {
+      backgroundColor: this.state.selectedColor
+    }
+    const postColorResult = await postSettings(colorSetting, this.props.appState.user.username)
+    if (postColorResult.ok) {
+      if (this.props.appState.user.settings.displayBackgroundImage) {
+        await this.onDisplayBackgroundImageSwitch(false)
       } else {
-        console.log('POST COLOR STATUS: Failed. Throwing error...')
-        throw new Error(postColorStatus)
+        // sync user data with app or entries component
+        await this.props.route.params.syncUserData()
       }
+      // initialize settings
+      this.syncUserSettings()
+    }
+    console.log('POST COLOR STATUS: Finished.')
+    this.setState({ isSaveColorLoading: false });
+  }
 
-    } catch (error) {
-      alert('Erro no servidor. Tente novamente...')
-      console.log('Erro capturado:')
-      console.log(error);
-
-    } finally {
-      console.log('POST COLOR STATUS: Finished.')
-      if (postColorResult.ok) {
-        if (this.props.appState.user.settings.displayBackgroundImage) {
-          await this.onDisplayBackgroundImageSwitch(false)
-        } else {
-          // sync user data with app or entries component
-          await this.props.route.params.syncUserData()
-        }
-        // initialize settings
-        this.syncUserSettings()
-        this.setState({
-          isBackgroundColorSettingsOpen: !this.state.isBackgroundColorSettingsOpen,
-        })
-      }
-      this.setState({ isSaveColorLoading: false });
-    } 
+  async onLogoutButtonPress() {
+    await keepUserConnectionAlive(null); // kills user connection
+    this.props.route.params.logout();
   }
 
   render() {
