@@ -1,9 +1,10 @@
 import { Icon } from 'react-native-eva-icons'
 
 import React, { Component } from 'react';
-import { View, Text, ImageBackground, TextInput, Pressable, Platform, ActivityIndicator, Switch } from 'react-native';
+import { View, Text, ImageBackground, TextInput, Pressable, Platform, ActivityIndicator, Switch, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from "@react-native-community/netinfo";
+import * as Device from 'expo-device';
 
 import styles from '../styles/loginStyles'
 const defaultEmotions = require('../shared/emotionsConfig')
@@ -15,7 +16,7 @@ const userScheme = {
     backgroundColor: 'lightblue',
     backgroundImage: null,
     displayBackgroundImage: false,
-    maxBackgroundImageResolution: false,
+    enableHighResolution: false,
     fontColorDark: false,
   }
 }
@@ -40,11 +41,8 @@ function appendValueToUri(uri, params, value) {
 }
 
 async function validateEmail(email) {
-
   console.log('EMAIL VERIFICATION STATUS: Fetching email verification api...')
-
   try {
-
     var uri = emailVerification_APIURI(email)
     uri = appendValueToUri(uri, falseParams, '0')
     var emailStatus = {ok: false, status: 'Email não verificado.'}
@@ -72,18 +70,11 @@ async function validateEmail(email) {
 
   } finally {
     console.log('EMAIL VERIFICATION STATUS: Concluído')
-
   }
-  // Use the email verification api using its module...
-  // verifier.verify(email, (err, data) => {
-  //   if (err) throw err;
-  //   console.log(data);
-  // });
 }
 
 function validatePassword(password) {
   console.log('VALIDATING PASSWORD FOR SIGNUP...')
-
   const hasMinLength = password.length > 6
   var res
   if (!hasMinLength) {
@@ -94,11 +85,29 @@ function validatePassword(password) {
   return res
 }
 
+async function fetchUsers() {
+  var UsersResponse = await fetch( corsURI + appServerURI + 'Users', { method: 'GET' });
+  const UsersStatus = 'Status: ' + UsersResponse.status + ', ' + 'Status Text: ' + UsersResponse.statusText
+  if (UsersResponse.ok) {
+    console.log('fetch GET request for users data at signin successful.');
+    console.log(UsersStatus)
+
+    const Users = await UsersResponse.json();
+    return Users
+  } else {
+    console.log('fetch GET request for users data at signin failed. Printing fetch response...')
+    console.log(JSON.stringify(UsersResponse))
+    console.log('Returning null...')
+    return null
+  }
+}
+
 async function registerLocallyIfUserIsNewToDevice(user) {
   var localAuthInfo = await AsyncStorage.getItem('LocalAuthenticationInfo')
   localAuthInfo = JSON.parse(localAuthInfo)  
   if ( !localAuthInfo.users.filter(localUser => localUser._id == user._id)[0] ) {
-    console.log('SIGNIN STATUS: Primeiro login do usuário nesse aparelho. Adicionando informações do usuário no armazenamento local...')
+    console.log('SIGNIN STATUS: Primeiro login do usuário nesse aparelho. Imprimindo informações atuais e adicionando informações do usuário no armazenamento local...')
+    console.log(localAuthInfo)
     const updatedLocalAuthInfo = {
       ...localAuthInfo,
       users: [ 
@@ -108,32 +117,38 @@ async function registerLocallyIfUserIsNewToDevice(user) {
           username: user.username,
           email: user.email,
           password: user.password,
-          // settings: {
-          //   backgroundColor: 'lightblue',
-          //   backgroundImage: null      
-          // }
         }
       ]
     }
     await AsyncStorage.setItem('LocalAuthenticationInfo', JSON.stringify(updatedLocalAuthInfo))
+    console.log('SIGNIN STATUS: Informações do usuário adicionadas no aparelho. Imprimindo informações locais de autenticação atualizadas...')
+    console.log(JSON.stringify(updatedLocalAuthInfo))
   } else {
     console.log('SIGNIN STATUS: Informações do usuário já registradas nesse aparelho. Pulando registro do usuário no armazenamento local...')
   } 
 }
 
-export async function keepUserConnectionAlive(userId) {
+export async function keepUserConnectionAlive(id) {
   var localAuthInfo = await AsyncStorage.getItem('LocalAuthenticationInfo')
   localAuthInfo = JSON.parse(localAuthInfo)
 
-  console.log(`SIGNIN STATUS: Usuário optou por ${userId ? 'manter conexão ativa. Configurando conexão ativa para o usuário...' : 'desativar conexão ativa. Desativando...' }`)
-  const updatedLocalAuthInfo = {
-    ...localAuthInfo,
-    keepConnected: {
-      status: userId ? true : false,
-      userId: userId
+  if ( localAuthInfo.keepConnected.userId != id ) {
+    console.log(`SIGNIN STATUS: Usuário optou por ${id ? 'manter conexão ativa. Configurando conexão ativa para o usuário...' : 'desativar conexão ativa. Desativando...' }`)
+    const updatedLocalAuthInfo = {
+      ...localAuthInfo,
+      keepConnected: {
+        status: id ? true : false,
+        userId: id
+      }
     }
+    await AsyncStorage.setItem('LocalAuthenticationInfo', JSON.stringify(updatedLocalAuthInfo))
+    console.log('SIGNIN STATUS: Conexão ativa configurada! Imprimindo nova configuração de autenticação local...')
+    const updatedAuthInfo = await AsyncStorage.getItem('LocalAuthenticationInfo')
+    console.log(JSON.parse(updatedAuthInfo))  
+  } else {
+    console.log('SIGNIN STATUS: Fazendo login via conexã ativa. Pulando configuração de conexão ativa para o usuário...')
   }
-  await AsyncStorage.setItem('LocalAuthenticationInfo', JSON.stringify(updatedLocalAuthInfo))
+
 }
 
 class LoginScreen extends Component {
@@ -213,11 +228,13 @@ class LoginScreen extends Component {
   }
 
   LoginScreen = () => {
-    var imgURI, backgroundColor
+    const settings = this.state.userInfo.settings
+    var imgURI, backgroundColor, backgroundImage
     if (this.state.isUserAuth) {
-      backgroundColor = this.state.userInfo.settings.backgroundColor
-      if (this.state.userInfo.settings.backgroundImage) {
-        imgURI = this.state.userInfo.settings.backgroundImage.urls.regular
+      backgroundColor = settings.backgroundColor
+      backgroundImage = settings.backgroundImage
+      if (backgroundImage) {
+        imgURI = ( settings.enableHighResolution ? backgroundImage.urls.raw : backgroundImage.urls.regular )
       } else {
         imgURI = null
       }
@@ -304,15 +321,13 @@ class LoginScreen extends Component {
       var localAuthInfo = await AsyncStorage.getItem('LocalAuthenticationInfo')
       
       if (localAuthInfo) {
+        console.log('RESTORE USER TOKEN STATUS: LOCAL AUTH INFO ALREADY CONFIGURED. LOGGING CURRENT VALUE...')
         localAuthInfo = JSON.parse(localAuthInfo)
-
-        console.log('RESTORE USER TOKE STATUS: LOCAL AUTH INFO ALREADY CONFIGURED.')
-        // console.log(localAuthInfo)
+        console.log(localAuthInfo)
 
         if (localAuthInfo.keepConnected.status) {
           console.log(`RESTORE USER TOKEN STATUS: USER CONNECTION IS ALIVE FOR USER ID: ${localAuthInfo.keepConnected.userId}. PROCEDING TO SIGNIN...`)
-          const user = localAuthInfo.users.filter(user => user._id = localAuthInfo.keepConnected.userId)[0]
-  
+          const user = localAuthInfo.users.filter(user => user._id == localAuthInfo.keepConnected.userId)[0]
           this.setState({
             userInfo: {
               username: user.username,
@@ -335,14 +350,25 @@ class LoginScreen extends Component {
           DEVICE_IP_ADDRESS = state.details.ipAddress
           console.log("RESTORE USER TOKEN STATUS: IP ADDRESS REQUEST SUCCESSFUL. IP ADDRESS: " + DEVICE_IP_ADDRESS);
         });
+
         const initialLocalAuthInfo = {
           IP_ADDRESS: DEVICE_IP_ADDRESS,
+          deviceBrand: Device.brand,
+          deviceManufacturer: Device.manufacturer,
+          deviceModelName: Device.modelName,
+          deviceModelId: Device.modelId,
+          deviceOsName: Device.osName,
+          deviceOsVersion: Device.osVersion,
+          deviceName: Device.deviceName,
+          deviceType: await Device.getDeviceTypeAsync(),
           users: [],
           keepConnected: {
             status: false,
             userId: null
           }
         }
+        console.log('RESTORE USER TOKEN STATUS: LOGGING NEW LOCAL AUTH INFO...')
+        console.log(initialLocalAuthInfo)
         await AsyncStorage.setItem('LocalAuthenticationInfo', JSON.stringify(initialLocalAuthInfo))
         console.log('RESTORE USER TOKEN STATUS: DEVICE LOCAL AUTH INFO CONFIGURED FOR THE FIRST TIME. PROCEEDING TO SIGNIN/SIGNUP ...')
       }
@@ -381,7 +407,7 @@ class LoginScreen extends Component {
       
       if ( user ) {          
         
-        if (user.password === info.password) {
+        if ( user.password === info.password ) {
 
           await registerLocallyIfUserIsNewToDevice(user)
 

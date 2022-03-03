@@ -217,33 +217,25 @@ export default class App extends Component {
   }
 
   async syncUserData() {
-
     console.log('SYNC USER DATA STATUS: Started...')
     this.setState({ isUserDataSyncing: true });
-
     try {
-
-        var UsersResult = await fetch( corsURI + appServerURI + 'Users', { method: 'GET' });
-        const usersStatus =  'Status: ' + UsersResult.status + ', ' + UsersResult.statusText
-
-        if (UsersResult.ok) {
-            const users = await UsersResult.json();
-            const user = users.filter((user) => user.email === this.state.user.email)[0]
+        var UserResult = await fetch( corsURI + appServerURI + 'Users/' + this.state.user.username, { method: 'GET' });
+        const userStatus =  'Status: ' + UserResult.status + ', ' + UserResult.statusText
+        if (UserResult.ok) {
             console.log('fetch GET request for user DATA successful.')
-            console.log(usersStatus)
+            console.log(userStatus)
             console.log('SYNC USER DATA STATUS: Successful.')
+            const user = await UserResult.json();
             this.setState({user: user})
-
         } else {
             console.log( new Error('"fetch" GET request for user DATA failed. Throwing error...') )
-            throw new Error(usersStatus)
+            throw new Error(userStatus)
         }
-
     } catch (error) {
             console.log('SYNC USER DATA STATUS: Error captured. Printing error...')
             console.log(error);
             alert('Não foi possível sincronizar as entradas. Por favor, aguarde..')
-
     } finally {
         this.setState({ isUserDataSyncing: false });
         console.log('SYNC USER DATA STATUS: Finished.')
@@ -251,34 +243,24 @@ export default class App extends Component {
 }
 
   render() {
-  
-
-    if (!this.state.isUserAuth) {
-      return <LoginScreen
+    return !this.state.isUserAuth ? (
+      <LoginScreen
       user={this.state.user}
       getAppState={this.getAppState}
       setAppState={this.setState.bind(this)}
       />
-
-    } else {
-      return (
-
-    <UserContext.Provider value={this.state}>
-        <NavigationContainer>
-          <HomeStack
-          user={this.state.user}
-          logout={this.logout}
-          getAppState={this.getAppState}
-          setAppState={this.setState.bind(this)}
-          syncUserData={this.syncUserData}
-          />
-        </NavigationContainer>    
-    </UserContext.Provider>
-
-        // <NavigationContainer>
-        //   <HomeScreen user={this.state.user} />
-        // </NavigationContainer>
-      );  
-    }
+    ) : (
+      <UserContext.Provider value={this.state}>
+          <NavigationContainer>
+            <HomeStack
+            user={this.state.user}
+            logout={this.logout}
+            getAppState={this.getAppState}
+            setAppState={this.setState.bind(this)}
+            syncUserData={this.syncUserData}
+            />
+          </NavigationContainer>    
+      </UserContext.Provider>
+    );  
   }
 }

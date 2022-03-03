@@ -780,7 +780,7 @@ export default class PostEntranceScreen extends Component {
         this.setFontColor()
         const settings = this.props.appState.user.settings
         const backgroundImage = settings.backgroundImage
-        const imgURI =  settings.displayBackgroundImage ? (backgroundImage ? backgroundImage.urls.regular : null ) : null
+        const imgURI =  settings.displayBackgroundImage ? (backgroundImage ? ( settings.enableHighResolution ? backgroundImage.urls.raw : backgroundImage.urls.regular ) : null ) : null
         const backgroundColor = settings.backgroundColor
 
         return(

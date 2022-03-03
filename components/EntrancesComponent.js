@@ -145,7 +145,7 @@ export default class EntrancesScreen extends Component {
         const isLoading = this.props.appState.isUserDataSyncing | this.state.isDeleteEntryLoading
         const settings = this.props.appState.user.settings
         const backgroundImage = settings.backgroundImage
-        const imgURI =  settings.displayBackgroundImage ? (backgroundImage ? backgroundImage.urls.regular : null) : null
+        const imgURI =  settings.displayBackgroundImage ? (backgroundImage ? ( settings.enableHighResolution ? backgroundImage.urls.raw : backgroundImage.urls.regular ) : null ) : null
         const backgroundColor = settings.backgroundColor
 
         return(

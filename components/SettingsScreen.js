@@ -4,6 +4,8 @@ import { Icon } from 'react-native-eva-icons';
 import { keepUserConnectionAlive } from './LoginComponent';
 import { capitalize } from './subcomponents/EditEmotions';
 
+import NativeIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+
 // cors-midpoint uri (needed to avoid cors' allow-cross-origin error when fetching in web platforms)
 const corsURI = Platform.OS == 'web' ? 'https://morning-journey-78874.herokuapp.com/' : ''
 const appServerURI = 'https://mood-tracker-server.herokuapp.com/'
@@ -142,17 +144,19 @@ export default class SettingsScreen extends Component {
 
       isDisplayBackgroundImageLoading: false,
       isChangeFontColorLoading: false,
+      isEnableHighResolutionLoading: false,
       isRestoreColorLoading: false,
       isSaveColorLoading: false,
     }
     this.syncUserSettings = this.syncUserSettings.bind(this);
     this.setFontColor = this.setFontColor.bind(this);
-    this.setBackgroundColor = this.setBackgroundColor.bind(this)
+    this.setBackgroundColor = this.setBackgroundColor.bind(this);
     this.SettingsScreen = this.SettingsScreen.bind(this);
     this.ScreenSettings = this.ScreenSettings.bind(this);
     this.ChooseImageSection = this.ChooseImageSection.bind(this);
     this.DisplayBackgroundImageSection = this.DisplayBackgroundImageSection.bind(this);
     this.ChangeFontColorSection = this.ChangeFontColorSection.bind(this);
+    this.EnableHighResolutionSection = this.EnableHighResolutionSection.bind(this);
     this.ChangeBackgroundColorSection = this.ChangeBackgroundColorSection.bind(this);
     this.ColorOptions = this.ColorOptions.bind(this);
     this.ColorControl = this.ColorControl.bind(this);
@@ -198,7 +202,7 @@ export default class SettingsScreen extends Component {
   SettingsScreen() {
     const settings = this.props.appState.user.settings
     const backgroundImage = settings.backgroundImage
-    const imgURI = settings.displayBackgroundImage ? (backgroundImage ? backgroundImage.urls.regular : null) : null
+    const imgURI = settings.displayBackgroundImage ? (backgroundImage ? ( settings.enableHighResolution ? backgroundImage.urls.raw : backgroundImage.urls.regular ) : null) : null
     return(
       <ImageBackground
       source={{uri : imgURI}}
@@ -222,6 +226,7 @@ export default class SettingsScreen extends Component {
       <>
         <this.ChooseImageSection />
         <this.DisplayBackgroundImageSection />
+        <this.EnableHighResolutionSection />
         <this.ChangeFontColorSection />
         <this.ChangeBackgroundColorSection />
         <this.ColorOptions />
@@ -281,6 +286,36 @@ export default class SettingsScreen extends Component {
     )
   }
 
+  EnableHighResolutionSection() {
+    const [isEnableHighResolutionButtonPressed, setIsEnableHighResolutionButtonPressed] = React.useState(false)
+    const enableHighResolutionValue = this.props.appState.user.settings.enableHighResolution
+    const isLoading = this.state.isEnableHighResolutionLoading
+    return(
+      <Pressable
+      onPressIn={ () => blinkButton(setIsEnableHighResolutionButtonPressed)}
+      style={[styles.settingsRow, {backgroundColor: isEnableHighResolutionButtonPressed ? '#0003' : null }]}
+      >
+        <View style={{flexDirection: 'row', alignItems: 'center'}}>
+          {/* <Icon name='camera-outline' width={30} height={30} fill={styles.h1.color} /> */}
+          <NativeIcon name='high-definition' size={30} color={styles.h1.color} />
+          <Text style={[styles.h2, {marginLeft: 10, marginRight: 20}]}>Alta definição</Text>
+          { isLoading ? <ActivityIndicator color='blue' /> : null }
+        </View>
+        <Switch
+        disabled={isLoading}
+        trackColor={{ false: "#767577", true: "#81b0ff" }}
+        thumbColor={enableHighResolutionValue ? "#f4f3f4" : "#f4f3f4"}
+        ios_backgroundColor="#3e3e3e"
+        onValueChange={() => {
+          blinkButton(setIsEnableHighResolutionButtonPressed)
+          this.onEnableHighResolutionSwitch(!enableHighResolutionValue)
+        }}
+        value={enableHighResolutionValue}
+        />
+      </Pressable>    
+    )
+  }
+
   ChangeFontColorSection() {
     const [isChangeFontColorButtonPressed, setIsChangeFontColorButtonPressed] = React.useState(false)
     const changeFontColorValue = this.props.appState.user.settings.fontColorDark
@@ -327,7 +362,7 @@ export default class SettingsScreen extends Component {
       >
         <View style={{flexDirection: 'row', alignItems: 'center'} }>
           <Icon name='color-palette-outline' height={30} width={30} fill={styles.h1.color} style={{marginRight: 0}} />
-          <Text style={[styles.h2, {marginLeft: 10}]}>Cor de fundo</Text>
+          <Text style={[styles.h2, {marginLeft: 10}]}>Tema</Text>
         </View>
         <View style={{flexDirection: 'row', alignItems: 'center'} }>
           <Icon
@@ -422,7 +457,8 @@ export default class SettingsScreen extends Component {
     return (
       this.state.isDisplayBackgroundImageLoading | 
       this.state.isChangeFontColorLoading |
-      this.state.isRestoreColorLoading | 
+      this.state.isRestoreColorLoading |
+      this.state.isEnableHighResolutionLoading |
       this.state.isSaveColorLoading
     )
   }
@@ -480,6 +516,18 @@ export default class SettingsScreen extends Component {
       this.setFontColor()
     }
     this.setState({ isChangeFontColorLoading: false });
+  }
+
+  async onEnableHighResolutionSwitch(value)  {
+    this.setState({ isEnableHighResolutionLoading: true });
+    const newSettings = {enableHighResolution: value}
+    const postHighResolutionResult = await postSettings(newSettings, this.props.appState.user.username)
+    if (postHighResolutionResult.ok) {
+      // sync user data with app or entries component
+      await this.props.route.params.syncUserData()
+      // update style variable with new data
+    }
+    this.setState({ isEnableHighResolutionLoading: false });
   }
 
   async onSaveColorButtonPress() {
