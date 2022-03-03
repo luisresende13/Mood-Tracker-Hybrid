@@ -424,6 +424,8 @@ export default class SettingsScreen extends Component {
         <Pressable
         disabled={isLoading | newColorUnselected}
         style={{ justifyContent: 'center', alignItems: 'center', width: 95 }}
+          
+        // onPressIn={() => blinkButton((bool) => this.setState({isRestoreColorLoading: bool}))}
         onPress={() => {
           this.setState({isRestoreColorLoading: true})
           this.syncUserSettings()

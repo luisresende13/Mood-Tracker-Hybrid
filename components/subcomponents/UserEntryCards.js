@@ -231,7 +231,7 @@ export default class UserEntryCards extends Component {
                         <Pressable
                         key={`edit-${label}-${props.entryId}`}
                         style={[ styles.editButton, {
-                            backgroundColor: isButtonPressed[label] ? styles.theme.color + '6' : '#0000',
+                            backgroundColor: isButtonPressed[label] ? styles.theme.color + '4' : '#0000',
                             borderColor: label=='Excluir' ? 'red' : styles.theme.color
                         }]}
                         disabled={ isLoading }

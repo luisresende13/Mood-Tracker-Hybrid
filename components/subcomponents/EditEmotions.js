@@ -287,7 +287,7 @@ export default class EditEmotions extends Component {
         return(
             <>
                 { showExpandMenuButton ? (
-                    <View style={[styles.cardRow, {height: 50, marginTop: 10, paddingTop: 10, justifyContent: showEditMenu ? 'space-between' : 'center', borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.2)'}]}>
+                    <View style={[styles.cardRow, {height: 60, marginTop: 10, paddingTop: 10, justifyContent: showEditMenu ? 'space-between' : 'center', borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.2)'}]}>
                         { showEditMenu ? ( 
                             buttonLabels.map((label) => (
                                 <Pressable

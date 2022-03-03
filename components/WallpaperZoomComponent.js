@@ -1,16 +1,79 @@
 import React, { useContext } from 'react';
-import { View, Text, ImageBackground, Pressable, ActivityIndicator, Platform } from 'react-native';
+import { View, Text, Image, ImageBackground, Pressable, ActivityIndicator, Platform, Linking } from 'react-native';
 // import { postDisplayBackgroundImage } from './SettingsScreen';
-import { postSettings} from './SettingsScreen';
+import { postSettings } from './SettingsScreen';
 import UserContext from '../shared/UserContext';
 
 // cors-midpoint uri (needed to avoid cors' allow-cross-origin error when fetching in web platforms)
-const corsURI = Platform.OS == 'web' ? 'https://morning-journey-78874.herokuapp.com/' : ''
-const appServerURI = 'https://mood-tracker-server.herokuapp.com/'
+// const corsURI = Platform.OS == 'web' ? 'https://morning-journey-78874.herokuapp.com/' : ''
+// const appServerURI = 'https://mood-tracker-server.herokuapp.com/'
+
+var styles = {
+  fotter: {
+    position: 'absolute',
+    bottom: 0,
+    height: '22%',
+    width: '100%',
+    justifyContent: 'space-evenly',
+  },
+  controlView: {
+    // flex: 0.4,
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
+    alignItems: 'center',
+  },
+  attributionView: {
+    // flex: 0.6,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+ controlButton: {
+    width: '35%',
+    height: 40,
+    borderWidth: 1,
+    borderRadius: 20,
+    backgroundColor: '#f4f3f4',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  controlButtonLabel: {
+    color: '#000',
+    fontSize: 17,
+    fontWeight: 'bold'
+  },
+  userProfileImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 25
+  },
+  attributionLabel: {
+    color: 'white',
+    fontSize: 14,
+    fontStyle: 'italic',
+    paddingLeft: 10,
+    textAlign: 'left',
+    maxWidth: '78%',
+  },
+  attributionURL: {
+    textDecorationLine: 'underline'
+  },
+}
+
+const openUserProfileFor = (url) => {
+  return function () {
+    Linking.openURL( url + '?utm_source=Mood-Tracker&utm_medium=referral');
+  } 
+}
+
+const openUnsplashURL = () => {
+  Linking.openURL('https://unsplash.com/?utm_source=Mood-Tracker&utm_medium=referral')
+}
 
 export function WallpaperZoom(props) {
 
   const appState = useContext(UserContext);
+  const settings = appState.user.settings
   const [isSaveImageLoading, setIsSaveImageLoading] = React.useState(false);
 
   async function onSaveImageButtonPress() {
@@ -24,7 +87,7 @@ export function WallpaperZoom(props) {
     const postImageResult = await postSettings(imageSetting, appState.user.username)
     if (postImageResult.ok) {
       // sync user data with app or entries component
-      if (!appState.user.settings.displayBackgroundImage) {
+      if (!settings.displayBackgroundImage) {
         await postSettings({displayBackgroundImage: true}, appState.user.username)
       }
 
@@ -40,28 +103,54 @@ export function WallpaperZoom(props) {
 
   console.log('Returning "WallpaperZoom" component...')
 
+  const fontColorDark = settings.fontColorDark
+  const fontColor = fontColorDark ? '#000' : '#fff'
+  const altFontColor = fontColorDark ? '#fff' : '#000'
+  for (let label of ['attributionLabel', 'controlButtonLabel']) {
+    styles[label] = { ...styles[label], color: fontColor }
+  }
+  styles.controlButton = { ...styles.controlButton, backgroundColor: altFontColor + '8', borderColor: fontColor + '8' }
+  const selectedImage = props.route.params.selectedImage
+  const imgURI = settings.enableHighResolution ? selectedImage.urls.raw : selectedImage.urls.regular
   return (
     <ImageBackground
-      source={{ uri: props.route.params.selectedImage.urls.regular }}
-      style={{ flex: 1 }}
+      source={{ uri: imgURI }}
+      style={{ flex: 1, backgroundColor: settings.backgroundColor }}
     >
-      <View style={{ position: 'absolute', width: '100%', height: null, bottom: '10%', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center' }}>
-        <Pressable
-          onPress={() => props.navigation.goBack()}
-          style={{ width: '35%', height: 40, borderRadius: 20, backgroundColor: '#f4f3f4', alignItems: 'center', justifyContent: 'center' }}
-        >
-          <Text style={{ fontSize: 17, fontWeight: 'bold' }}>Voltar</Text>
-        </Pressable>
-        <Pressable
-          onPress={onSaveImageButtonPress}
-          style={{ width: '35%', height: 40, borderRadius: 20, backgroundColor: '#f4f3f4', alignItems: 'center', justifyContent: 'center' }}
-        >
-          {isSaveImageLoading ? (
-            <ActivityIndicator color='black' />
-          ) : (
-            <Text style={{ fontSize: 17, fontWeight: 'bold' }}>Aplicar</Text>
-          )}
-        </Pressable>
+      <View style={styles.fotter}>
+        <View style={styles.controlView}>
+          <Pressable
+            onPress={() => props.navigation.goBack()}
+            style={styles.controlButton}
+          >
+            <Text style={styles.controlButtonLabel}>Voltar</Text>
+          </Pressable>
+          <Pressable
+              onPress={onSaveImageButtonPress}
+              style={styles.controlButton}
+          >
+            {isSaveImageLoading ? (
+              <ActivityIndicator color='blue' />
+            ) : (
+              <Text style={styles.controlButtonLabel}>Aplicar</Text>
+            )}
+          </Pressable>
+        </View>
+        <View style={styles.attributionView}>
+          <Image
+          source={{ uri: selectedImage.user.profile_image.large }}
+          style={styles.userProfileImage} />
+          <Text style={styles.attributionLabel}>
+            {'Photo by '}
+            <Text
+            onPress={openUserProfileFor(selectedImage.user.links.html)}
+            style={styles.attributionURL} >{ selectedImage.user.name }</Text>
+            {' on '}
+            <Text
+            onPress={openUnsplashURL}
+            style={styles.attributionURL}>{ 'Unsplash' }</Text>
+          </Text>
+        </View>
       </View>
     </ImageBackground>
   );
