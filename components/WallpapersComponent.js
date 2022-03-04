@@ -1,14 +1,13 @@
 import React, { Component, useState, useEffect } from 'react';
-import { FlatList, View, Text, SafeAreaView, Pressable, ActivityIndicator, Dimensions, ImageBackground, Platform, StatusBar } from 'react-native';
+import { FlatList, Text, SafeAreaView, Pressable, ActivityIndicator, Dimensions, ImageBackground, Platform, StatusBar } from 'react-native';
 import { Icon } from 'react-native-eva-icons';
 import * as Device from 'expo-device';
-import { capitalize } from './subcomponents/EditEmotions';
-import TouchHistoryMath from 'react-native/Libraries/Interaction/TouchHistoryMath';
-
-const unsplash_APIKEY = '5fRBt7AhEBCWmlgXrHd-k6RYsEq0t4aJGy5kxkCofDQ' 
-const unsplashUrl = 'https://api.unsplash.com/'
-
 const isWindows = Device.osName == 'Windows'
+import { capitalize } from './subcomponents/EditEmotions';
+
+// cors-midpoint uri (needed to avoid cors' allow-cross-origin error when fetching in web platforms)
+const corsURI = Platform.OS == 'web' ? 'https://morning-journey-78874.herokuapp.com/' : ''
+const appServerURI = 'https://mood-tracker-server.herokuapp.com/'
 
 function formatTopicName(name){
   return capitalize(name.split('-').join(' '))
@@ -75,39 +74,40 @@ const styles = {
 async function getUnsplash(endpoint, params) {
   console.log('UNSPLASH GET PHOTOS STATUS: STARTED...')
   const reqParams = {
-    method: 'GET',
+    method: 'POST',
     headers: {
-      // 'Accept-Version': 'v1',
-      // 'Authorization': `Client-ID ${unsplash_APIKEY}`
-    }
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      endpoint: endpoint,
+      queryParams: params,
+    }),
   }
-  params.client_id = unsplash_APIKEY
-  const url = unsplashUrl + endpoint + buildApiUriParams(params)
   var result, result_json, success
   try {
-    result = await fetch(url, reqParams)
+    result = await fetch(corsURI + appServerURI + 'api/unsplash', reqParams)
     if (result.ok) {
       console.log(`UNSPLASH PHOTOS STATUS: FETCH SUCCESSFULL...`)
 
-      let a = 'x-ratelimit-limit'
-      let b = 'x-ratelimit-remaining'
-      const headers = result.headers
-      var limit, remaining
-      switch (Platform.OS) {
-        case 'android':
-          limit = headers.map[a]
-          remaining = headers.map[b]          
-          break;
-        case 'web':
-          limit = headers.get(a)
-          remaining = headers.get(b)
-          break
-        default:
-          limit = headers.get(a)
-          remaining = headers.get(b)
-          break
-      }
-      console.log(`UNSPLASH PHOTOS STATUS:\n  x-ratelimit-limit: ${limit}\n  x-ratelimit-remaining: ${remaining}`)
+      // let a = 'x-ratelimit-limit'
+      // let b = 'x-ratelimit-remaining'
+      // const headers = result.headers
+      // var limit, remaining
+      // switch (Platform.OS) {
+      //   case 'android':
+      //     limit = headers.map[a]
+      //     remaining = headers.map[b]          
+      //     break;
+      //   case 'web':
+      //     limit = headers.get(a)
+      //     remaining = headers.get(b)
+      //     break
+      //   default:
+      //     limit = headers.get(a)
+      //     remaining = headers.get(b)
+      //     break
+      // }
+      // console.log(`UNSPLASH PHOTOS STATUS:\n  x-ratelimit-limit: ${limit}\n  x-ratelimit-remaining: ${remaining}`)
 
       result_json = await result.json()
       success = result_json.length
@@ -131,7 +131,6 @@ async function getUnsplash(endpoint, params) {
 }
 
 const Item = (props) => {
-
   const topicsScreen = props.route.name == 'WallpaperTopics'
   const photoURI = topicsScreen ? props.item.cover_photo.urls.regular : props.item.urls.regular
   const nextScreenName = topicsScreen ? 'Wallpapers' : 'WallpaperZoom'
@@ -139,8 +138,6 @@ const Item = (props) => {
   const screenHeight = props.windowHeight + (Platform.OS != 'web' ? StatusBar.currentHeight : 0)
   const photoHeight = topicsScreen ? ( isWindows ? screenHeight/3  : screenHeight/4 ) : ( isWindows ? screenHeight/2 : screenHeight/2 )
   const photoWidth = topicsScreen ? ( isWindows ? '33.333333%' : '50%' ) : ( isWindows ? '50%' : '50%' )
-
-  // console.log(dimensions.window.height)
   return(
     <Pressable
       onPress={() => props.navigation.navigate( nextScreenName , { selectedImage: props.item })}

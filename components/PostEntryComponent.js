@@ -6,6 +6,7 @@ import VectorIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import EditEmotions from './subcomponents/EditEmotions'
 import styles from '../styles/postEntryStyles'
 styles.theme = {}; styles.altTheme = {};
+
 // Geocoding and weather dependencies and APIs
 import * as Location from 'expo-location';
 import GoogleMapsAPI from './subcomponents/GoogleMapsAPI'
@@ -15,10 +16,6 @@ import OpenWeatherMapAPI from './subcomponents/OpenWeatherMapAPI';
 // cors-midpoint uri (needed to avoid cors' allow-cross-origin error when fetching in web platforms)
 const corsURI = Platform.OS == 'web' ? 'https://morning-journey-78874.herokuapp.com/' : ''
 const appServerURI = 'https://mood-tracker-server.herokuapp.com/'
-
-// Date() => wed jan 91 2022 07:46:57 ...
-const now = new Date().toString().split(' ')
-const datetime = now[2] + ' ' + now[1] + ' ' + now[3] + ' - ' + now[4].slice(0, 5)
 
 // Mood configs
 const moods = ['Horrível', 'Mal', 'Regular', 'Bem', 'Ótimo']
@@ -623,40 +620,38 @@ export default class PostEntranceScreen extends Component {
             console.log('DELETE EMOTION STATUS: Finished.')
             this.setState({ isDeleteEmotionLoading: false });
             if (postEmotionResult.ok) {
-                // this.setState({isUserDataSyncing: true})
                 await this.props.route.params.syncUserData();
-                // this.setState({isUserDataSyncing: false})
                 this.updateUserData();
             }
         }
- 
     }
 
     async fetchWeather() {
-
         try {
             if (this.state.userCoordinates) {
-
                 console.log('FETCH WEATHER STATUS: STARTED...!')
                 const coords = this.state.userCoordinates
-                const lat = coords.latitude
-                const lng = coords.longitude
-                
-                await fetch(
-                    `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lng}&APPID=${OpenWeatherMapAPI.KEY}&units=metric`
-                )
-                .then(res => {
-                    const resStatus = 'Status: ' + res.status + ', Status Text: ' + res.statusText
-                    if (!res.ok) 
-                        throw new Error(resStatus)
-                    else {
-                        return res.json()
-                    }
-                })
-                .then(weather => {
+                const queryParams = {
+                    lat: coords.latitude,
+                    lon: coords.longitude,
+                    units: 'metric'
+                }
+                const fetchOptions = {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },    
+                    body: JSON.stringify({
+                        queryParams: queryParams
+                    })
+                }
+                const response = await fetch(corsURI + appServerURI + 'api/weather', fetchOptions)
+                const resStatus = 'Status: ' + response.status + ', Status Text: ' + response.statusText
+                if (!response.ok) 
+                    throw new Error(resStatus)
+                else {
+                    const weather = await response.json()
                     console.log('FETCH WEATHER STATUS: SUCCESSFUL!')
-                    // console.log(weather);
-
                     const weatherInfo = {
                         coords: weather.coord,
                         name: weather.name,
@@ -666,15 +661,12 @@ export default class PostEntranceScreen extends Component {
                         wind: weather.wind,
                         visibility: weather.visibility,
                     }
-
                     this.setState({weather: weatherInfo})
-                });
-        
+                }
             } else {
             // this.setLoginMsg('Não foi possível obter as condições do tempo. Tente reabrir essa tela...')
             console.log('FETCH WEATHER STATUS: UNABLE TO START! USER POSITION NOT AVAILABLE.')
             }
-
         } catch (error) {
             this.setLoginMsg('Não foi possível obter as condições do tempo. Tente reabrir essa tela...')
             console.log('FETCH WEATHER STATUS: ERROR! LOGGING ERROR...')

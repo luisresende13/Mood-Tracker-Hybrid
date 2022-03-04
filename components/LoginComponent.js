@@ -1,10 +1,11 @@
 import { Icon } from 'react-native-eva-icons'
 
 import React, { Component } from 'react';
-import { View, Text, ImageBackground, TextInput, Pressable, Platform, ActivityIndicator, Switch, Alert } from 'react-native';
+import { View, Text, ImageBackground, TextInput, Pressable, Platform, ActivityIndicator, Switch } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from "@react-native-community/netinfo";
 import * as Device from 'expo-device';
+// import * as Linking from 'expo-linking';
 
 import styles from '../styles/loginStyles'
 const defaultEmotions = require('../shared/emotionsConfig')
@@ -26,48 +27,43 @@ const corsURI = Platform.OS == 'web' ? 'https://morning-journey-78874.herokuapp.
 const appServerURI = 'https://mood-tracker-server.herokuapp.com/'
 
 // Email Validation settings
-
-// const Verifier = require('email-verifier')
-const emailVerification_APIKEY = "at_TPKXmSQnStekLzTbstLO9GyHvd7or"
-// let verifier = new Verifier(emailVerification_APIKEY);
-const emailVerification_APIURI = (emailAddress) => `https://emailverification.whoisxmlapi.com/api/v2?apiKey=${emailVerification_APIKEY}&emailAddress=${emailAddress}`
 const falseParams = ['validateDNS', 'checkCatchAll', 'checkFree', 'checkDisposable']
-
-function appendValueToUri(uri, params, value) {
-  for (let param of params) {
-    uri += '&' + param + '=' + value
-  }
-  return uri
-}
 
 async function validateEmail(email) {
   console.log('EMAIL VERIFICATION STATUS: Fetching email verification api...')
+  var emailStatus = {ok: false, status: 'Email não verificado.'}
   try {
-    var uri = emailVerification_APIURI(email)
-    uri = appendValueToUri(uri, falseParams, '0')
-    var emailStatus = {ok: false, status: 'Email não verificado.'}
-    const apiResp = await fetch( uri , { method: 'GET' } )
+    var queryParams = {
+      emailAddress: email,
+    }
+    falseParams.forEach(param => queryParams[param]='false')
+    const fetchOptions = {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },    
+        body: JSON.stringify({
+          queryParams: queryParams
+        }),
+    }
+    const apiResp = await fetch(corsURI + appServerURI + 'api/email', fetchOptions)
   
-    if (apiResp.ok) {
-  
+    if (apiResp.ok) {  
       console.log('EMAIL VERIFICATION STATUS: Api fetch request successful.')
       const apiRespJson = await apiResp.json()
-  
-      if ( apiRespJson.formatCheck=='false' ) {
+      if ( apiRespJson.formatCheck!='true' ) {
         emailStatus.status = 'Email inválido.'
-      } else if ( apiRespJson.smtpCheck=='false' ) {
+      } else if ( apiRespJson.smtpCheck!='true' ) {
         emailStatus.status = 'Email não existe.'
       } else {
         emailStatus = {ok: true, status: 'Email válido.'}
       }
-      
       return emailStatus
   
     } else {
       console.log('EMAIL VERIFICATION STATUS: Api fetch request failed. Throwing error...')
       throw new Error('Status: ' + apiResp.status + ', Status Text: ' + apiResp.statusText)
-    }  
-
+    }
   } finally {
     console.log('EMAIL VERIFICATION STATUS: Concluído')
   }
@@ -543,6 +539,7 @@ class LoginScreen extends Component {
   render() {
 
     console.log('Rendering "LoginScreen" component...')
+    // console.log(Linking.getInitialURL())
     return this.LoginScreen()
   
   }
