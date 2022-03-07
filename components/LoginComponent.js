@@ -5,23 +5,24 @@ import { View, Text, ImageBackground, TextInput, Pressable, Platform, ActivityIn
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from "@react-native-community/netinfo";
 import * as Device from 'expo-device';
-// import * as Linking from 'expo-linking';
 
 import styles from '../styles/loginStyles'
+let backgroundColor = "#5926a6"
+let imgURI = require('../assets/wallpaper.png')
+
 const defaultEmotions = require('../shared/emotionsConfig')
 const userScheme = {
   emotions: defaultEmotions,
   entries: [],
   layout: 'grid',
   settings: {
-    backgroundColor: 'lightblue',
-    backgroundImage: null,
-    displayBackgroundImage: false,
+    backgroundColor: "#5926a6",
+    backgroundImage: 'https://images.unsplash.com/photo-1557682268-e3955ed5d83f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwzMDczOTJ8MHwxfHRvcGljfHxpVUlzblZ0akIwWXx8fHx8MXx8MTY0NjYyNDQyMw&ixlib=rb-1.2.1&q=80&w=1080',
+    displayBackgroundImage: true,
     enableHighResolution: false,
     fontColorDark: false,
   }
 }
-
 // App server connection settings
 const corsURI = Platform.OS == 'web' ? 'https://morning-journey-78874.herokuapp.com/' : ''
 const appServerURI = 'https://mood-tracker-server.herokuapp.com/'
@@ -157,6 +158,7 @@ class LoginScreen extends Component {
         password: '',
         email: '',
         username: '',
+        settings: null,
       },
       keepConnected: true,
       loginMsg: '',
@@ -224,23 +226,11 @@ class LoginScreen extends Component {
   }
 
   LoginScreen = () => {
-    const settings = this.state.userInfo.settings
-    var imgURI, backgroundColor, backgroundImage
-    if (this.state.isUserAuth) {
-      backgroundColor = settings.backgroundColor
-      backgroundImage = settings.backgroundImage
-      if (backgroundImage) {
-        imgURI = ( settings.enableHighResolution ? backgroundImage.urls.raw : backgroundImage.urls.regular )
-      } else {
-        imgURI = null
-      }
-    } else {
-      imgURI = null
-      backgroundColor = 'lightblue'     
-    }
-
-    return(
-      <ImageBackground source={{uri: imgURI}} style={[styles.login.mainView ,{backgroundColor: backgroundColor, justifyContent: 'space-evenly'}]}>
+  return(
+      <ImageBackground
+      source={imgURI}
+      style={[styles.login.mainView, {backgroundColor: backgroundColor, justifyContent: 'space-evenly'}]}
+      >
         
         <View style={styles.login.titleView}>
           <Text style={styles.login.title}>Mood Tracker</Text>
@@ -258,8 +248,7 @@ class LoginScreen extends Component {
             onChangeText={this.onChangeText('email')}
             autoComplete='email'
             importantForAutofill='yes'
-            >
-            </TextInput>
+            />
             <TextInput
             placeholder='Senha'
             textContentType='password'
@@ -268,8 +257,7 @@ class LoginScreen extends Component {
             onChangeText={this.onChangeText('password')}
             autoComplete='password'
             importantForAutofill='yes'
-            >
-            </TextInput>
+            />
           </View>
           <View style={[styles.login.cardSection, {height: 138}]}>
             {this.submitButton('signin')}
@@ -319,7 +307,7 @@ class LoginScreen extends Component {
       if (localAuthInfo) {
         console.log('RESTORE USER TOKEN STATUS: LOCAL AUTH INFO ALREADY CONFIGURED. LOGGING CURRENT VALUE...')
         localAuthInfo = JSON.parse(localAuthInfo)
-        console.log(localAuthInfo)
+        // console.log(localAuthInfo)
 
         if (localAuthInfo.keepConnected.status) {
           console.log(`RESTORE USER TOKEN STATUS: USER CONNECTION IS ALIVE FOR USER ID: ${localAuthInfo.keepConnected.userId}. PROCEDING TO SIGNIN...`)
@@ -328,7 +316,7 @@ class LoginScreen extends Component {
             userInfo: {
               username: user.username,
               email: user.email,
-              password: user.password,  
+              password: user.password,
             }
           })
           this.onSignIn()
@@ -410,7 +398,6 @@ class LoginScreen extends Component {
           if (this.state.keepConnected) {
             await keepUserConnectionAlive(user._id)
           }
-
           this.setState( {isUserAuth: true, userInfo: user} )
           const successMsg = 'Login realizado com sucesso!'
           this.setLoginMsg(successMsg)
@@ -537,11 +524,8 @@ class LoginScreen extends Component {
   }
 
   render() {
-
     console.log('Rendering "LoginScreen" component...')
-    // console.log(Linking.getInitialURL())
     return this.LoginScreen()
-  
   }
 }
 

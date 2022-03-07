@@ -21,7 +21,7 @@ const portugueseMonthSigs = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'A
 const englishWeekDayMap = {'Mon': 'Seg', 'Tue': 'Ter', 'Wed': 'Qua', 'Thu': 'Qui', 'Fri': 'Sex', 'Sat': 'Sab', 'Sun': 'Dom'}
 
 // Defining pertinent functions
-function Today() {
+export function Today() {
     const now = Date().toString().split(' ')
     const today = [ now[3], monthDict[now[1]], now[2] ].join('-')
     return today
@@ -63,14 +63,10 @@ export default class EntrancesScreen extends Component {
     
     constructor(props) {
         super(props);
-        this.state = {
-            
-            // user: this.props.route.params.user,
+        this.state = {            
             date: Today(),
             time: getTime(),
             selectedDate: Today(),
-            // isUserDataSynced: true,
-            // isUserDataSyncing: false,
             isDeleteEntryLoading: false,
             alertMsg: '',
             locationPermission: null,
@@ -78,9 +74,7 @@ export default class EntrancesScreen extends Component {
         this.onNextButtonPress = this.onNextButtonPress.bind(this);
         this.setFontColor = this.setFontColor.bind(this);
         this.setAlertMsg = this. setAlertMsg.bind(this);
-        // this.syncUserData = this.syncUserData.bind(this);
         this.getMainScreenState = this.getMainScreenState.bind(this);
-        
     }
     
     componentDidMount() {
@@ -170,7 +164,7 @@ export default class EntrancesScreen extends Component {
                         parentProps={{
                             navigation: this.props.navigation
                         }}
-                        syncUserData={this.props.route.params.syncUserData}
+                        syncUserData={this.props.appState.syncUserData}
                         setMainScreenState ={this.setState.bind(this)}
                         getMainScreenState={this.getMainScreenState}
                         setAlertMsg = {this.setAlertMsg}

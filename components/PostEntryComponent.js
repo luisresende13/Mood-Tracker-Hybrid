@@ -11,7 +11,6 @@ styles.theme = {}; styles.altTheme = {};
 import * as Location from 'expo-location';
 import GoogleMapsAPI from './subcomponents/GoogleMapsAPI'
 Location.setGoogleApiKey(GoogleMapsAPI.GoogleMapsGeocodingAPIKey)
-import OpenWeatherMapAPI from './subcomponents/OpenWeatherMapAPI';
 
 // cors-midpoint uri (needed to avoid cors' allow-cross-origin error when fetching in web platforms)
 const corsURI = Platform.OS == 'web' ? 'https://morning-journey-78874.herokuapp.com/' : ''
@@ -87,8 +86,15 @@ function formatPostEntryDatetimeTitle(date, time) {
     return oneDigit( ymd[2] ) + ' ' + m + ' ' + ymd[0] + (time ? ' - ' : '') + time.slice(0,5)
 }
 
-function formattedAddress(addressObj) {
-    return addressObj.street + ', ' + addressObj.streetNumber + ' - ' + addressObj.district + ', ' + addressObj.subregion + '. ' + addressObj.region + ', ' + addressObj.isoCountryCode + '.'
+function formattedAddress(addr) {
+    return (
+        ( addr.street ? addr.street + ', ' : '' ) +
+        ( addr.streetNumber ? addr.streetNumber + ' - ' : '' ) +
+        ( addr.district ? addr.district + ', ' : '' ) +
+        ( addr.subregion ? addr.subregion + '. ' : '' ) +
+        ( addr.region ? addr.region + ', ' : '' ) +
+        ( addr.isoCountryCode ? addr.isoCountryCode : '' )  + '.'
+    )
 }
 
 function mapEmotions(emotions, layout='grid') {
@@ -253,7 +259,16 @@ export default class PostEntranceScreen extends Component {
                 suppressHighlighting={true}
                 selectable={false}
                 >
-                    <Text onLongPress={null} style={[styles.emotionBadge, {backgroundColor: this.state.isSelectedEmotions[emotion.name] ? 'lightblue' : 'aliceblue' }]}>{emotion.name}</Text>
+                    <Text
+                    selectable={false}
+                    // selectionColor={'#0000'}
+                    onLongPress={null}
+                    style={[styles.emotionBadge,
+                        {backgroundColor: this.state.isSelectedEmotions[emotion.name] ? 'lightblue' : 'aliceblue' }
+                    ]}
+                    >
+                        {emotion.name}
+                        </Text>
                 </Pressable>
             ))
         )
@@ -576,7 +591,7 @@ export default class PostEntranceScreen extends Component {
             this.setState({ isPostEntryLoading: false });
             if (postUserEntryResult.ok) {
                 console.log('proceding to SYNC USER DATA IN RESPONSE TO SUCCESSFUL USER ENTRY POST... ')
-                this.props.route.params.syncUserData()
+                this.props.appState.syncUserData()
                 this.props.route.params.setMainScreenState({
                     selectedEntryId: null,
                     selectedDate: currentEntry.type == 'new' ? Today() : this.props.route.params.getMainScreenState().selectedDate,
@@ -620,7 +635,7 @@ export default class PostEntranceScreen extends Component {
             console.log('DELETE EMOTION STATUS: Finished.')
             this.setState({ isDeleteEmotionLoading: false });
             if (postEmotionResult.ok) {
-                await this.props.route.params.syncUserData();
+                await this.props.appState.syncUserData();
                 this.updateUserData();
             }
         }
@@ -727,25 +742,23 @@ export default class PostEntranceScreen extends Component {
             let { coords } = await Location.getCurrentPositionAsync();
             
             if (coords) {   
-                const { latitude, longitude } = coords;
-                this.setState({userCoordinates: coords})
                 console.log(`GEOCODING PROCESS (REQUEST): CURRENT USER POSITION FOUND... Latitude: ${latitude}, Logitude: ${longitude}`)
                 console.log('GEOCODING PROCESS (REVERSE GEOCODING): REVERSE GEOCODE ASYNC...')  
+                this.setState({userCoordinates: coords})
+                const { latitude, longitude } = coords;
                 let response = await Location.reverseGeocodeAsync({ latitude, longitude });
         
                 if (response) {
-                    this.setState({ address: formattedAddress(response[0]), location: { position: coords, address: response[0] } })
                     console.log('GEOCODING PROCESS (REVERSE GEOCODING): REVERSE GEOCODE SUCCESSFUL! UPDATING STATE...')  
+                    this.setState({ address: formattedAddress(response[0]), location: { position: coords, address: response[0] } })
 
                 } else {
                     console.log('GEOCODING PROCESS (REVERSE GEOCODING): REVERSE GEOCODE FAILED! LOGGING RESPONSE...')  
                     console.log(response)
                 }
-        
             } else {
                 console.log(`GEOCODING PROCESS (REVERSE GEOCODING): USER POSITION NOT FOUND! UNABLE TO PROCEED TO REVERSE GEOCODING...`)
             }
-
         } catch (error) {
             this.setLoginMsg('Não foi possível obter a localização atual. Tente reabrir essa tela...')
             console.log('GEOCODING PROCESS: ERROR IN USER POSITION REQUEST! LOGGING ERROR...')
@@ -771,10 +784,9 @@ export default class PostEntranceScreen extends Component {
         console.log('Rendering "PostEntry" component...')
         this.setFontColor()
         const settings = this.props.appState.user.settings
+        const backgroundColor = settings.backgroundColor
         const backgroundImage = settings.backgroundImage
         const imgURI =  settings.displayBackgroundImage ? (backgroundImage ? ( settings.enableHighResolution ? backgroundImage.urls.raw : backgroundImage.urls.regular ) : null ) : null
-        const backgroundColor = settings.backgroundColor
-
         return(
             <ImageBackground source={{'uri' : imgURI}} style={[styles.mainView, {backgroundColor: backgroundColor}]}>
                 <ScrollView style={styles.scrollView}>

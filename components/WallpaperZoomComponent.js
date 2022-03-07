@@ -60,9 +60,9 @@ var styles = {
   },
 }
 
-const openUserProfileFor = (url) => {
+const openUserProfileFor = (userProfileHtmlLink) => {
   return function () {
-    Linking.openURL( url + '?utm_source=Mood-Tracker&utm_medium=referral');
+    Linking.openURL( userProfileHtmlLink + '?utm_source=Mood-Tracker&utm_medium=referral');
   } 
 }
 
@@ -91,7 +91,7 @@ export function WallpaperZoom(props) {
         await postSettings({displayBackgroundImage: true}, appState.user.username)
       }
 
-      await props.route.params.syncUserData();
+      await props.appState.syncUserData();
       // navigate back to settings
       setIsSaveImageLoading(false);
       props.navigation.navigate('Settings');

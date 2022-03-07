@@ -150,26 +150,6 @@ const Item = (props) => {
   )
 };
 
-function ControlButton({iconName, size, additionalStyle, onPress}) {
-  return(
-    <Pressable
-    style={[{
-      position: 'absolute',
-      width: size,
-      height: size,
-      alignItems: 'center',
-      justifyContent: 'center',
-      borderRadius: size/2,
-    },
-    additionalStyle
-  ]}
-    onPress={onPress}
-    >
-      <Icon name={iconName} width={size} height={size} fill='#fff' />
-    </Pressable>
-  )
-}
-
 export class WallpapersComponent extends Component {
 
   constructor(props) {
@@ -297,12 +277,6 @@ export class WallpapersComponent extends Component {
   }
 
   ControlButtons() {
-    const windowHeight = this.state.windowHeight
-    const centerBottom = {
-      bottom: windowHeight*0.05,
-      alignSelf: 'center',
-      backgroundColor: '#fff8',
-    }
     const topRight = {
       top: Platform.OS != 'web' ? StatusBar.currentHeight : 0,
       right: 0,
@@ -311,28 +285,25 @@ export class WallpapersComponent extends Component {
     }
 
     return(
-      <>
-          { Platform.OS == 'web' ? (
-            <ControlButton
-            iconName='chevron-left-outline'
-            size={60}
-            additionalStyle={centerBottom}
-            onPress={() => this.props.navigation.goBack()}
-            />
-          ) : (
-            null
-          )}
-          { !this.state.hideHeader ? (
-            <ControlButton
-            iconName='close'
-            size={30}
-            additionalStyle={topRight}
-            onPress={() => this.setState({hideHeader: true})}
-            />
-          ) : (
-            null
-          ) }
-      </>
+      !this.state.hideHeader ? (
+        <Pressable
+        style={[{
+          position: 'absolute',
+          width: 30,
+          height: 30,
+          alignItems: 'center',
+          justifyContent: 'center',
+          borderRadius: 30/2,
+        },
+        topRight
+        ]}
+        onPress={() => this.setState({hideHeader: true})}
+        >
+          <Icon name='close' width={30} height={30} fill='#fff' />
+        </Pressable>
+      ) : (
+        null
+      )
     )
   }
 

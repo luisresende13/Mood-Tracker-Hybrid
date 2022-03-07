@@ -22,7 +22,6 @@ function openWeatherMapIconsURI (icon) {
 }
 
 // Defining mood colors schema
-// const moodColors = ['#ff3333', '#0099cc', '#add8e6', '#ffff33', '#00cc00']
 const moodColors = {'Horrível': '#ff3333', 'Mal': '#0099cc', 'Regular': '#add8e6', 'Bem': '#ffff33', 'Ótimo': '#00cc00'};
 
 const monthDict = {'Jan': '01', 'Feb': '02', 'Mar': '03', 'Apr': '04', 'May': '05', 'Jun': '06', 'Jul': '07', 'Ago': '08', 'Sep': '09', 'Oct': '10', 'Nov': '11', 'Dec': '12'}
@@ -118,7 +117,7 @@ function Jornal({ entry }) {
 }
 
 function EmptyCard(props) {
-    const today = props.date == Today()
+    const today = props.parentState.date == Today()
     const navigateParams = {
         currentEntry: {
             type: today ? 'new' : 'custom-date',
@@ -187,10 +186,12 @@ export default class UserEntryCards extends Component {
             <this.EditEntryButtons entryId={entry._id} />
         </Pressable>
         );
-    }    
+    }
 
     UserEntryCardsList() {
-        const selDateEntries = this.props.parentState.user.entries.filter( (entry) => entry.date === this.props.parentState.date ).reverse()
+        const selDateEntries = this.props.parentState.user.entries.filter( entry => entry.date === this.props.parentState.date ).reverse()
+        // console.log('LOGGING USER ENTRIES:')
+        // console.log(selDateEntries)
         if (selDateEntries.length) {
             return(
                 <>
@@ -198,7 +199,7 @@ export default class UserEntryCards extends Component {
                     {/* { this.props.parentState.isUserDataSyncing ? <CardsLoadingMessage /> : null } */}
                 </>
             )
-        } else if (this.props.parentState.isUserDataSyncing ) {
+        } else if (this.props.parentState.isUserDataSyncing) {
             return <CardsLoadingMessage />
             
         } else {

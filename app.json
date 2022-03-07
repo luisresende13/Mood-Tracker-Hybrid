@@ -3,6 +3,7 @@
     "name": "mood-tracker-app",
     "slug": "mood-tracker-app",
     "version": "1.0.0",
+    "scheme": "moodapp",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "splash": {

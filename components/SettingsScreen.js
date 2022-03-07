@@ -202,11 +202,12 @@ export default class SettingsScreen extends Component {
   SettingsScreen() {
     const settings = this.props.appState.user.settings
     const backgroundImage = settings.backgroundImage
+    const backgroundColor = this.state.selectedColor
     const imgURI = settings.displayBackgroundImage ? (backgroundImage ? ( settings.enableHighResolution ? backgroundImage.urls.raw : backgroundImage.urls.regular ) : null) : null
     return(
       <ImageBackground
       source={{uri : imgURI}}
-      style={[ styles.background, {backgroundColor: this.state.selectedColor} ]}
+      style={[ styles.background, {backgroundColor: backgroundColor} ]}
       >
         <ScrollView style={styles.foreground}>
           <View style={styles.header}>
@@ -424,7 +425,6 @@ export default class SettingsScreen extends Component {
         <Pressable
         disabled={isLoading | newColorUnselected}
         style={{ justifyContent: 'center', alignItems: 'center', width: 95 }}
-          
         // onPressIn={() => blinkButton((bool) => this.setState({isRestoreColorLoading: bool}))}
         onPress={() => {
           this.setState({isRestoreColorLoading: true})
@@ -502,7 +502,7 @@ export default class SettingsScreen extends Component {
     const postDisplayResult = await postSettings(newSettings, this.props.appState.user.username)
     if (postDisplayResult.ok) {
       // sync user data with app or entries component
-      await this.props.route.params.syncUserData()
+      await this.props.appState.syncUserData()
     }
     this.setState({ isDisplayBackgroundImageLoading: false });
   }
@@ -513,7 +513,7 @@ export default class SettingsScreen extends Component {
     const postDisplayResult = await postSettings(newSettings, this.props.appState.user.username)
     if (postDisplayResult.ok) {
       // sync user data with app or entries component
-      await this.props.route.params.syncUserData()
+      await this.props.appState.syncUserData()
       // update style variable with new data
       this.setFontColor()
     }
@@ -526,7 +526,7 @@ export default class SettingsScreen extends Component {
     const postHighResolutionResult = await postSettings(newSettings, this.props.appState.user.username)
     if (postHighResolutionResult.ok) {
       // sync user data with app or entries component
-      await this.props.route.params.syncUserData()
+      await this.props.appState.syncUserData()
       // update style variable with new data
     }
     this.setState({ isEnableHighResolutionLoading: false });
@@ -545,7 +545,7 @@ export default class SettingsScreen extends Component {
         await this.onDisplayBackgroundImageSwitch(false)
       } else {
         // sync user data with app or entries component
-        await this.props.route.params.syncUserData()
+        await this.props.appState.syncUserData()
       }
       // initialize settings
       this.syncUserSettings()
@@ -556,7 +556,8 @@ export default class SettingsScreen extends Component {
 
   async onLogoutButtonPress() {
     await keepUserConnectionAlive(null); // kills user connection
-    this.props.route.params.logout();
+    // this.props.route.params.logout();
+    this.props.appState.logout()
   }
 
   render() {

@@ -1,10 +1,10 @@
 import React, { Component, createContext, useContext } from 'react';
-import { Dimensions, StatusBar, Platform } from 'react-native'; 
+import { ImageBackground, Text, ActivityIndicator, Platform } from 'react-native';
 import { Icon } from 'react-native-eva-icons'
 // import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
-
-import { NavigationContainer } from '@react-navigation/native';
+import { Today } from './components/EntrancesComponent';
+import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 //import { createDrawerNavigator } from '@react-navigation/drawer';
@@ -17,16 +17,34 @@ import UserContext from './shared/UserContext';
 import { WallpapersComponent } from './components/WallpapersComponent';
 import { WallpaperZoom } from './components/WallpaperZoomComponent';
 
+import * as Linking from 'expo-linking';
+const linking = {
+  prefixes: [Linking.createURL('/')],//, 'https://luisresende13.github.io/Mood-Tracker'],
+  config: {
+    screens: {
+      Home: {
+        screens: {
+          Entrances: 'Entrances',
+          Settings: 'Settings',
+        },
+      },
+      PostEntrance: 'PostEntrance',
+      WallpaperTopics: 'WallpaperTopics',
+      Wallpapers: 'Wallpapers',
+      WallpaperZoom: 'WallpaperZoom'
+    }
+  }
+};
+
 // cors-midpoint uri (needed to avoid cors' allow-cross-origin error when fetching in web platforms)
 const corsURI = Platform.OS == 'web' ? 'https://morning-journey-78874.herokuapp.com/' : ''
 const appServerURI = 'https://mood-tracker-server.herokuapp.com/'
 
-const unsplashTopics = require('./shared/unsplashTopics.json')
-
-const window = Dimensions.get('window')
-const windowHeight = window.height;
-const screenHeight = windowHeight + StatusBar.currentHeight
-
+const LoadingScreen = () => (
+  <ImageBackground source={require('./assets/wallpaper.png')} style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
+    <ActivityIndicator size='large' color='#fff' />
+  </ImageBackground>
+)
 
 const SettingsScreenProvider = (props) => {
   const appState = useContext(UserContext)
@@ -55,7 +73,14 @@ const WallpapersScreenProvider = (props) => {
     <WallpapersComponent  appState={appState} {...props} />
   )
 }
-  
+
+const WallpaperZoomScreenProvider = (props) => {
+  const appState = useContext(UserContext)
+  return(
+    <WallpaperZoom appState={appState} {...props} />
+  )
+}
+
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
@@ -70,9 +95,7 @@ function tabBarIcon(iconName) {
 }
 
 const HomeTab = (props) => {
-
   const appState = useContext(UserContext)
-
   const mainScreenOptions = ({ route }) => ({
     headerShown: false,
     tabBarShowLabel: false,
@@ -96,11 +119,6 @@ const HomeTab = (props) => {
       <Tab.Screen
       name="Entrances"
       component={EntrancesScreenProvider}
-      initialParams={{
-        getAppState: props.route.params.getAppState,
-        setAppState: props.route.params.setAppState,
-        syncUserData: props.route.params.syncUserData,
-      }}
       options={{
         tabBarIcon: tabBarIcon('inbox')
       }}
@@ -109,10 +127,7 @@ const HomeTab = (props) => {
       name="Settings"
       component={SettingsScreenProvider}
       initialParams={{
-        logout: props.route.params.logout,
-        getAppState: props.route.params.getAppState,
-        setAppState: props.route.params.setAppState,
-        syncUserData: props.route.params.syncUserData,
+        selectedColor: appState.user.settings.selectedColor
       }}
       options={{
         tabBarIcon: tabBarIcon('settings-2')
@@ -122,7 +137,7 @@ const HomeTab = (props) => {
   )
 }
 
-const HomeStack = (props) => {
+const HomeStack = () => {
 
   console.log('Returning "HomeScreen" component...')
   return(
@@ -135,60 +150,35 @@ const HomeStack = (props) => {
       <Stack.Screen
       name="Home"
       component={HomeTab}
-      initialParams={{
-        logout: props.logout,
-        getAppState: props.getAppState,
-        setAppState: props.setAppState,
-        syncUserData: props.syncUserData,
-      }}
-      // options={{title: 'Suas entradas'}}
       />
       <Stack.Screen
       name="PostEntrance"
       component={PostEntranceScreenProvider}
       initialParams={{
-        getAppState: props.getAppState,
-        setAppState: props.setAppState,
-        syncUserData: props.syncUserData,
+        currentEntry: {type: 'new', date: Today(), entry: null},
       }}
-      // options={{title: 'Adicione uma  entrada'}}
       />
       <Stack.Screen
       name="WallpaperTopics"
       component={WallpapersScreenProvider}
       initialParams={{
-        // photoList: unsplashTopics,
         headerText: 'Tópicos',
-        getAppState: props.getAppState,
-        setAppState: props.setAppState,
-        syncUserData: props.syncUserData
       }}
       />
       <Stack.Screen
       name="Wallpapers"
       component={WallpapersScreenProvider}
       initialParams={{
-        photoList: [],
         headerText: 'Clique em uma imagem para ampliar',
-        getAppState: props.getAppState,
-        setAppState: props.setAppState,
-        syncUserData: props.syncUserData
       }}
       />
       <Stack.Screen
       name="WallpaperZoom"
-      component={WallpaperZoom}
-      initialParams={{
-        getAppState: props.getAppState,
-        setAppState: props.setAppState,
-        syncUserData: props.syncUserData,
-      }}
+      component={WallpaperZoomScreenProvider}
       />
     </Stack.Navigator>
   )  
 }
-
-// export const UserContext = createContext();
 
 export default class App extends Component {
 
@@ -196,15 +186,18 @@ export default class App extends Component {
     super(props);
 
     this.state = {
-      isUserAuth: false,
       user: null,
+      isUserAuth: false,
       isUserDataSyncing: false,
-      // userDataSynced: false
     };
 
     this.logout = this.logout.bind(this);
     this.getAppState = this.getAppState.bind(this);
     this.syncUserData = this.syncUserData.bind(this);
+  }
+
+  componentDidMount() {
+    console.log('App component did mount...')
   }
 
   logout() {
@@ -228,6 +221,7 @@ export default class App extends Component {
             console.log('SYNC USER DATA STATUS: Successful.')
             const user = await UserResult.json();
             this.setState({user: user})
+
         } else {
             console.log( new Error('"fetch" GET request for user DATA failed. Throwing error...') )
             throw new Error(userStatus)
@@ -236,6 +230,7 @@ export default class App extends Component {
             console.log('SYNC USER DATA STATUS: Error captured. Printing error...')
             console.log(error);
             alert('Não foi possível sincronizar as entradas. Por favor, aguarde..')
+
     } finally {
         this.setState({ isUserDataSyncing: false });
         console.log('SYNC USER DATA STATUS: Finished.')
@@ -243,6 +238,8 @@ export default class App extends Component {
 }
 
   render() {
+    console.log('Rendering "App" component...')
+
     return !this.state.isUserAuth ? (
       <LoginScreen
       user={this.state.user}
@@ -250,15 +247,18 @@ export default class App extends Component {
       setAppState={this.setState.bind(this)}
       />
     ) : (
-      <UserContext.Provider value={this.state}>
-          <NavigationContainer>
-            <HomeStack
-            user={this.state.user}
-            logout={this.logout}
-            getAppState={this.getAppState}
-            setAppState={this.setState.bind(this)}
-            syncUserData={this.syncUserData}
-            />
+      <UserContext.Provider
+      value={{
+        ...this.state,
+        logout: this.logout,
+        setAppState: this.setState.bind(this),
+        syncUserData: this.syncUserData
+      }}>
+          <NavigationContainer
+          linking={linking}
+          fallback={<LoadingScreen />}
+          >
+            <HomeStack />
           </NavigationContainer>    
       </UserContext.Provider>
     );  

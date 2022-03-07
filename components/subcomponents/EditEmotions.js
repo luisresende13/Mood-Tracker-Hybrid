@@ -378,7 +378,7 @@ export default class EditEmotions extends Component {
             console.log('POST EMOTION STATUS: Finished.')
             this.props.setParentState({ isSaveEmotionLoading: false });
             if (postEmotionResult.ok) {
-                await this.props.route.params.syncUserData();
+                await this.props.appState.syncUserData();
                 this.props.updateUserData();
             }
         } 
@@ -427,7 +427,7 @@ export default class EditEmotions extends Component {
             console.log('POST EMOTION LAYOUT STATUS: Finished.')
             this.props.setParentState({ isSaveEmotionLayoutLoading: false });
             if (postEmotionLayoutResult.ok) {
-                await this.props.route.params.syncUserData();
+                await this.props.appState.syncUserData();
                 this.props.updateUserData();
             }
         } 
