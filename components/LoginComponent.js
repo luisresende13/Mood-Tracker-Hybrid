@@ -17,12 +17,13 @@ const userScheme = {
   layout: 'grid',
   settings: {
     backgroundColor: "#5926a6",
-    backgroundImage: null,
-    displayBackgroundImage: false,
+    backgroundImage: require('../shared/defaultWallpaper.json'),
+    displayBackgroundImage: true,
     enableHighResolution: false,
     fontColorDark: false,
   }
 }
+
 // App server connection settings
 const corsURI = Platform.OS == 'web' ? 'https://morning-journey-78874.herokuapp.com/' : ''
 const appServerURI = 'https://mood-tracker-server.herokuapp.com/'
