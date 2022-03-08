@@ -66,20 +66,17 @@ export default class EntrancesScreen extends Component {
         this.state = {            
             date: Today(),
             time: getTime(),
-            selectedDate: Today(),
             isDeleteEntryLoading: false,
             alertMsg: '',
-            locationPermission: null,
         };
         this.onNextButtonPress = this.onNextButtonPress.bind(this);
         this.setFontColor = this.setFontColor.bind(this);
         this.setAlertMsg = this. setAlertMsg.bind(this);
-        this.getMainScreenState = this.getMainScreenState.bind(this);
+        this.getMainScreenState = this.getMainScreenState.bind(this); // remove
     }
     
     componentDidMount() {
         console.log('"Entries" screen component did mount...')
-        // this.setFontColor()
     }
 
     componentWillUnmount() {
@@ -92,9 +89,9 @@ export default class EntrancesScreen extends Component {
 
     onNextButtonPress(next='next') {
         function setSelectedDate() {
-            this.setState({
+            this.props.navigation.setParams({
                 selectedEntryId: null,
-                selectedDate: getNextDate(this.state.selectedDate, next),
+                selectedDate: getNextDate(this.props.route.params.selectedDate, next),
             })
         }
         return setSelectedDate.bind(this);
@@ -130,11 +127,8 @@ export default class EntrancesScreen extends Component {
         console.log('Rendering "EntriesScreen" component...')
 
         this.setFontColor()
-        // const today = this.state.selectedDate === Today()
         const navigateParams = {
             currentEntry: {type: 'new', date: Today(), entry: null},
-            setMainScreenState: this.setState.bind(this),
-            getMainScreenState: this.getMainScreenState,
         }
         const isLoading = this.props.appState.isUserDataSyncing | this.state.isDeleteEntryLoading
         const settings = this.props.appState.user.settings
@@ -149,15 +143,14 @@ export default class EntrancesScreen extends Component {
                     <View style={styles.section}>
                         <View style={[styles.cardRow, {justifyContent: 'space-between'}]}>
                             <this.DateNavigationButton icon='arrow-back' next='previous' />
-                            <Text style={[styles.sectionTitle, styles.theme]}> {'Suas entradas  •  ' + formatDate(this.state.selectedDate)} </Text>                                
+                            <Text style={[styles.sectionTitle, styles.theme]}> {'Suas entradas  •  ' + formatDate(this.props.route.params.selectedDate)} </Text>                                
                             <this.DateNavigationButton icon='arrow-forward' next='next' />
                         </View>
                         <UserEntryCards
                         parentState={{
-                            date: this.state.selectedDate,
-                            selectedEntryId: this.state.selectedEntryId,
+                            selectedDate: this.props.route.params.selectedDate,
+                            selectedEntryId: this.props.route.params.selectedEntryId,
                             user: this.props.appState.user,
-                            // isUserDataSynced: this.props.appState.isUserDataSynced,
                             isUserDataSyncing: this.props.appState.isUserDataSyncing,
                             isDeleteEntryLoading: this.state.isDeleteEntryLoading,
                         }}

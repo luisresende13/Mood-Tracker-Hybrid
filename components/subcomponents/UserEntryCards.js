@@ -117,15 +117,15 @@ function Jornal({ entry }) {
 }
 
 function EmptyCard(props) {
-    const today = props.parentState.date == Today()
+    const today = props.parentState.selectedDate == Today()
     const navigateParams = {
         currentEntry: {
             type: today ? 'new' : 'custom-date',
-            date: props.parentState.date,
+            date: props.parentState.selectedDate,
             entry: null
         },
-        setMainScreenState: props.setMainScreenState,
-        getMainScreenState: props.getMainScreenState,
+        // setMainScreenState: props.setMainScreenState,
+        // getMainScreenState: props.getMainScreenState,
 
     }
     const textStyle = [{fontSize: 16, marginTop: 7}, styles.theme]
@@ -173,7 +173,7 @@ export default class UserEntryCards extends Component {
     
     EntryCard({ entry }) {
         function onEntryCardPress() {
-            this.props.setMainScreenState({ selectedEntryId: this.props.parentState.selectedEntryId === entry._id ? null : entry._id })
+            this.props.parentProps.navigation.setParams({ selectedEntryId: this.props.parentState.selectedEntryId === entry._id ? null : entry._id })
         }
         return (
         <Pressable
@@ -189,7 +189,7 @@ export default class UserEntryCards extends Component {
     }
 
     UserEntryCardsList() {
-        const selDateEntries = this.props.parentState.user.entries.filter( entry => entry.date === this.props.parentState.date ).reverse()
+        const selDateEntries = this.props.parentState.user.entries.filter( entry => entry.date === this.props.parentState.selectedDate ).reverse()
         // console.log('LOGGING USER ENTRIES:')
         // console.log(selDateEntries)
         if (selDateEntries.length) {
@@ -261,8 +261,8 @@ export default class UserEntryCards extends Component {
                 date: selectedEntry.date,
                 entry: selectedEntry
             },
-            setMainScreenState: this.props.setMainScreenState,
-            getMainScreenState: this.props.getMainScreenState,
+            // setMainScreenState: this.props.setMainScreenState,
+            // getMainScreenState: this.props.getMainScreenState,
     
         }
         this.props.parentProps.navigation.navigate('PostEntrance', navigateParams)
@@ -298,7 +298,8 @@ export default class UserEntryCards extends Component {
 
         } finally {
             this.props.setMainScreenState({ isDeleteEntryLoading: false });
-            this.props.setMainScreenState({ selectedEntryId: null })
+            this.props.parentProps.navigation.setParams({ selectedEntryId: null })
+            // this.props.setMainScreenState({ selectedEntryId: null })
             console.log('DELETE USER ENTRY STATUS: FINISHED.' + UsersResult.ok ? 'Proceeding to sync user entries...' : 'Delete failed, skipping sync of user entries...')
             if (UsersResult.ok) {this.props.syncUserData()}
         }    

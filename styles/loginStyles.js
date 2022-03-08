@@ -15,6 +15,8 @@ var styles = {
             marginTop: 30,
         },
         title: {
+            // width: 200,
+            textAlign: 'center',
             fontSize: 30,
             fontWeight: 'bold',
             color: 'white',

@@ -173,6 +173,7 @@ export default class PostEntranceScreen extends Component {
             deleteEmotionMode: false,
             isUpdateUserDataLoading: false,
 
+            locationPermission: null,
             userCoordinates: null,
             loginMsg: '',
         };
@@ -592,11 +593,14 @@ export default class PostEntranceScreen extends Component {
             if (postUserEntryResult.ok) {
                 console.log('proceding to SYNC USER DATA IN RESPONSE TO SUCCESSFUL USER ENTRY POST... ')
                 this.props.appState.syncUserData()
-                this.props.route.params.setMainScreenState({
+                // this.props.route.params.setMainScreenState({
+                //     selectedEntryId: null,
+                //     selectedDate: currentEntry.type == 'new' ? Today() : this.props.route.params.getMainScreenState().selectedDate,
+                // })
+                this.props.navigation.navigate('Entrances', {
                     selectedEntryId: null,
-                    selectedDate: currentEntry.type == 'new' ? Today() : this.props.route.params.getMainScreenState().selectedDate,
+                    selectedDate: newEntry.date,
                 })
-                this.props.navigation.navigate('Entrances', {} )
             }
         }
     }
@@ -720,13 +724,13 @@ export default class PostEntranceScreen extends Component {
 
         try {
 
-            if (this.props.route.params.getMainScreenState().locationPermission === 'granted') {
+            if (this.state.locationPermission === 'granted') {
                 console.log('GEOCODING PROCESS (PERMISSION): PERMISSION ALREADY GRANTED. SKIPPING REQUEST...')
             } else {
                 console.log('GEOCODING PROCESS (PERMISSION): REQUESTING PERMISSION ASYNC...')
                 let { status } = await Location.requestForegroundPermissionsAsync()
                 // let { status } = await Location.requestBackgroundPermissionsAsync()        
-                this.props.route.params.setMainScreenState({locationPermission: status})
+                this.setState({locationPermission: status})
     
                 if (status !== 'granted') {
                     console.log('GEOCODING PROCESS (PERMISSION): PERMISSION NOT GRANTED!')

@@ -17,8 +17,8 @@ const userScheme = {
   layout: 'grid',
   settings: {
     backgroundColor: "#5926a6",
-    backgroundImage: 'https://images.unsplash.com/photo-1557682268-e3955ed5d83f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwzMDczOTJ8MHwxfHRvcGljfHxpVUlzblZ0akIwWXx8fHx8MXx8MTY0NjYyNDQyMw&ixlib=rb-1.2.1&q=80&w=1080',
-    displayBackgroundImage: true,
+    backgroundImage: null,
+    displayBackgroundImage: false,
     enableHighResolution: false,
     fontColorDark: false,
   }
@@ -82,29 +82,28 @@ function validatePassword(password) {
   return res
 }
 
-async function fetchUsers() {
-  var UsersResponse = await fetch( corsURI + appServerURI + 'Users', { method: 'GET' });
-  const UsersStatus = 'Status: ' + UsersResponse.status + ', ' + 'Status Text: ' + UsersResponse.statusText
-  if (UsersResponse.ok) {
-    console.log('fetch GET request for users data at signin successful.');
-    console.log(UsersStatus)
+// async function fetchUsers() {
+//   var UsersResponse = await fetch( corsURI + appServerURI + 'Users', { method: 'GET' });
+//   const UsersStatus = 'Status: ' + UsersResponse.status + ', ' + 'Status Text: ' + UsersResponse.statusText
+//   if (UsersResponse.ok) {
+//     console.log('fetch GET request for users data at signin successful.');
+//     console.log(UsersStatus)
 
-    const Users = await UsersResponse.json();
-    return Users
-  } else {
-    console.log('fetch GET request for users data at signin failed. Printing fetch response...')
-    console.log(JSON.stringify(UsersResponse))
-    console.log('Returning null...')
-    return null
-  }
-}
+//     const Users = await UsersResponse.json();
+//     return Users
+//   } else {
+//     console.log('fetch GET request for users data at signin failed. Printing fetch response...')
+//     console.log(JSON.stringify(UsersResponse))
+//     console.log('Returning null...')
+//     return null
+//   }
+// }
 
 async function registerLocallyIfUserIsNewToDevice(user) {
   var localAuthInfo = await AsyncStorage.getItem('LocalAuthenticationInfo')
   localAuthInfo = JSON.parse(localAuthInfo)  
   if ( !localAuthInfo.users.filter(localUser => localUser._id == user._id)[0] ) {
-    console.log('SIGNIN STATUS: Primeiro login do usuário nesse aparelho. Imprimindo informações atuais e adicionando informações do usuário no armazenamento local...')
-    console.log(localAuthInfo)
+    console.log('SIGNIN STATUS: Primeiro login do usuário nesse aparelho. Adicionando informações do usuário no armazenamento local...')
     const updatedLocalAuthInfo = {
       ...localAuthInfo,
       users: [ 
@@ -118,8 +117,7 @@ async function registerLocallyIfUserIsNewToDevice(user) {
       ]
     }
     await AsyncStorage.setItem('LocalAuthenticationInfo', JSON.stringify(updatedLocalAuthInfo))
-    console.log('SIGNIN STATUS: Informações do usuário adicionadas no aparelho. Imprimindo informações locais de autenticação atualizadas...')
-    console.log(JSON.stringify(updatedLocalAuthInfo))
+    console.log('SIGNIN STATUS: Informações do usuário adicionadas no aparelho.')
   } else {
     console.log('SIGNIN STATUS: Informações do usuário já registradas nesse aparelho. Pulando registro do usuário no armazenamento local...')
   } 
@@ -139,9 +137,6 @@ export async function keepUserConnectionAlive(id) {
       }
     }
     await AsyncStorage.setItem('LocalAuthenticationInfo', JSON.stringify(updatedLocalAuthInfo))
-    console.log('SIGNIN STATUS: Conexão ativa configurada! Imprimindo nova configuração de autenticação local...')
-    const updatedAuthInfo = await AsyncStorage.getItem('LocalAuthenticationInfo')
-    console.log(JSON.parse(updatedAuthInfo))  
   } else {
     console.log('SIGNIN STATUS: Fazendo login via conexã ativa. Pulando configuração de conexão ativa para o usuário...')
   }
@@ -233,7 +228,7 @@ class LoginScreen extends Component {
       >
         
         <View style={styles.login.titleView}>
-          <Text style={styles.login.title}>Mood Tracker</Text>
+          <Text style={styles.login.title}>Rastreador de humor</Text>
         </View>
 
         <View style={styles.login.card}>
@@ -307,7 +302,6 @@ class LoginScreen extends Component {
       if (localAuthInfo) {
         console.log('RESTORE USER TOKEN STATUS: LOCAL AUTH INFO ALREADY CONFIGURED. LOGGING CURRENT VALUE...')
         localAuthInfo = JSON.parse(localAuthInfo)
-        // console.log(localAuthInfo)
 
         if (localAuthInfo.keepConnected.status) {
           console.log(`RESTORE USER TOKEN STATUS: USER CONNECTION IS ALIVE FOR USER ID: ${localAuthInfo.keepConnected.userId}. PROCEDING TO SIGNIN...`)
@@ -351,8 +345,6 @@ class LoginScreen extends Component {
             userId: null
           }
         }
-        console.log('RESTORE USER TOKEN STATUS: LOGGING NEW LOCAL AUTH INFO...')
-        console.log(initialLocalAuthInfo)
         await AsyncStorage.setItem('LocalAuthenticationInfo', JSON.stringify(initialLocalAuthInfo))
         console.log('RESTORE USER TOKEN STATUS: DEVICE LOCAL AUTH INFO CONFIGURED FOR THE FIRST TIME. PROCEEDING TO SIGNIN/SIGNUP ...')
       }

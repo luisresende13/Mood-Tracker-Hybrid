@@ -35,6 +35,15 @@ const linking = {
     }
   }
 };
+const loginLinking = {
+  prefixes: [Linking.createURL('/')],//, 'https://luisresende13.github.io/Mood-Tracker'],
+  config: {
+    screens: {
+      Login: 'Login'
+    }
+  }
+};
+console.log('CREATE URL: ' + Linking.createURL('/'))
 
 // cors-midpoint uri (needed to avoid cors' allow-cross-origin error when fetching in web platforms)
 const corsURI = Platform.OS == 'web' ? 'https://morning-journey-78874.herokuapp.com/' : ''
@@ -119,6 +128,10 @@ const HomeTab = (props) => {
       <Tab.Screen
       name="Entrances"
       component={EntrancesScreenProvider}
+      initialParams={{
+        selectedDate: Today(),
+        selectedEntryId: null,
+      }}
       options={{
         tabBarIcon: tabBarIcon('inbox')
       }}
@@ -194,6 +207,9 @@ export default class App extends Component {
     this.logout = this.logout.bind(this);
     this.getAppState = this.getAppState.bind(this);
     this.syncUserData = this.syncUserData.bind(this);
+    this.Login = this.Login.bind(this);
+    this.LoginContainer = this.LoginContainer.bind(this);
+    this.ContextProvider = this.ContextProvider.bind(this);
   }
 
   componentDidMount() {
@@ -235,18 +251,41 @@ export default class App extends Component {
         this.setState({ isUserDataSyncing: false });
         console.log('SYNC USER DATA STATUS: Finished.')
     }    
-}
+  }
 
-  render() {
-    console.log('Rendering "App" component...')
-
-    return !this.state.isUserAuth ? (
+  Login() {
+    return(
       <LoginScreen
       user={this.state.user}
       getAppState={this.getAppState}
       setAppState={this.setState.bind(this)}
       />
-    ) : (
+    )
+  }
+
+  LoginContainer() {
+    return(
+      <NavigationContainer
+      linking={loginLinking}
+      fallback={<LoadingScreen />}
+      >
+        <Stack.Navigator 
+        initialRouteName='Login'
+        screenOptions={{
+          headerShown: false,
+        }}
+        >
+          <Stack.Screen
+          name="Login"
+          component={this.Login}
+          />
+        </Stack.Navigator>
+      </NavigationContainer>    
+    )
+  }
+
+  ContextProvider() {
+    return(
       <UserContext.Provider
       value={{
         ...this.state,
@@ -261,6 +300,28 @@ export default class App extends Component {
             <HomeStack />
           </NavigationContainer>    
       </UserContext.Provider>
+    )
+  }
+  render() {
+    console.log('Rendering "App" component...')
+    
+    return !this.state.isUserAuth ? (
+      <this.LoginContainer />
+    ) : (
+      <this.ContextProvider />
     );  
+
+    // if (this.state.isUserAuth) {
+    //     return <this.ContextProvider />
+    // } else {
+    //     return <this.LoginContainer />
+    // }
+
+    // switch (this.state.isUserAuth) {
+    //   case true:
+    //     return <this.ContextProvider />
+    //   default:
+    //     return <this.LoginContainer />
+    // }
   }
 }
