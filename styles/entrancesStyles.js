@@ -119,14 +119,13 @@ var styles = {
         alignSelf: 'center',
         bottom: 110,
         width: 300,
-        paddingVertical: 5,
-        paddingHorizontal: 3,
+        paddingVertical: 10,
+        paddingHorizontal: 10,
         // height: 36,
         justifyContent: 'center',
         backgroundColor: 'rgb(30,30,30)',
         borderWidth: 1,
         borderColor: 'rgb(40,40,40)',
-        
     },
     msg: {
         textAlign: 'center',

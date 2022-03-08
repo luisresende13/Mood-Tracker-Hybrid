@@ -12,8 +12,6 @@ import * as Location from 'expo-location';
 import GoogleMapsAPI from './subcomponents/GoogleMapsAPI'
 Location.setGoogleApiKey(GoogleMapsAPI.GoogleMapsGeocodingAPIKey)
 
-// cors-midpoint uri (needed to avoid cors' allow-cross-origin error when fetching in web platforms)
-const corsURI = Platform.OS == 'web' ? 'https://morning-journey-78874.herokuapp.com/' : ''
 const appServerURI = 'https://mood-tracker-server.herokuapp.com/'
 
 // Mood configs
@@ -570,7 +568,7 @@ export default class PostEntranceScreen extends Component {
                 body: JSON.stringify( newEntry ),
             }
             // var postUserEntryResult = await fetch('http://localhost:3000/Users/' + info.username + '/entries', postUserEntryOpts);
-            postUserEntryResult = await fetch( corsURI + appServerURI + 'Users/' + user.username + '/entries' + (editMode ? '/'+currentEntry.entry._id : ''), postUserEntryOpts);
+            postUserEntryResult = await fetch( appServerURI + 'Users/' + user.username + '/entries' + (editMode ? '/'+currentEntry.entry._id : ''), postUserEntryOpts);
             const postUserEntryStatus = 'Status: ' + postUserEntryResult.status + ', ' + postUserEntryResult.statusText
 
             if (postUserEntryResult.ok) {
@@ -618,7 +616,7 @@ export default class PostEntranceScreen extends Component {
                 },
             }
             // var postUserEntryResult = await fetch('http://localhost:3000/Users/' + info.username + '/emotions', postUserEntryOpts);
-            postEmotionResult = await fetch( corsURI + appServerURI + 'Users/' + user.username + '/emotions/' + emotion, postUserEntryOpts);
+            postEmotionResult = await fetch( appServerURI + 'Users/' + user.username + '/emotions/' + emotion, postUserEntryOpts);
             const postEmotionStatus = 'Status: ' + postEmotionResult.status + ', ' + postEmotionResult.statusText
 
             if (postEmotionResult.ok) {
@@ -664,7 +662,7 @@ export default class PostEntranceScreen extends Component {
                         queryParams: queryParams
                     })
                 }
-                const response = await fetch(corsURI + appServerURI + 'api/weather', fetchOptions)
+                const response = await fetch(appServerURI + 'api/weather', fetchOptions)
                 const resStatus = 'Status: ' + response.status + ', Status Text: ' + response.statusText
                 if (!response.ok) 
                     throw new Error(resStatus)

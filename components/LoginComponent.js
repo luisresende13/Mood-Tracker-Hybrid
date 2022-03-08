@@ -25,7 +25,6 @@ const userScheme = {
 }
 
 // App server connection settings
-const corsURI = Platform.OS == 'web' ? 'https://morning-journey-78874.herokuapp.com/' : ''
 const appServerURI = 'https://mood-tracker-server.herokuapp.com/'
 
 // Email Validation settings
@@ -48,7 +47,7 @@ async function validateEmail(email) {
           queryParams: queryParams
         }),
     }
-    const apiResp = await fetch(corsURI + appServerURI + 'api/email', fetchOptions)
+    const apiResp = await fetch(appServerURI + 'api/email', fetchOptions)
   
     if (apiResp.ok) {  
       console.log('EMAIL VERIFICATION STATUS: Api fetch request successful.')
@@ -84,7 +83,7 @@ function validatePassword(password) {
 }
 
 // async function fetchUsers() {
-//   var UsersResponse = await fetch( corsURI + appServerURI + 'Users', { method: 'GET' });
+//   var UsersResponse = await fetch( appServerURI + 'Users', { method: 'GET' });
 //   const UsersStatus = 'Status: ' + UsersResponse.status + ', ' + 'Status Text: ' + UsersResponse.statusText
 //   if (UsersResponse.ok) {
 //     console.log('fetch GET request for users data at signin successful.');
@@ -367,7 +366,7 @@ class LoginScreen extends Component {
 
       if (this.isInputEmpty()) return
 
-      var UsersResult = await fetch( corsURI + appServerURI + 'Users', { method: 'GET' });
+      var UsersResult = await fetch( appServerURI + 'Users', { method: 'GET' });
       const UsersStatus = 'Status: ' + UsersResult.status + ', ' + 'Status Text: ' + UsersResult.statusText
       if (UsersResult.ok) {
         console.log('fetch GET request for users data at signin successful.');
@@ -447,7 +446,7 @@ class LoginScreen extends Component {
       }
 
       // Checking if email is already registerd
-      var UsersResult = await fetch( corsURI + appServerURI + 'Users', { method: 'GET' } );  
+      var UsersResult = await fetch( appServerURI + 'Users', { method: 'GET' } );  
       const reqStatus = 'Status: ' + UsersResult.status + ', ' + UsersResult.statusText
       if (UsersResult.ok) {
         console.log('fetch GET request for users data at signup successful.')
@@ -482,7 +481,7 @@ class LoginScreen extends Component {
           })
         }
 
-        postUserResult = await fetch( corsURI + appServerURI +  'Users/' + info.username, postUserOpts );
+        postUserResult = await fetch( appServerURI +  'Users/' + info.username, postUserOpts );
         const postUserStatus = 'Status: ' + postUserResult.status + ', ' + postUserResult.statusText
 
         if (postUserResult.ok) {

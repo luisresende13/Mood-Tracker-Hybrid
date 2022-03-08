@@ -46,7 +46,6 @@ const loginLinking = {
 console.log('CREATE URL: ' + Linking.createURL('/'))
 
 // cors-midpoint uri (needed to avoid cors' allow-cross-origin error when fetching in web platforms)
-const corsURI = Platform.OS == 'web' ? 'https://morning-journey-78874.herokuapp.com/' : ''
 const appServerURI = 'https://mood-tracker-server.herokuapp.com/'
 
 const LoadingScreen = () => (
@@ -229,7 +228,7 @@ export default class App extends Component {
     console.log('SYNC USER DATA STATUS: Started...')
     this.setState({ isUserDataSyncing: true });
     try {
-        var UserResult = await fetch( corsURI + appServerURI + 'Users/' + this.state.user.username, { method: 'GET' });
+        var UserResult = await fetch( appServerURI + 'Users/' + this.state.user.username, { method: 'GET' });
         const userStatus =  'Status: ' + UserResult.status + ', ' + UserResult.statusText
         if (UserResult.ok) {
             console.log('fetch GET request for user DATA successful.')

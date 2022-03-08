@@ -10,10 +10,6 @@ import UserEntryCards from './subcomponents/UserEntryCards';
 import dateRange from '../shared/dateRange';
 import styles  from '../styles/entrancesStyles';
 
-// cors-midpoint uri (needed to avoid cors' allow-cross-origin error when fetching in web platforms)
-// const corsURI = Platform.OS == 'web' ? 'https://morning-journey-78874.herokuapp.com/' : ''
-// const appServerURI = 'https://mood-tracker-server.herokuapp.com/'
-
 // Defining pertinent constants
 const monthDict = {'Jan': '01', 'Feb': '02', 'Mar': '03', 'Apr': '04', 'May': '05', 'Jun': '06', 'Jul': '07', 'Ago': '08', 'Sep': '09', 'Oct': '10', 'Nov': '11', 'Dec': '12'}
 const englishMonthSigs = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -104,7 +100,7 @@ export default class EntrancesScreen extends Component {
     
     alertMsg() {
         return(
-            <View style={[styles.msgBox, this.state.alertMsg ? {} : {height: 0, backgroundColor: 'transparent', borderColor: 'transparent'} ]}>
+            <View style={[styles.msgBox, this.state.alertMsg ? {} : {height: null, paddingVertical: 10, backgroundColor: 'transparent', borderColor: 'transparent'} ]}>
                 <Text style={styles.msg}>{this.state.alertMsg}</Text>
             </View>
         )

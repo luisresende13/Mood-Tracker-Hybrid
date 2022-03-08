@@ -7,8 +7,6 @@ import { Icon } from 'react-native-eva-icons'
 import styles from '../../styles/entrancesStyles'
 styles.theme = {}; styles.altTheme = {}; 
 
-// cors-midpoint uri (needed to avoid cors' allow-cross-origin error when fetching in web platforms)
-const corsURI = Platform.OS == 'web' ? 'https://morning-journey-78874.herokuapp.com/' : ''
 const appServerURI = 'https://mood-tracker-server.herokuapp.com/'
 
 // OpenWeatherMap API weather icons URI:
@@ -209,7 +207,8 @@ export default class UserEntryCards extends Component {
 
     EditEntryButtons(props) {
         const buttonLabels = ['Editar', 'Excluir']
-        const onButtonPress = { 'Editar': this.editUserEntry, 'Excluir': this.deleteUserEntry }
+        const onButtonPress = { 'Editar': this.editUserEntry, 'Excluir': () => {this.props.setAlertMsg('Pressione e segure para excluir uma entrada.')} }
+        const onButtonLongPress = { 'Editar': () => {}, 'Excluir': this.deleteUserEntry }
 
         const [isButtonPressed, setIsButtonPressed] = useState({
             'Editar': false,
@@ -224,7 +223,7 @@ export default class UserEntryCards extends Component {
         }
 
         const isLoading = this.props.parentState.isDeleteLoading | this.props.parentState.isUserDataSyncing
-        const buttonLabel = (label) => <Text style={[styles.editButtonLabel, {color: label=='Excluir' ? 'red' : styles.theme.color }]}>{label}</Text>
+        const buttonLabel = (label) => <Text selectable={false} style={[styles.editButtonLabel, {color: label=='Excluir' ? 'red' : styles.theme.color }]}>{label}</Text>
         if (this.props.parentState.selectedEntryId == props.entryId) {
             return(
                 <View style={styles.editButtonsView}>
@@ -236,8 +235,9 @@ export default class UserEntryCards extends Component {
                             borderColor: label=='Excluir' ? 'red' : styles.theme.color
                         }]}
                         disabled={ isLoading }
-                        onPress={() => {highlightButtonFor(label)(); onButtonPress[label]() }}
+                        onPress={ () => {highlightButtonFor(label)(); onButtonPress[label]()} }
                         onPressIn={highlightButtonFor(label)}
+                        onLongPress={() => {highlightButtonFor(label)(); onButtonLongPress[label]()}}
                         >
                             { label=='Excluir' ? (
                                 this.props.parentState.isDeleteLoading ? <ActivityIndicator color='red' /> : buttonLabel(label)
@@ -272,11 +272,12 @@ export default class UserEntryCards extends Component {
 
         console.log('DELETE USER ENTRY STATUS: Started...')
         this.props.setMainScreenState({ isDeleteEntryLoading: true });
-        // prompt()
 
         try {
             var UsersResult = {ok: false, status: 999}
-            UsersResult = await fetch( corsURI + appServerURI + 'Users/' + this.props.parentState.user.username + '/entries/' + this.props.parentState.selectedEntryId, { method: 'DELETE' });
+            const parentState = this.props.parentState
+            const deleteEntryURI = appServerURI + 'Users/' + parentState.user.username + '/entries/' + parentState.selectedEntryId
+            UsersResult = await fetch( deleteEntryURI, { method: 'DELETE' });
             // var UsersResult = await fetch( 'https://localhost:3000/' + 'Users/' + this.props.parentState.user.username + '/entries/' + this.props.parentState.selectedEntryId, { method: 'DELETE' });
             const usersStatus =  'Status ' + UsersResult.status + ', ' + UsersResult.statusText
 

@@ -7,7 +7,6 @@ import { capitalize } from './subcomponents/EditEmotions';
 import NativeIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 // cors-midpoint uri (needed to avoid cors' allow-cross-origin error when fetching in web platforms)
-const corsURI = Platform.OS == 'web' ? 'https://morning-journey-78874.herokuapp.com/' : ''
 const appServerURI = 'https://mood-tracker-server.herokuapp.com/'
 
 const colorList = require('../shared/colorList.json')
@@ -112,7 +111,7 @@ export async function postSettings(settings, username) {
      body: JSON.stringify( settings ),
    }
    // var postDisplayResult = await fetch('http://localhost:3000/Users/' + this.context.username + '/settings', postColorSettingOpts);
-   postSettingsResult = await fetch( `${corsURI + appServerURI}Users/${username}/settings`, postSettingsOpts);
+   postSettingsResult = await fetch( `${appServerURI}Users/${username}/settings`, postSettingsOpts);
    const postSettingsStatus = 'Status: ' + postSettingsResult.status + ', ' + postSettingsResult.statusText
 
    if (postSettingsResult.ok) {

@@ -5,8 +5,6 @@ import * as Device from 'expo-device';
 const isWindows = Device.osName == 'Windows'
 import { capitalize } from './subcomponents/EditEmotions';
 
-// cors-midpoint uri (needed to avoid cors' allow-cross-origin error when fetching in web platforms)
-const corsURI = Platform.OS == 'web' ? 'https://morning-journey-78874.herokuapp.com/' : ''
 const appServerURI = 'https://mood-tracker-server.herokuapp.com/'
 
 function formatTopicName(name){
@@ -85,7 +83,7 @@ async function getUnsplash(endpoint, params) {
   }
   var result, result_json, success
   try {
-    result = await fetch(corsURI + appServerURI + 'api/unsplash', reqParams)
+    result = await fetch(appServerURI + 'api/unsplash', reqParams)
     if (result.ok) {
       console.log(`UNSPLASH PHOTOS STATUS: FETCH SUCCESSFULL...`)
 

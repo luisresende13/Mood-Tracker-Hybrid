@@ -4,10 +4,6 @@ import { View, Text, Image, ImageBackground, Pressable, ActivityIndicator, Platf
 import { postSettings } from './SettingsScreen';
 import UserContext from '../shared/UserContext';
 
-// cors-midpoint uri (needed to avoid cors' allow-cross-origin error when fetching in web platforms)
-// const corsURI = Platform.OS == 'web' ? 'https://morning-journey-78874.herokuapp.com/' : ''
-// const appServerURI = 'https://mood-tracker-server.herokuapp.com/'
-
 var styles = {
   fotter: {
     position: 'absolute',

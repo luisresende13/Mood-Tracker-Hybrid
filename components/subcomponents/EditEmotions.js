@@ -4,8 +4,6 @@ import { Icon } from 'react-native-eva-icons'
 // import VectorIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import styles from '../../styles/postEntryStyles'
 
-// cors-midpoint uri (needed to avoid cors' allow-cross-origin error when fetching in web platforms)
-const corsURI = Platform.OS == 'web' ? 'https://morning-journey-78874.herokuapp.com/' : ''
 const appServerURI = 'https://mood-tracker-server.herokuapp.com/'
 
 export function capitalize(multipleWordString) {
@@ -349,7 +347,7 @@ export default class EditEmotions extends Component {
                 body: JSON.stringify( newEmotion ),
             }
             // var postUserEntryResult = await fetch('http://localhost:3000/Users/' + info.username + '/emotions', postUserEntryOpts);
-            postEmotionResult = await fetch( corsURI + appServerURI + 'Users/' + user.username + '/emotions', postUserEntryOpts);
+            postEmotionResult = await fetch( appServerURI + 'Users/' + user.username + '/emotions', postUserEntryOpts);
             const postEmotionStatus = 'Status: ' + postEmotionResult.status + ', ' + postEmotionResult.statusText
 
             if (postEmotionResult.ok) {
@@ -399,7 +397,7 @@ export default class EditEmotions extends Component {
                 },
                 body: JSON.stringify( {layout: this.props.selectedEmotionLayout} ),
             }
-            postEmotionLayoutResult = await fetch( corsURI + appServerURI + 'Users/' + user.username + '/layout', postEmotionLayoutOpts);
+            postEmotionLayoutResult = await fetch( appServerURI + 'Users/' + user.username + '/layout', postEmotionLayoutOpts);
             // var postUserEntryResult = await fetch('http://localhost:3000/Users/' + info.username + '/emotions', postEmotionLayoutOpts);
             const postEmotionLayoutStatus = 'Status: ' + postEmotionLayoutResult.status + ', ' + postEmotionLayoutResult.statusText
 
