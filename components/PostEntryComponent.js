@@ -16,10 +16,10 @@ const appServerURI = 'https://mood-tracker-server.herokuapp.com/'
 
 // Mood configs
 const moods = ['Horrível', 'Mal', 'Regular', 'Bem', 'Ótimo']
-const moodColorsHEX = ['#ff3333', '#0099cc', '#add8e6', '#ffff33', '#00cc00']
+export const moodColorsHEX = ['#ff3333', '#0099cc', '#add8e6', '#ffff33', '#00cc00']
 const moodColorsRGBA = ['rgba(255, 51, 51, 1)', 'rgba(0, 153, 204, 1)', 'rgba(173, 216, 230, 1)', 'rgba(255, 255, 51, 1)', 'rgba(0, 204, 0, 1)']
 const moodColorsTransp = (alpha) => [`rgba(255, 51, 51, ${alpha})`, `rgba(0, 153, 204, ${alpha})`, `rgba(173, 216, 230, ${alpha})`, `rgba(255, 255, 51, ${alpha})`, `rgba(0, 204, 0, ${alpha})`]
-const moodIcons = ['emoticon-dead', 'emoticon-sad', 'emoticon-neutral', 'emoticon-happy', 'emoticon-excited']
+export const moodIcons = ['emoticon-dead', 'emoticon-sad', 'emoticon-neutral', 'emoticon-happy', 'emoticon-excited']
 
 // Emotion configs
 const emotionGroupsNames = [ 'Bem & Calmo(a)', 'Bem & Energizado(a)', 'Mal & Calmo(a)', 'Mal & Energizado(a)' ]

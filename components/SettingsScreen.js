@@ -11,7 +11,6 @@ const appServerURI = 'https://mood-tracker-server.herokuapp.com/'
 
 const colorList = require('../shared/colorList.json')
 
-// var styles = StyleSheet.create({
 var styles = {
     background: {
     flex: 1,
@@ -89,7 +88,7 @@ var styles = {
   },
 }
 
-function blinkButton(setPressed, timeSpan=200) {
+export function blinkButton(setPressed, timeSpan=200) {
   setPressed(true)
   setTimeout(() => {
     setPressed(false)

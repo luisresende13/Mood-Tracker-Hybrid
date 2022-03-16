@@ -77,7 +77,7 @@ function Address ({entry}) {
 }
 
 function Emotions ({entry}) {
-    if (entry.emotions.length>0) {
+    if (entry.emotions.length > 0) {
         return (
             <View style={[styles.cardRow, {flexWrap: 'wrap', justifyContent: 'flex-start', paddingTop: 2, PaddingBottom: 0}]}>
                 { entry.emotions.map((emotion, index) => {

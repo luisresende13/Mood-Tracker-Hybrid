@@ -13,9 +13,10 @@ import EntrancesScreen from './components/EntrancesComponent';
 import PostEntranceScreen from './components/PostEntryComponent';
 import LoginScreen from './components/LoginComponent'
 import SettingsScreen from './components/SettingsScreen';
-import UserContext from './shared/UserContext';
 import { WallpapersComponent } from './components/WallpapersComponent';
 import { WallpaperZoom } from './components/WallpaperZoomComponent';
+import Charts from './components/Charts'
+import UserContext from './shared/UserContext';
 
 import * as Linking from 'expo-linking';
 const linking = {
@@ -89,6 +90,13 @@ const WallpaperZoomScreenProvider = (props) => {
   )
 }
 
+const ChartsScreenProvider = (props) => {
+  const appState = useContext(UserContext)
+  return(
+    <Charts appState={appState} {...props} />
+  )
+}
+
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
@@ -133,6 +141,13 @@ const HomeTab = (props) => {
       }}
       options={{
         tabBarIcon: tabBarIcon('inbox')
+      }}
+      />
+      <Tab.Screen
+      name="Charts"
+      component={ChartsScreenProvider}
+      options={{
+        tabBarIcon: tabBarIcon('bar-chart')
       }}
       />
       <Tab.Screen
