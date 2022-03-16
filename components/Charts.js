@@ -143,13 +143,20 @@ function MoodLineTemporal({data, interpolation}) {
   data = data.sort((a, b) => {
     return a.time_s - b.time_s;
   })
-  let x_min = data[0].time_s-600
-  let x_max = data[data.length-1].time_s
-  let x_range = x_max - x_min
-  let x_dif = (x_range/data.length-1)*0.4
-  let X_m = x_min - x_dif
-  let X_M = x_max + x_dif
-  const x_domain = [ X_m, X_M ]
+  var x_domain, x_dif, x_range
+  if (data[0]) {
+    let x_min = data[0].time_s
+    let x_max = data[data.length-1].time_s  
+    x_range = x_max - x_min
+    x_dif = (x_range/data.length-1)*0.4
+    let X_m = x_min - x_dif
+    let X_M = x_max + x_dif
+    x_domain = [ X_m, X_M ]
+    } else {
+    x_domain = [0,1]
+    x_dif = 0
+    x_range = 1
+  }
   return(
     <Victory.VictoryChart 
     width={330}
@@ -164,18 +171,30 @@ function MoodLineTemporal({data, interpolation}) {
       style={{
         axis: {stroke: "#fff0"},
         grid: {stroke: "#fff7"},
-        tickLabels: {fontSize: 17, padding: 15 + (330-40)*x_dif/x_range, fill: '#fff'},
+        tickLabels: {fontSize: 17, padding: 15 , fill: '#fff'},
       }}
       />
       <Victory.VictoryAxis
+      label={ !data[0] ? 'Adicione uma entrada para habilitar\no modo temporal.' : ''}
       tickValues={data.map(entry => entry.time_s)}
-      tickFormat={ tick => data.filter(entry => entry.time_s==tick)[0].startTime.slice(0,5) }
+      tickFormat={ tick => {
+        let tickEntry = data.filter(entry => entry.time_s==tick)[0]
+        if (tickEntry) {
+          return tickEntry.startTime.slice(0,5)
+        } else return null
+      }}
       tickLabelComponent={<Victory.VictoryLabel angle={-90} dx={-25} dy={-8} />}
       style={{
         axis: {stroke: "#fff0"},
         grid: {stroke: "#fff0"},
+        axisLabel: {
+          width: '70%',
+          fontSize: styles.h3.fontSize,
+          fill: '#fff',
+          // padding: 0
+        },
         tickLabels: {fontSize: 15, padding: 0, fill: '#fff'},
-        ticks: {stroke: "#fff8", size: 10},
+        ticks: {stroke: data[0] ? "#fff8" : '#fff0', size: 10},
       }}
       />
       <Victory.VictoryLine
@@ -260,7 +279,7 @@ function MoodPieStats({data}) {
 function MoodStat({mood, data}) {
   const moodCountObj = data.data.filter(countObj => countObj.x==mood)[0]
   const moodCount = moodCountObj ? moodCountObj.y : 0
-  const moodProp = Math.round(100*moodCount/data.entries.length) + '%'
+  const moodProp = Math.round(100*moodCount/data.entries.length)
   return(
     <View style={{width: '100%', height: 25, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-evenly'}}>
       <View style={styles.statsRowItem}>
@@ -275,7 +294,7 @@ function MoodStat({mood, data}) {
         <Icon name='arrow-forward-outline' width={15} height={15} fill='#fff' />
       </View>
       <View style={styles.statsRowItem}>
-        <Text style={styles.h4}>{ moodProp }</Text>
+        <Text style={styles.h4}>{ (moodProp ? moodProp : 0) + '%' }</Text>
       </View>
     </View>
   )
@@ -337,12 +356,10 @@ export default class Charts extends Component {
         <ScrollView style={{width: '100%'}}>
           <View style={[styles.foreground, {alignSelf: 'center'}]}>
             <View style={styles.header}>
-              <Text style={styles.h1}>Relatório</Text>
+              <Text style={styles.h1}>{'Painel'}</Text>
             </View>
-
             <ChartCard title='Avaliações de Hoje' Chart={MoodLineCard} data={moodData} />
             <ChartCard title='Proporção das Avaliações' Chart={MoodPieCard} data={{data: moodPieData, entries: todayEntries}} />
-
           </View>
         </ScrollView>
       </ImageBackground>

@@ -299,10 +299,12 @@ export default class UserEntryCards extends Component {
 
         } finally {
             this.props.setMainScreenState({ isDeleteEntryLoading: false });
-            this.props.parentProps.navigation.setParams({ selectedEntryId: null })
             // this.props.setMainScreenState({ selectedEntryId: null })
             console.log('DELETE USER ENTRY STATUS: FINISHED.' + UsersResult.ok ? 'Proceeding to sync user entries...' : 'Delete failed, skipping sync of user entries...')
-            if (UsersResult.ok) {this.props.syncUserData()}
+            if (UsersResult.ok) {
+                await this.props.syncUserData();
+                this.props.parentProps.navigation.setParams({ selectedEntryId: null })
+            }
         }    
     }
 
