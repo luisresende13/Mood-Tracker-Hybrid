@@ -77,7 +77,7 @@ let moodMap = {
   'Ótimo': 5
 }
 
-const interpolations = ['natural', 'linear', 'step']
+const interpolations = ['natural', 'linear', 'step', 'cardinal', 'catmullRom', 'basis']
 function nextInterpolation(current) {
   const index = interpolations.indexOf(current)
   const nextIndex = index==interpolations.length-1 ? 0 : index+1
@@ -118,7 +118,7 @@ function MoodLineCard({data}) {
           </Text>
         </View>
         <View style={{flexDirection: 'row', alignItems: 'center'}}>
-          <Icon name='swap-outline' width={15} height={15} fill={interpolationClicked ? '#fff6' : '#fff'} />
+          <Icon name='swap-outline' width={15} height={15} fill={temporalClicked ? '#fff6' : '#fff'} />
           <Text
           style={[styles.h4, { fontSize: 16, color: temporalClicked ? '#fff6' : '#fff' }]}
           onPress={() => {blinkButton(setTemporalClicked, 100); setTemporal(!temporal)}}
@@ -146,14 +146,16 @@ function MoodLineTemporal({data, interpolation}) {
   let x_min = data[0].time_s-600
   let x_max = data[data.length-1].time_s
   let x_range = x_max - x_min
-  let X_m = x_min - x_range/13
-  let X_M = x_max + x_range/13
+  let x_dif = (x_range/data.length-1)*0.4
+  let X_m = x_min - x_dif
+  let X_M = x_max + x_dif
   const x_domain = [ X_m, X_M ]
   return(
     <Victory.VictoryChart 
     width={330}
     height={225}
     padding={{left: 40, right: 20, top: 0, bottom: 65}}
+    domain={{x: x_domain, y: [0.5, 5.5]}}
     >
       <Victory.VictoryAxis
       dependentAxis
@@ -162,13 +164,10 @@ function MoodLineTemporal({data, interpolation}) {
       style={{
         axis: {stroke: "#fff0"},
         grid: {stroke: "#fff7"},
-        tickLabels: {fontSize: 17, padding: 36.5, fill: '#fff'},
-        // axisLabel: {fontSize: 20, padding: 30},
-        // ticks: {stroke: "#fff8", size: 5},
+        tickLabels: {fontSize: 17, padding: 15 + (330-40)*x_dif/x_range, fill: '#fff'},
       }}
       />
       <Victory.VictoryAxis
-      domain={x_domain}
       tickValues={data.map(entry => entry.time_s)}
       tickFormat={ tick => data.filter(entry => entry.time_s==tick)[0].startTime.slice(0,5) }
       tickLabelComponent={<Victory.VictoryLabel angle={-90} dx={-25} dy={-8} />}
@@ -176,7 +175,6 @@ function MoodLineTemporal({data, interpolation}) {
         axis: {stroke: "#fff0"},
         grid: {stroke: "#fff0"},
         tickLabels: {fontSize: 15, padding: 0, fill: '#fff'},
-        // axisLabel: {fontSize: 20, padding: 30},
         ticks: {stroke: "#fff8", size: 10},
       }}
       />
@@ -184,7 +182,6 @@ function MoodLineTemporal({data, interpolation}) {
       data={data}
       x='time_s' y='y'
       interpolation={interpolation}
-      domain={{x: x_domain, y: [0.5, 5.5]}}
       style={{
         data: {
           stroke: '#fff',
@@ -208,6 +205,7 @@ function MoodLine({data, interpolation}) {
     width={330}
     height={160}
     padding={{left: 40, right: 20, top: 0, bottom: 0}}
+    domain={{x: [ 0.6, data.length + 0.4 ], y: [0.5, 5.5]}}
     >
       <Victory.VictoryAxis
       dependentAxis
@@ -217,15 +215,12 @@ function MoodLine({data, interpolation}) {
         axis: {stroke: "#fff0"},
         grid: {stroke: "#fff7"},
         tickLabels: {fontSize: 17, padding: 15, fill: '#fff'},
-        // axisLabel: {fontSize: 20, padding: 30},
-        // ticks: {stroke: "#fff8", size: 5},
       }}
       />
       <Victory.VictoryLine
       data={data}
       x='x' y='y'
       interpolation={interpolation}
-      domain={{x: [ 0.6, data.length + 0.4 ], y: [0.5, 5.5]}}
       style={{
         data: {
           stroke: '#fff',
@@ -236,7 +231,7 @@ function MoodLine({data, interpolation}) {
       <Victory.VictoryScatter
       data={data}
       size={5.7}
-      style={{ data: { fill: ({datum}) => moodColorsHEX[datum.y-1] } }}
+      style={{ data: { fill: ({datum}) => moodColorsHEX[datum.y-1] }}}
       />
     </Victory.VictoryChart>
   )
@@ -347,7 +342,7 @@ export default class Charts extends Component {
 
             <ChartCard title='Avaliações de Hoje' Chart={MoodLineCard} data={moodData} />
             <ChartCard title='Proporção das Avaliações' Chart={MoodPieCard} data={{data: moodPieData, entries: todayEntries}} />
-            <ChartCard title='Proporção das Avaliações' Chart={MoodPieCard} data={{data: moodPieData, entries: todayEntries}} />
+
           </View>
         </ScrollView>
       </ImageBackground>
