@@ -1,7 +1,7 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import { View, Text, Image, ImageBackground, Pressable, ActivityIndicator, Platform, Linking } from 'react-native';
 // import { postDisplayBackgroundImage } from './SettingsScreen';
-import { postSettings } from './SettingsScreen';
+import { blinkButton, postSettings } from './SettingsScreen';
 import UserContext from '../shared/UserContext';
 
 var styles = {
@@ -27,7 +27,7 @@ var styles = {
  controlButton: {
     width: '35%',
     height: 40,
-    borderWidth: 1,
+    borderWidth: 2,
     borderRadius: 20,
     backgroundColor: '#f4f3f4',
     alignItems: 'center',
@@ -64,6 +64,32 @@ const openUserProfileFor = (userProfileHtmlLink) => {
 
 const openUnsplashURL = () => {
   Linking.openURL('https://unsplash.com/?utm_source=Mood-Tracker&utm_medium=referral')
+}
+
+function ControlButton({title, onPress, isLoading}) {
+  const [ isClicked, setIsClicked ] = useState(false)
+  return(
+    <Pressable
+    onPressIn={() => blinkButton(setIsClicked, 300)}
+    onPress={onPress}
+    style={[styles.controlButton, {
+      backgroundColor: styles.controlButton.backgroundColor.slice(0,4) + ( isClicked ? '4' : '8' ),
+      borderColor: styles.controlButton.borderColor.slice(0,4) + ( isClicked ? '4' : '8' )
+    }]}
+    >
+      {isLoading ? (
+        <ActivityIndicator color='blue' />
+      ) : (
+        <Text style={[styles.controlButtonLabel, {
+          color: styles.controlButtonLabel.color + ( isClicked ? '8' : 'f' )
+        }]}
+        >
+          { title }
+        </Text>
+      )}
+    </Pressable>
+
+  )
 }
 
 export function WallpaperZoom(props) {
@@ -106,8 +132,10 @@ export function WallpaperZoom(props) {
     styles[label] = { ...styles[label], color: fontColor }
   }
   styles.controlButton = { ...styles.controlButton, backgroundColor: altFontColor + '8', borderColor: fontColor + '8' }
+
   const selectedImage = props.route.params.selectedImage
   const imgURI = settings.enableHighResolution ? selectedImage.urls.raw : selectedImage.urls.regular
+
   return (
     <ImageBackground
       source={{ uri: imgURI }}
@@ -115,22 +143,32 @@ export function WallpaperZoom(props) {
     >
       <View style={styles.fotter}>
         <View style={styles.controlView}>
-          <Pressable
-            onPress={() => props.navigation.goBack()}
-            style={styles.controlButton}
+          <ControlButton
+          title={'Voltar'}
+          onPress={props.navigation.goBack}
+          isLoading={false}
+          />
+          <ControlButton
+          title={'Aplicar'}
+          onPress={onSaveImageButtonPress}
+          isLoading={isSaveImageLoading}
+          />
+          {/* <Pressable
+          onPress={() => props.navigation.goBack()}
+          style={styles.controlButton}
           >
             <Text style={styles.controlButtonLabel}>Voltar</Text>
           </Pressable>
           <Pressable
-              onPress={onSaveImageButtonPress}
-              style={styles.controlButton}
+          onPress={onSaveImageButtonPress}
+          style={styles.controlButton}
           >
             {isSaveImageLoading ? (
               <ActivityIndicator color='blue' />
             ) : (
               <Text style={styles.controlButtonLabel}>Aplicar</Text>
             )}
-          </Pressable>
+          </Pressable> */}
         </View>
         <View style={styles.attributionView}>
           <Image

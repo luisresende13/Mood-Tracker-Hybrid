@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
-import { View, Text, ImageBackground, Pressable, ScrollView, Platform, TextInput, ActivityIndicator } from 'react-native';
+import { View, Text, ImageBackground, Pressable, ScrollView, TextInput, ActivityIndicator,  } from 'react-native';
+import { relativeToScreen } from '../styles/loginStyles';
 
 import { Icon } from 'react-native-eva-icons'
 import VectorIcon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -203,15 +204,15 @@ export default class PostEntranceScreen extends Component {
     postEntryHeader() {
         return(
             <View style={[styles.cardRow, {justifyContent: 'space-between'}]}>
-                <Pressable onPress={() => {this.props.navigation.goBack()}} hitSlop={10} style={styles.postButton}>
-                    <Icon name='arrow-back' fill={styles.theme.color+'b'} height={29} width={29}/>
+                <Pressable onPress={() => {this.props.navigation.goBack()}} hitSlop={relativeToScreen(10)} style={styles.postButton}>
+                    <Icon name='arrow-back' fill={styles.theme.color+'b'} height={relativeToScreen(29)} width={relativeToScreen(29)}/>
                 </Pressable>
                 <View style={[styles.entryCardEmotionBadge, {flexDirection: 'row', alignItems: 'center'}]}>
                     <Text style={styles.datetimeTitle}> { formatPostEntryDatetimeTitle(this.props.route.params.currentEntry.date, this.state.startTime) } </Text>
-                    <Icon name='edit' fill='rgba(75,75,75,1)' height={20} width={20}/>
+                    <Icon name='edit' fill='rgba(75,75,75,1)' height={relativeToScreen(20)} width={relativeToScreen(20)}/>
                 </View>
-                <Pressable onPress={() => {this.setState({star: !this.state.star})}}  hitSlop={10} style={styles.postButton}>
-                    <Icon name={this.state.star ? 'star' : 'star-outline'} fill={this.state.star ? 'gold' : styles.theme.color+'b' } height={30} width={30}/>
+                <Pressable onPress={() => {this.setState({star: !this.state.star})}}  hitSlop={relativeToScreen(10)} style={styles.postButton}>
+                    <Icon name={this.state.star ? 'star' : 'star-outline'} fill={this.state.star ? 'gold' : styles.theme.color+'b' } height={relativeToScreen(30)} width={relativeToScreen(30)}/>
                 </Pressable>
             </View>
         )
@@ -226,7 +227,7 @@ export default class PostEntranceScreen extends Component {
                 <View key={'mood '+index} style={styles.moodButton}>
                     <VectorIcon
                     name={moodIcons[index]}
-                    size={isMoodUnmarked ? 52 : (selected ? 57 : 50) }
+                    size={isMoodUnmarked ? relativeToScreen(52) : (selected ? relativeToScreen(57) : relativeToScreen(50)) }
                     color={ isMoodUnmarked ? selColor : (selected ? selColor : moodColorsTransp(0.5)[index]) }
                     onPress={this.onMoodButtonPress(item)}
                     />
@@ -318,8 +319,11 @@ export default class PostEntranceScreen extends Component {
                 return(
                     <>
                         { userEmotionGroups.map((emotions, index) => (
-                            <View key={'emotion-group-' + index} style={{width: '100%', alignItems: 'center', marginVertical: 10}}>
-                                { emotionLabels[index] ? <Text style={{fontSize: 15, color: 'white', marginVertical: 8}}>{emotionLabels[index]}</Text> : null }
+                            <View key={'emotion-group-' + index} style={{width: '100%', alignItems: 'center', marginVertical: relativeToScreen(10)}}>
+                                { emotionLabels[index]
+                                    ? <Text style={{fontSize: relativeToScreen(15), color: styles.theme.color, marginVertical: relativeToScreen(8)}}>{emotionLabels[index]}</Text>
+                                    : null
+                                }
                                 <View key={index} style={[styles.cardRow, cardBodyStyle]}>
                                     {cardBodyContent(emotions)}
                                 </View>
@@ -353,7 +357,7 @@ export default class PostEntranceScreen extends Component {
         return(
             <View style={[styles.card]} >
                 <Pressable style={styles.cardRow} onPress={this.setSelectedEntry(sectionName)} >
-                    <Icon name={icon} fill={styles.theme.color+'c'} height={28} width={28} style={styles.entryIcon} />
+                    <Icon name={icon} fill={styles.theme.color+'c'} height={relativeToScreen(28)} width={relativeToScreen(28)} style={styles.entryIcon} />
                     <Text style={styles.entryTitle}> {sectionName} </Text>
                 </Pressable>    
                 {this.inputCardBody(sectionName, cardBodyStyle, cardBodyContent)}  
@@ -796,7 +800,7 @@ export default class PostEntranceScreen extends Component {
                             {this.postEntryHeader()}
                             {this.InputCard('Avaliação', 'smiling-face', {justifyContent: 'space-between'}, this.MoodButtons())}
                             {this.InputCard('Emoções', 'checkmark-square-outline', {flexWrap: 'wrap', justifyContent: 'center'}, this.EmotionButtons)}
-                            {this.InputCard('Jornal', 'book', {flexDirection: 'column', minHeight: 130}, this.JornalInput())}
+                            {this.InputCard('Jornal', 'book', {flexDirection: 'column', minHeight: relativeToScreen(130)}, this.JornalInput())}
                     </View>
                 </ScrollView>  
                 <this.saveButton />

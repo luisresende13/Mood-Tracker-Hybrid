@@ -1,74 +1,164 @@
 import React, { Component, useState } from 'react';
-import { ImageBackground, View, Text, Pressable, ScrollView, ActivityIndicator, Switch, StatusBar, Platform } from 'react-native';
-import { Icon } from 'react-native-eva-icons';
-import VectorIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { ImageBackground, View, Text, ScrollView, StatusBar, Pressable } from 'react-native';
 import "react-native";
+import { Icon } from 'react-native-eva-icons';
+// import VectorIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Victory from './victory'
+
+import { relativeToScreen } from '../styles/loginStyles';
 import { blinkButton } from './SettingsScreen';
-import { Today } from './EntrancesComponent';
-import { moodColorsHEX, moodIcons } from './PostEntryComponent';
+import { Today, current, getNext, datePeriodFilters, formatPeriodDate } from '../shared/dates';
+
+import { moodColorsHEX } from './PostEntryComponent';
+import { capitalize } from './subcomponents/EditEmotions';
+import { MoodLineTemporal, appendTimeData, sortData } from './subcomponents/MoodLineTemporal';
 var moodColorsObj = {}
 moodColorsHEX.forEach((color, index) => {
   moodColorsObj[index+1] = color
 })
-const moods = [1,2,3,4,5]
 
-var styles = {
+export var styles = {
   background: {
     flex: 1,
     paddingTop: StatusBar.currentHeight,
+    paddingBottom: relativeToScreen(55),
     alignItems: 'center',
     justifyContent: 'space-between',
   },
   foreground: {
-    width: 350,
-    paddingBottom: 60
+    width: relativeToScreen(350),
+    paddingBottom: relativeToScreen(60),
   },
   header: {
-    height: 110,
+    height: relativeToScreen(120),
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
   },
+  navigationRow: {
+    justifyContent: 'space-between',
+    height: relativeToScreen(60),
+    alignItems: 'flex-start',
+  },
+  cardContainer: {
+    width: '100%',
+    marginBottom: '5%',
+  },
   card: {
-    marginTop: '5%',
-    paddingVertical: 5,
-    paddingHorizontal: 10,
-    borderRadius: 20,
+    paddingVertical: relativeToScreen(5),
+    paddingHorizontal: relativeToScreen(10),
+    borderRadius: relativeToScreen(20),
     backgroundColor: 'rgba(0,0,0,0.3)',
   },
   cardRow: {
     flexDirection: 'row',
-    paddingVertical: 5,
+    // paddingVertical: relativeToScreen(5),
     alignItems: 'center',
+  },
+  cardHeader: {
+    height: relativeToScreen(39),
+    justifyContent: 'space-between',
+  },
+  periodButton: {
+    width: '35%',
+    height: relativeToScreen(40),
+    position: 'absolute',
+    bottom: relativeToScreen(20 + 55),
+    // right: relativeToScreen(20),
+    alignSelf: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderRadius: relativeToScreen(20),
+    backgroundColor: '#fff',
+  },
+  chartView: {
+    marginTop: relativeToScreen(5),
+    marginBottom: relativeToScreen(5),
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  controlRow: {
+  width: '100%',
+  height: relativeToScreen(30),
+  paddingHorizontal: relativeToScreen(5),
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between'
+  },
+  bottomControlRow: {
+    flexDirection: 'row',
+    height: relativeToScreen(50),
+    justifyContent: 'flex-end',
+    alignItems: 'center'
+  },
+  moodPieCard: {
+    width: relativeToScreen(330),
+    height: relativeToScreen(180),
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingTop: relativeToScreen(5),
+    paddingBottom: relativeToScreen(10)
+  },
+  moodPieCardSection: {
+    height: '100%',
+    width: '50%',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  moodPieStatsView: {
+    width: relativeToScreen(150),
+    height: relativeToScreen(150),
+    alignItems: 'center',
+    justifyContent: 'space-between'
+  },
+  moodStatRow: {
+    width: '100%',
+    height: relativeToScreen(25),
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between'
   },
   statsRowItem: {
     width: '25%',
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
+    // borderWidth: 1,
+  },
+  moodCircleBadge: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: relativeToScreen(22),
+    height: relativeToScreen(22),
+    borderRadius: relativeToScreen(11)
   },
   h1: {
-    fontSize: 25,
-    color: 'white'
+    fontSize: relativeToScreen(25),
+    color: '#fff'
   },
   h2: {
-    fontSize: 20,
-    color: 'white',
+    fontSize: relativeToScreen(20),
+    color: '#fff',
   },
   h3: {
-    fontSize: 17,
-    color: 'white',
+    fontSize: relativeToScreen(17),
+    color: '#fff',
   },
   h4: {
-    fontSize: 15,
-    color: 'white',
+    fontSize: relativeToScreen(15),
+    color: '#fff',
   },
   h5: {
-    fontSize: 13,
-    color: 'white',
+    fontSize: relativeToScreen(13),
+    color: '#fff',
   },
+  altTheme: {
+    color: '#000',
+  }
 }
 
+const moods = [1,2,3,4,5]
 let moodMap = {
   'Horrível': 1,
   'Mal': 2,
@@ -77,153 +167,275 @@ let moodMap = {
   'Ótimo': 5
 }
 
-const interpolations = ['natural', 'linear', 'step', 'cardinal', 'catmullRom', 'basis']
-function nextInterpolation(current) {
-  const index = interpolations.indexOf(current)
-  const nextIndex = index==interpolations.length-1 ? 0 : index+1
-  return interpolations[nextIndex]
+const periods = ['day', 'week', 'month', 'year']
+const periodMap = {
+  'day': 'Dia',
+  'week': 'Semana',
+  'month':'Mês',
+  'year': 'Ano'
 }
 
-const ChartCard = ({title, Chart, data}) => {
+function ChartScreenHeader({title}) {
   return(
-    <View style={styles.card}>
-      <View style={styles.cardRow}>
-        <Text style={styles.h2}>{ title }</Text>
-      </View>
-      <View style={{marginTop: 5, marginBottom: 5, alignItems: 'center', justifyContent: 'center'}}>
-        <Chart data={data} />
-      </View>
+    <View style={styles.header}>
+      <Text style={styles.h1}>{ title }</Text>
     </View>
   )
 }
 
-function MoodLineCard({data}) {
-  const [temporal, setTemporal] = useState(false)
-  const [interpolation, setInterpolation] = useState('natural')
-  const [temporalClicked, setTemporalClicked] = useState(false)
-  const [interpolationClicked, setInterpolationClicked] = useState(false)
+export const stats = [ 'sequencial', 'Média (hora)', 'Média (dia)', 'Média (semana)', 'Média (mês)', 'Variância (hora)', 'Variância (dia)', 'Variância (semana)', 'Variância (mês)']
+const domainModes = ['expandir', 'enquadrar', 'enforcar']
+
+function ChartPanel({imgURI, backgroundColor, entries}) {
+
+  const currentDates = {
+    'day': Today(),
+    'week': { week: current('week'), year: current('year') },
+    'month': { month: current('month'), year: current('year') },
+    'year': current('year')
+  }
+  
+  const [ period, setPeriod ] = useState('day')
+  const [ date, setDate ] = useState(currentDates)
+
+  return(
+    <ImageBackground
+    source={{uri : imgURI}}
+    style={[ styles.background, {backgroundColor: backgroundColor} ]}
+    >
+      <ScrollView style={{width: '100%'}}>
+        <View style={[styles.foreground, {alignSelf: 'center'}]}>
+          <ChartScreenHeader title={'Painel'} />
+          <NavigationRow date={date} setDate={setDate} period={period} />
+          <ChartCard
+          title={'Avaliações ' + ( period=='week' ? 'da ' : 'do ' )  + periodMap[period] }
+          Chart={MoodLineCard}
+          entries={entries}
+          date={date}
+          period={period}
+          initialMode={'expandir'}
+          modes={domainModes}
+          initialSecMode='sequencial'
+          secModes={stats}
+          />
+          <ChartCard
+          title='Divisão das Avaliações'
+          Chart={MoodPieCard}
+          entries={entries}
+          date={date}
+          period={period}
+          initialMode='expandir'
+          modes={['expandir', 'enforcar', 'enquadrar']}
+          />
+        </View>
+      </ScrollView>
+      <PeriodButton period={period} setPeriod={setPeriod} />
+    </ImageBackground>
+  )
+}
+
+function PeriodButton({period, setPeriod}) {
+  const [ isClicked, setIsClicked ] = useState(false)
+  return(
+    <Pressable
+    style={[styles.periodButton, {
+      backgroundColor: styles.altTheme.color + ( isClicked ? '4' : '8' ),
+      borderColor: styles.h1.color + ( isClicked ? '6' : '8' )
+    }]}
+    onPressIn={() => blinkButton(setIsClicked, 300)}
+    onPress={() => setPeriod(periods[ periods[periods.length-1]==period ? 0 : periods.indexOf(period)+1 ])}
+    >
+      <Icon name='swap-outline' width={15} height={15} fill={styles.h1.color  + ( isClicked ? 'a' : 'f' )} />
+      <Text style={[styles.h3, {color: styles.h1.color   + ( isClicked ? 'a' : 'f' ), fontWeight: 'bold'}]}>{ ' '+periodMap[period] }</Text>
+    </Pressable>
+  )
+}
+
+function NavigationRow({date, setDate, period}) {
+  return(
+    <View style={[styles.cardRow, styles.navigationRow]}>
+      <DateNavigationButton
+      icon='arrow-back'
+      next='previous'
+      date={date}
+      setDate={setDate}
+      period={period}
+      />
+      <Text style={[styles.h2]}>{ formatPeriodDate[period](date[period]) }</Text>                                
+      <DateNavigationButton
+      icon='arrow-forward'
+      next='next'
+      date={date}
+      setDate={setDate}
+      period={period}
+      />
+    </View>
+  )
+}
+
+function DateNavigationButton({icon, next, date, setDate, period}) {
+  const [ isClicked, setIsClicked ] = useState(false)
+  return(
+    <Pressable
+    onPressIn={() => blinkButton(setIsClicked, 300)}
+    onPress={() => setDate({
+      ...date,
+      [period]: getNext(date[period], next, period)
+    })}
+    hitSlop={relativeToScreen(15)}
+    >
+      <Icon
+      name={icon}
+      width={relativeToScreen(29)}
+      height={relativeToScreen(29)}
+      fill={  styles.h1.color + (isClicked ? '6' : '') }
+      />
+    </Pressable>
+  )
+}
+
+function next(current, list) {
+  let index = list.indexOf(current)
+  return list[ index == list.length-1 ? 0 : index+1 ]
+}
+
+const ChartCard = ({title, Chart, entries, date, period, initialMode, modes, initialSecMode, secModes=null}) => {
+  const filter = datePeriodFilters(date, period)
+  entries = entries.filter(filter)
+
+  const [ mode, setMode ] = useState(initialMode)
+  const [ secMode, setSecMode ] = useState(initialSecMode)
+  const [ temporal, setTemporal ] = useState('temporal')
+  return(
+    <View style={styles.cardContainer}>
+      <View style={styles.card}>
+        <View style={[styles.cardRow, styles.cardHeader]}>
+          <Text style={styles.h2}>{ title }</Text>
+          { temporal=='temporal'
+            ? <ModeSwapButton mode={ entries[1] ? mode : 'expandir' } setMode={setMode} modes={ modes } />
+            : null
+          }
+        </View>
+        <View style={styles.chartView}>
+          <Chart
+          entries={entries}
+          date={date}
+          period={period}
+          mode={mode}
+          setMode={setMode}
+          secMode={secMode}
+          setSecMode={setSecMode}
+          temporal={temporal}
+          setTemporal={setTemporal}
+          />
+        </View>
+      </View>
+        { temporal=='temporal'
+          ? ( secModes
+            ? (
+              <View style={styles.bottomControlRow}>
+                <ModeSwapButton mode={secMode} setMode={setSecMode} modes={secModes} />
+              </View>
+            ) : null
+          ) : null
+        }
+    </View>
+  )
+}
+
+function setStatForPeriod(stat, setStat, entries, period) {
+  if (!entries[1])
+    setStat('sequencial')
+  else {
+    ['day', 'week', 'month', 'year'].forEach((per, index) => {
+      if (period==per) {
+        if ( stats.slice(index+2, 5).includes(stat) )
+          setStat('Variância (hora)')
+        else if ( stats.slice(6+index, stats.length).includes(stat) )
+          setStat('sequencial')
+      }
+    })
+  }
+}
+
+const interpolations = [ 'catmullRom', 'linear', 'natural', 'step', 'basis','cardinal', 'scatter' ]
+
+function MoodLineCard({entries, date, period, mode, setMode, secMode, setSecMode, temporal, setTemporal}) {
+
+  const [interpolation, setInterpolation] = useState('catmullRom')
+  setMode(entries[1] ? mode : 'expandir')
+  setStatForPeriod(secMode, setSecMode, entries, period)
+
+  const data = entries.map((entry, index) => {
+    return({
+      x: index+1,
+      y: moodMap[entry.mood],
+      date: entry.date,
+      startTime: entry.startTime
+    })
+  })
+
   return(
     <View style={{width: '100%',  alignItems: 'center', justifyContent: 'center'}}>
       <View style={{width: '100%',  alignItems: 'center', justifyContent: 'flex-start'}}>
-        { temporal ? <MoodLineTemporal data={data} interpolation={interpolation} /> : <MoodLine data={data} interpolation={interpolation} /> }
+        { temporal=='temporal'
+          ? <MoodLineTemporal data={data} interpolation={interpolation} date={date} period={period} mode={mode} setMode={setMode} secMode={secMode} />
+          : <MoodLine data={data} interpolation={interpolation} date={date} period={period} /> 
+        }
       </View>
-      <View style={{width: '100%', height: 55, paddingHorizontal: 5, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'}}>
-        <View style={{flexDirection: 'row', alignItems: 'center'}}>
-          <Icon name='swap-outline' width={15} height={15} fill={interpolationClicked ? '#fff6' : '#fff'} />
-          <Text
-          style={[styles.h4, { fontSize: 16, color: interpolationClicked ? '#fff6' : '#fff' }]}
-          onPress={() => {blinkButton(setInterpolationClicked, 100); setInterpolation(nextInterpolation(interpolation))}}
-          >
-            { ' ' + interpolation }
-          </Text>
-        </View>
-        <View style={{flexDirection: 'row', alignItems: 'center'}}>
-          <Icon name='swap-outline' width={15} height={15} fill={temporalClicked ? '#fff6' : '#fff'} />
-          <Text
-          style={[styles.h4, { fontSize: 16, color: temporalClicked ? '#fff6' : '#fff' }]}
-          onPress={() => {blinkButton(setTemporalClicked, 100); setTemporal(!temporal)}}
-          >
-            { temporal ? ' temporal' : ' atemporal' }
-          </Text>
-        </View>
-      </View>
+      <ModeControlRow
+      var1={interpolation}
+      setVar1={setInterpolation}
+      var1Options={interpolations}
+      var2={temporal}
+      setVar2={setTemporal}
+      var2Options={['temporal', 'atemporal']}
+      />
     </View>
   )
 }
 
-function MoodLineTemporal({data, interpolation}) {
-  var time, time_s
-  var times = []
-  data.forEach((entry, index) => {
-    time = entry.startTime
-    time_s = parseInt(time.slice(0,2))*3600 + parseInt(time.slice(3,5))*60 + parseInt(time.slice(6,8))
-    data[index]['time_s'] = time_s
-    times.push(time_s)
-  })
-  data = data.sort((a, b) => {
-    return a.time_s - b.time_s;
-  })
-  var x_domain, x_dif, x_range
-  if (data[0]) {
-    let x_min = data[0].time_s
-    let x_max = data[data.length-1].time_s  
-    x_range = x_max - x_min
-    x_dif = (x_range/data.length-1)*0.4
-    let X_m = x_min - x_dif
-    let X_M = x_max + x_dif
-    x_domain = [ X_m, X_M ]
-    } else {
-    x_domain = [0,1]
-    x_dif = 0
-    x_range = 1
-  }
+function ModeControlRow(props) {
   return(
-    <Victory.VictoryChart 
-    width={330}
-    height={225}
-    padding={{left: 40, right: 20, top: 0, bottom: 65}}
-    domain={{x: x_domain, y: [0.5, 5.5]}}
-    >
-      <Victory.VictoryAxis
-      dependentAxis
-      domain={[0.5, 5.5]}
-      tickFormat={ tick => parseInt(tick) }
-      style={{
-        axis: {stroke: "#fff0"},
-        grid: {stroke: "#fff7"},
-        tickLabels: {fontSize: 17, padding: 15 , fill: '#fff'},
-      }}
-      />
-      <Victory.VictoryAxis
-      label={ !data[0] ? 'Adicione uma entrada para habilitar\no modo temporal.' : ''}
-      tickValues={data.map(entry => entry.time_s)}
-      tickFormat={ tick => {
-        let tickEntry = data.filter(entry => entry.time_s==tick)[0]
-        if (tickEntry) {
-          return tickEntry.startTime.slice(0,5)
-        } else return null
-      }}
-      tickLabelComponent={<Victory.VictoryLabel angle={-90} dx={-25} dy={-8} />}
-      style={{
-        axis: {stroke: "#fff0"},
-        grid: {stroke: "#fff0"},
-        axisLabel: {
-          width: '70%',
-          fontSize: styles.h3.fontSize,
-          fill: '#fff',
-          // padding: 0
-        },
-        tickLabels: {fontSize: 15, padding: 0, fill: '#fff'},
-        ticks: {stroke: data[0] ? "#fff8" : '#fff0', size: 10},
-      }}
-      />
-      <Victory.VictoryLine
-      data={data}
-      x='time_s' y='y'
-      interpolation={interpolation}
-      style={{
-        data: {
-          stroke: '#fff',
-          strokeWidth: 3,
-        },
-      }}
-      />
-      <Victory.VictoryScatter
-      data={data}
-      x='time_s' y='y'
-      size={5.7}
-      style={{ data: { fill: ({datum}) => moodColorsHEX[datum.y-1] } }}
-      />
-    </Victory.VictoryChart>
+    <View style={styles.controlRow}>
+      <ModeSwapButton mode={props.var1} setMode={props.setVar1} modes={props.var1Options} />
+      <ModeSwapButton mode={props.var2} setMode={props.setVar2} modes={props.var2Options} />
+    </View>
   )
 }
 
-function MoodLine({data, interpolation}) {
+function ModeSwapButton({mode, setMode, modes}) {
+  const [ modeClicked, setModeClicked ] = useState(false)
+  return(
+    <Pressable
+    style={styles.cardRow}
+    onPressIn={() => blinkButton(setModeClicked, 300)}
+    onPress={() => {
+      setMode(next(mode, modes))
+    }}
+    >
+      <Icon
+      name='swap-outline'
+      width={relativeToScreen(15)}
+      height={relativeToScreen(15)}
+      fill={ styles.h1.color + (modeClicked ? '6' : '')}
+      />
+      <Text style={[styles.h3, { color: styles.h1.color + (modeClicked ? '6' : '') } ]}>{ ' ' + capitalize(mode) }</Text>
+    </Pressable>
+  )
+}
+
+function MoodLine({data, date, period, interpolation}) {
+  data = data.filter(entry => entry.startTime)
+  data = data.map((entry, index) => ({ ...entry, x:index+1 }))
+  data = appendTimeData(data, date, period)
+  const by = 'time_d'
+  data = sortData(data, by)
   return(
     <Victory.VictoryChart 
-    width={330}
-    height={160}
-    padding={{left: 40, right: 20, top: 0, bottom: 0}}
+    width={relativeToScreen(330)}
+    height={relativeToScreen(150)}
+    padding={{left: relativeToScreen(40), right: relativeToScreen(20), top: relativeToScreen(0), bottom: relativeToScreen(0)}}
     domain={{x: [ 0.6, data.length + 0.4 ], y: [0.5, 5.5]}}
     >
       <Victory.VictoryAxis
@@ -233,68 +445,53 @@ function MoodLine({data, interpolation}) {
       style={{
         axis: {stroke: "#fff0"},
         grid: {stroke: "#fff7"},
-        tickLabels: {fontSize: 17, padding: 15, fill: '#fff'},
+        tickLabels: {fontSize: relativeToScreen(17), padding: relativeToScreen(15), fill: styles.h1.color},
       }}
       />
-      <Victory.VictoryLine
-      data={data}
-      x='x' y='y'
-      interpolation={interpolation}
-      style={{
-        data: {
-          stroke: '#fff',
-          strokeWidth: 3,
-        },
-      }}
-      />
+      { interpolation == 'scatter' ? null : (
+        <Victory.VictoryLine
+        data={data}
+        x='x' y='y'
+        interpolation={interpolation}
+        style={{
+          data: {
+            stroke: styles.h1.color,
+            strokeWidth: 3,
+          },
+        }}
+        />
+      )}
       <Victory.VictoryScatter
       data={data}
-      size={5.7}
+      size={['month', 'year'].includes(period) ? 4.5 : 5.7}
       style={{ data: { fill: ({datum}) => moodColorsHEX[datum.y-1] }}}
       />
     </Victory.VictoryChart>
   )
 }
 
-function MoodPieCard({data}) {
+function MoodPieCard({entries}) {
+  // const entries = entries.filter(entry => entry.date==Today())
+  var moodCount = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
+  entries.forEach((entry) => {
+    moodCount[moodMap[entry.mood]] += 1
+  })
+  var moodPieData = []
+  moods.forEach(mood => {
+    if (moodCount[mood]) {
+      moodPieData.push({ x: mood, y: moodCount[mood] })
+    }
+  })
   return(
-    <View style={{width: 330, height: 180, flexDirection: 'row', alignItems: 'center', paddingTop: 5, paddingBottom: 10}}>
-      { data.entries[0]
-        ? <MoodPie data={data.data} />
-        : <Text style={[styles.h3, {width: '60%', textAlign: 'center'}]}>Você ainda não fez nenhuma entrada.</Text>
-      }
-      <MoodPieStats data={data} />
-    </View>
-  )
-}
-
-function MoodPieStats({data}) {
-  return(
-    <View style={{width: 150, height: 160, alignItems: 'center', justifyContent: 'space-between'}}>
-      {moods.map(mood => (<MoodStat key={mood} mood={mood} data={data} />))}
-    </View>
-  )
-}
-
-function MoodStat({mood, data}) {
-  const moodCountObj = data.data.filter(countObj => countObj.x==mood)[0]
-  const moodCount = moodCountObj ? moodCountObj.y : 0
-  const moodProp = Math.round(100*moodCount/data.entries.length)
-  return(
-    <View style={{width: '100%', height: 25, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-evenly'}}>
-      <View style={styles.statsRowItem}>
-        <View style={{alignItems: 'center', justifyContent: 'center', width: 22, height: 22, borderRadius: 12.5, backgroundColor: moodColorsHEX[mood-1]}}>
-          <Text style={[styles.h4, {color: mood==3|mood==4|mood==5 ? '#000' : '#fff'}]}>{mood}</Text>
-        </View>
+    <View style={styles.moodPieCard}>
+      <View style={styles.moodPieCardSection}>
+        { entries[0]
+          ? <MoodPie data={moodPieData} />
+          : <Text style={[styles.h3, {width: '85%', textAlign: 'center'}]}>Você não possui entradas nesse período.</Text>
+        }
       </View>
-      <View style={styles.statsRowItem}>
-        <Text style={styles.h4}>{`${moodCount}/${data.entries.length}` }</Text>
-      </View>
-      <View style={styles.statsRowItem}>
-        <Icon name='arrow-forward-outline' width={15} height={15} fill='#fff' />
-      </View>
-      <View style={styles.statsRowItem}>
-        <Text style={styles.h4}>{ (moodProp ? moodProp : 0) + '%' }</Text>
+      <View style={styles.moodPieCardSection}>
+        <MoodPieStats data={moodPieData} nEntries={entries.length} />
       </View>
     </View>
   )
@@ -307,10 +504,10 @@ function MoodPie({data}) {
     <Victory.VictoryPie
     data={data}
     x='x' y='y'
-    width={180}
-    height={150}
+    width={relativeToScreen(180)}
+    height={relativeToScreen(130)}
     padding={{left: 0, right: 0, top: 0, bottom: 0}}
-    innerRadius={37}
+    innerRadius={relativeToScreen(32)}
     padAngle={4}
     cornerRadius={4}
     colorScale={colorScale}
@@ -319,50 +516,81 @@ function MoodPie({data}) {
   )
 }
 
+function MoodPieStats({data, nEntries}) {
+  const moodCounts = [5,4,3,2,1].filter(mood => data.filter(countObj => countObj.x==mood)[0])
+  return(
+    <View style={[styles.moodPieStatsView, {height: relativeToScreen( 30 * moodCounts.length )}]}>
+      { [5,4,3,2,1].map(mood => <MoodStat key={mood} mood={mood} data={data} nEntries={nEntries}/>) }
+    </View>
+  )
+}
+
+function MoodStat({mood, data, nEntries}) {
+  const moodCountObj = data.filter(countObj => countObj.x==mood)[0]
+  const moodCount = moodCountObj ? moodCountObj.y : 0
+  const moodProp = Math.round(100*moodCount/nEntries)
+  return moodCount==0 ? null : (
+    <View style={styles.moodStatRow}>
+      <View style={[styles.statsRowItem, ]}>
+        <View style={[ styles.moodCircleBadge, {backgroundColor: moodColorsObj[mood]}]}>
+          <Text style={[styles.h4, {color: '#000'}]}>{mood}</Text>
+        </View>
+      </View>
+      <View style={[styles.statsRowItem, {width: '31%'}]}>
+        <Text style={styles.h4}>{`${moodCount}/${nEntries}` }</Text>
+      </View>
+      <View style={[styles.statsRowItem, {width: '13%'}]}>
+        <Icon name='arrow-forward-outline' width={relativeToScreen(15)} height={relativeToScreen(15)} fill={styles.h1.color} />
+      </View>
+      <View style={[styles.statsRowItem,  {width: '31%'}]}>
+        <Text style={styles.h4}>{ (moodProp ? moodProp : 0) + '%' }</Text>
+      </View>
+    </View>
+  )
+}
+
 export default class Charts extends Component {
   constructor(props) {
     super(props);
-    this.state = {}
+    this.state = {};
+    this.setFontColor = this.setFontColor.bind(this);
+    this.ChartsScreen = this.ChartsScreen.bind(this);
+  }
+
+  ChartsScreen() {
+    const settings = this.props.appState.user.settings
+    const backgroundImage = settings.backgroundImage
+    const imgURI =  settings.displayBackgroundImage
+    ? ( backgroundImage
+      ? ( settings.enableHighResolution
+        ? backgroundImage.urls.raw
+        : backgroundImage.urls.regular
+      ) : null
+    ) : null
+    const backgroundColor = settings.backgroundColor
+    var entries = this.props.appState.user.entries
+    return(
+      <ChartPanel
+      imgURI={imgURI}
+      backgroundColor={backgroundColor}
+      entries={entries}
+      />
+    )  
+  }
+
+  setFontColor(color) {
+    styles['altTheme'] = {color: color=='#fff' ? '#000' : '#fff'}
+    for (let h of ['h1', 'h2', 'h3', 'h4']) {
+      styles[h] = {
+        ...styles[h],
+        ['color']: color
+      }
+    }
   }
 
   render() {
     console.log('Rendering "Charts" screen component...')
-    const settings = this.props.appState.user.settings
-    const backgroundImage = settings.backgroundImage
-    const imgURI =  settings.displayBackgroundImage ? (backgroundImage ? ( settings.enableHighResolution ? backgroundImage.urls.raw : backgroundImage.urls.regular ) : null ) : null
-    const backgroundColor = settings.backgroundColor
-
-    const entries = this.props.appState.user.entries
-    const todayEntries = entries.filter(entry => entry.date==Today())
-
-    const moodData = todayEntries.map( (entry, index) => ({ x: index+1, y: moodMap[entry.mood], startTime: entry.startTime }) )
-
-    var moodCount = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
-    todayEntries.forEach((entry) => {
-      moodCount[moodMap[entry.mood]] += 1
-    })
-    var moodPieData = []
-    moods.forEach(mood => {
-      if (moodCount[mood]) {
-        moodPieData.push({ x: mood, y: moodCount[mood] })
-      }
-    })
-    
-    return(
-      <ImageBackground
-      source={{uri : imgURI}}
-      style={[ styles.background, {backgroundColor: backgroundColor} ]}
-      >
-        <ScrollView style={{width: '100%'}}>
-          <View style={[styles.foreground, {alignSelf: 'center'}]}>
-            <View style={styles.header}>
-              <Text style={styles.h1}>{'Painel'}</Text>
-            </View>
-            <ChartCard title='Avaliações de Hoje' Chart={MoodLineCard} data={moodData} />
-            <ChartCard title='Proporção das Avaliações' Chart={MoodPieCard} data={{data: moodPieData, entries: todayEntries}} />
-          </View>
-        </ScrollView>
-      </ImageBackground>
-    )  
+    this.setFontColor(this.props.appState.user.settings.fontColorDark ? '#000' : '#fff')
+    return <this.ChartsScreen />
   }
 }

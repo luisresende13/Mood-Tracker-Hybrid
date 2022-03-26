@@ -1,10 +1,11 @@
-import React, { Component, createContext, useContext } from 'react';
-import { ImageBackground, Text, ActivityIndicator, Platform } from 'react-native';
+import React, { Component, useContext } from 'react';
+import { ImageBackground, View, Text, ActivityIndicator, Platform, Pressable, PlatformColor } from 'react-native';
 import { Icon } from 'react-native-eva-icons'
 // import AsyncStorage from '@react-native-async-storage/async-storage';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Today } from './components/EntrancesComponent';
-import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
+// import { LinearGradient } from 'expo-linear-gradient';
+
+import { Today } from './shared/dates'
+import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 //import { createDrawerNavigator } from '@react-navigation/drawer';
@@ -19,8 +20,9 @@ import Charts from './components/Charts'
 import UserContext from './shared/UserContext';
 
 import * as Linking from 'expo-linking';
+import { relativeToScreen } from './styles/loginStyles';
 const linking = {
-  prefixes: [Linking.createURL('/')],//, 'https://luisresende13.github.io/Mood-Tracker'],
+  prefixes: [Linking.createURL('/'), 'https://luisresende13.github.io/Mood-Tracker'],
   config: {
     screens: {
       Home: {
@@ -37,10 +39,10 @@ const linking = {
   }
 };
 const loginLinking = {
-  prefixes: [Linking.createURL('/')],//, 'https://luisresende13.github.io/Mood-Tracker'],
+  prefixes: [Linking.createURL('/'), 'https://luisresende13.github.io/Mood-Tracker'],
   config: {
     screens: {
-      Login: 'Login'
+      Login: 'Login',
     }
   }
 };
@@ -97,40 +99,69 @@ const ChartsScreenProvider = (props) => {
   )
 }
 
-const Stack = createNativeStackNavigator();
-const Tab = createBottomTabNavigator();
+const tabBarLabelsMap = {
+  'Entrances': 'Entradas',
+  'Settings': 'Configurações',
+  'Charts': 'Painel'
+}
+const tabBarIconsMap = {
+  'Entrances': 'inbox',
+  'Settings': 'settings-2',
+  'Charts': 'bar-chart'
+}
 
 function tabBarIcon(iconName) {
   const iconFunc = ({ focused, color, size }) => {
     let newIconName = focused
-    ? iconName + '-outline'
+    ? iconName
     : iconName + '-outline';
-    return <Icon name={newIconName} width={size} height={size} fill={ focused ? 'rgba(0,0,0,1)' : 'rgba(0,0,0,0.6)' } />
+    return <Icon name={newIconName} width={size} height={size} fill={color}
+    style={{  borderBottomWidth: focused ? 1.5 : 0, borderColor: color}}
+    />
   }
   return iconFunc
 }
 
-const HomeTab = (props) => {
-  const appState = useContext(UserContext)
-  const mainScreenOptions = ({ route }) => ({
-    headerShown: false,
-    tabBarShowLabel: false,
-    tabBarHideOnKeyboard: true,
-    tabBarBackground: () => (
-      <LinearGradient
-        colors={['#f4f3f4', route.name=='Settings' ? route.params.selectedColor : appState.user.settings.backgroundColor, '#f4f3f4']}
-        start={[route.name=='Entrances' ? -0.5 : 1.5, 1]}
-        end={[route.name=='Entrances' ? 1 : 0, 1]}
-        location={[0, 0.5, 1]}
-        style={{flex: 1}}
-      />
-    ),
-  })
+const tabNavigatorOptionsProvider = (settings) => {
+  const fontColor = settings.fontColorDark ? '#000' : '#fff'
+  return ({ route }) => {
+    return(
+      {
+        headerShown: false,
+        tabBarHideOnKeyboard: true,
+        tabBarLabel: tabBarLabelsMap[route.name],
+        tabBarLabelPosition: 'below-icon',
+        tabBarLabelStyle: {bottom: relativeToScreen(5), paddingBottom: Platform.OS=='web' ? relativeToScreen(5) : 0},
+        tabBarShowLabel: true,
+        tabBarIcon: tabBarIcon(tabBarIconsMap[route.name]),
+        // tabBarIconStyle: {},
+        // tabBarButton: tabBarButton,
+        tabBarActiveTintColor: fontColor,
+        tabBarInactiveTintColor: fontColor + '6',
+        tabBarActiveBackgroundColor: '#0006',
+        tabBarInactiveBackgroundColor: '#0000',
+        tabBarItemStyle: {borderRadius: 10},
+        tabBarStyle: {
+          position: 'absolute',
+          elevation: 0,
+          height: relativeToScreen(55),
+          backgroundColor: '#0000',
+          borderTopWidth: 0
+        },
+      }
+    )
+  }
+}
 
+const Stack = createNativeStackNavigator();
+const Tab = createBottomTabNavigator();
+
+const HomeTab = (props) => {
+  const settings = useContext(UserContext).user.settings
   return(
     <Tab.Navigator
     initialRouteName='Entrances'
-    screenOptions={mainScreenOptions}
+    screenOptions={tabNavigatorOptionsProvider(settings)}
     >
       <Tab.Screen
       name="Entrances"
@@ -139,25 +170,19 @@ const HomeTab = (props) => {
         selectedDate: Today(),
         selectedEntryId: null,
       }}
-      options={{
-        tabBarIcon: tabBarIcon('inbox')
-      }}
       />
       <Tab.Screen
       name="Charts"
       component={ChartsScreenProvider}
-      options={{
-        tabBarIcon: tabBarIcon('bar-chart')
-      }}
       />
       <Tab.Screen
       name="Settings"
       component={SettingsScreenProvider}
       initialParams={{
-        selectedColor: appState.user.settings.selectedColor
+        selectedColor: settings.selectedColor,
       }}
       options={{
-        tabBarIcon: tabBarIcon('settings-2')
+        // tabBarIcon: tabBarIcon('settings-2')
       }}
       />
     </Tab.Navigator>    
@@ -165,8 +190,8 @@ const HomeTab = (props) => {
 }
 
 const HomeStack = () => {
-
   console.log('Returning "HomeScreen" component...')
+  const appState = useContext(UserContext)
   return(
     <Stack.Navigator 
     initialRouteName='Home'
@@ -177,6 +202,9 @@ const HomeStack = () => {
       <Stack.Screen
       name="Home"
       component={HomeTab}
+      initialParams={{
+        settings: appState.user.settings
+      }}
       />
       <Stack.Screen
       name="PostEntrance"
@@ -318,24 +346,10 @@ export default class App extends Component {
   }
   render() {
     console.log('Rendering "App" component...')
-    
     return !this.state.isUserAuth ? (
       <this.LoginContainer />
     ) : (
       <this.ContextProvider />
     );  
-
-    // if (this.state.isUserAuth) {
-    //     return <this.ContextProvider />
-    // } else {
-    //     return <this.LoginContainer />
-    // }
-
-    // switch (this.state.isUserAuth) {
-    //   case true:
-    //     return <this.ContextProvider />
-    //   default:
-    //     return <this.LoginContainer />
-    // }
   }
 }

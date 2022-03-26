@@ -1,4 +1,18 @@
-import { StatusBar } from 'expo-status-bar';
+import { Platform, Dimensions, StatusBar } from 'react-native';
+import * as Device from 'expo-device';
+
+const isWindowsBroswer = Platform.OS=='web' & (Device.osName!='iOS' & Device.osName!='Android')
+const screenWidth = Dimensions.get('screen').width
+const screenHeight = Dimensions.get('screen').height
+
+export function relativeToScreen(size, axis='width') {
+    if (typeof(size)=='string') {
+        return parseInt(size.slice(0, size.length-1)) / 100 * ( axis=='width' ? screenWidth : screenHeight )
+    } else {
+        return isWindowsBroswer ? size : size * ( axis=='width' ? screenWidth/392.72 : screenHeight/850.9 )
+    }
+}
+
 var styles = {
     login: {
         mainView: {
@@ -6,55 +20,55 @@ var styles = {
             justifyContent: 'center',
             alignItems: 'center',
             // paddingHorizontal: Platform.OS != 'web' ? '5%' : '5%',
+            paddingTop: StatusBar.currentHeight,
         },
         titleView: {
             flexDirection: 'row',
             justifyContent: 'center',
             alignItems: 'center',
-            minHeight: 50,
-            marginTop: 30,
+            minHeight: relativeToScreen(50, 'height'),
         },
         title: {
-            // width: 200,
+            // width: '70%',
             textAlign: 'center',
-            fontSize: 30,
+            fontSize: relativeToScreen(30),
             fontWeight: 'bold',
             color: 'white',
             alignSelf: 'center',
         },
         titleIcon: {
-            width: 30,
-            height: 30,
-            marginLeft: 6,
-            paddingTop: 3,
+            width: relativeToScreen(30),
+            height: relativeToScreen(30),
+            marginLeft: relativeToScreen(6),
+            paddingTop: relativeToScreen(3),
         },
         card: {
-            height: 440,
-            minHeight: 430,
-            width: 350,
-            paddingHorizontal: 10,
-            paddingVertical: 10,
-            borderWidth: 4,
-            borderRadius: 10,
+            height: relativeToScreen(440),
+            minHeight: relativeToScreen(430),
+            width: relativeToScreen(350),
+            paddingHorizontal: relativeToScreen(10),
+            paddingVertical: relativeToScreen(10),
+            borderWidth: relativeToScreen(4),
+            borderRadius: relativeToScreen(10),
             borderColor: 'rgba(0,0,0,0.1)',
             justifyContent: 'space-between',
             backgroundColor: 'azure',
         },
         cardHeader: {
-            height: 90,
+            height: '21.42%',
             width: '100%',
             justifyContent: 'center'
             // borderWidth: 1
         },
         cardTitle: {
             position: 'relative',
-            left: 5,
-            fontSize: 24,
+            left: relativeToScreen(5),
+            fontSize: relativeToScreen(24),
             fontWeight: 'bold',
             color: 'black',
         },
         cardSection: {
-            height: 85,
+            height: '20.5%',
             justifyContent: 'space-between',
             alignItems: 'center',
             // borderWidth: 1
@@ -63,17 +77,18 @@ var styles = {
             alignSelf: 'center'
         },
         inputField: {
-            minHeight: 40,
+            // minHeight: 40,
+            height: '47%',
             width: '100%',
-            paddingLeft: 10,
-            fontSize: 14,
+            paddingLeft: relativeToScreen(10),
+            fontSize: relativeToScreen(14),
             borderWidth: 1,
-            borderRadius: 5,
+            borderRadius: relativeToScreen(5),
             borderColor: 'rgba(0,0,0,0.1)',
             backgroundColor: 'white'
         },
         button: {
-            height: 40,
+            height: '29%',
             width: '100%',
             textAlign: 'center',
             alignItems: 'center',
@@ -84,18 +99,19 @@ var styles = {
             backgroundColor: 'lightblue',        
         },
         buttonLabel: {
-            fontSize: 15,
+            fontSize: relativeToScreen(15),
             fontWeight: 'bold',
             color: 'black',
         },
         text: {
-            fontSize: 15,
+            fontSize: relativeToScreen(15),
             textAlign: 'center',
         },
         msgBox: {
-            width: 300,
-            paddingVertical: 5,
-            paddingHorizontal: 3,
+            width: relativeToScreen(300),
+            paddingVertical: relativeToScreen(5),
+            paddingHorizontal: relativeToScreen(3),
+            marginBottom: relativeToScreen(3),
             justifyContent: 'center',
             backgroundColor: 'rgb(30,30,30)',
             borderWidth: 1,

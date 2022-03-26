@@ -2,6 +2,7 @@
 import React, { Component, useState } from 'react';
 import { Platform, View, Text, Pressable, Image, ActivityIndicator } from 'react-native';
 import { Icon } from 'react-native-eva-icons'
+import { relativeToScreen } from '../../styles/loginStyles';
 
 // Local import
 import styles from '../../styles/entrancesStyles'
@@ -32,27 +33,32 @@ function Today() {
 function MoodHeader({entry}) {
     return(
         <View style={ [styles.cardRow, styles.spaceBetween] }>
-            <View style={ [{flexDirection: 'row', alignItems: 'center'} ] }>
-                <Text style={[styles.moodBadge, {backgroundColor: moodColors[entry.mood]}]}>{entry.mood}</Text>
+            <View style={ [{flexDirection: 'row', alignItems: 'flex-start'} ] }>
+            <Text style={[styles.moodBadge, {backgroundColor: moodColors[entry.mood]}]}>{entry.mood}</Text>
                     { entry.star ? (
-                    <View style={{height: 30, width: 42, alignItems: 'flex-end', justifyContent: 'center'}}>
-                        <Icon name='star' fill='gold' width={28} height={28} />
+                    <View style={[styles.moodHeaderItem, {width: relativeToScreen(42)}]}>
+                        <Icon name='star' fill='gold' width={relativeToScreen(28)} height={relativeToScreen(28)} />
                     </View>
-                    ) : <></> }                    
+                    ) : null }                    
                     { entry.weather ? (
-                        <View style={{height: 30, width: 50, alignItems: 'flex-end', justifyContent: 'center'}}>
-                            <Image source={{uri: openWeatherMapIconsURI(entry.weather.weather.icon)}} style={{width: 40, height: 40}} />
+                        <View style={[styles.moodHeaderItem, {width: relativeToScreen(50)}]}>
+                            <Image
+                            source={{uri: openWeatherMapIconsURI(entry.weather.weather.icon)}}
+                            style={{width: relativeToScreen(40), height: relativeToScreen(40)}}
+                            />
                         </View>
-                    ) : <></> }                    
+                    ) : null }                    
                     { entry.weather ? (
-                        <View style={{height: 30, width: 40, alignItems: 'flex-end', justifyContent: 'center'}}>
-                            <Text style={[styles.theme, {fontSize: 14}]}> { entry.weather.main.temp.toString().slice(0,2) + '°C' } </Text>
+                        <View style={[styles.moodHeaderItem, {width: relativeToScreen(35)}]}>
+                            <Text style={[styles.theme, {fontSize: relativeToScreen(14)}]}>
+                                { entry.weather.main.temp.toString().slice(0,2) + '°C' }
+                            </Text>
                         </View>
-                    ) : <></> }                
+                    ) : null }                
                 
             </View>
             <View style={[styles.cardRow]}>
-                <Icon name='edit' height={18} width={18} fill='rgba(255,255,255,0.75)' style={{marginRight: 6}} />
+                <Icon name='edit' height={relativeToScreen(18)} width={relativeToScreen(18)} fill='rgba(255,255,255,0.75)' style={{marginRight: relativeToScreen(6)}} />
                 <Text style={styles.text}>{entry.startTime.slice(0,5)}</Text>
             </View>
         </View>
@@ -66,7 +72,7 @@ function Address ({entry}) {
         return(
             <View style={styles.cardRow}>
                 <Text numberOfLines={ isCollapsed } onPress={ () => { setIsCollapsed( isCollapsed ? 0 : 1 ) }} style={styles.text}>
-                    <Icon name='pin' height={17} width={17} fill='rgba(255,255,255,0.75)' style={{position: 'relative', marginRight: 5, top: 2}} />
+                    <Icon name='pin' height={relativeToScreen(17)} width={relativeToScreen(17)} fill='rgba(255,255,255,0.75)' style={{position: 'relative', marginRight: relativeToScreen(5), top: relativeToScreen(2)}} />
                     {entry.address}
                 </Text>
             </View>        
@@ -85,7 +91,10 @@ function Emotions ({entry}) {
                         emotion = emotion.name
                     }
                     return(
-                        <View key={'emotion-' + emotion} style={{paddingVertical: 5, paddingHorizontal: 2}}>
+                        <View
+                        key={'emotion-' + emotion}
+                        style={{paddingVertical: relativeToScreen(5), paddingHorizontal: relativeToScreen(2)}}
+                        >
                             <Text style={[styles.emotionBadge]}>{emotion}</Text>
                         </View>
                     )
@@ -104,7 +113,13 @@ function Jornal({ entry }) {
         return(
             <View style={styles.cardRow}>
                 <Text style={styles.textBadge}>
-                    <Icon name='book-open' height={20} width={20} fill='rgba(0,0,0,0.25)' style={{position: 'relative', top: 4, left: 1, marginRight: 6}} />
+                    <Icon
+                    name='book-open'
+                    height={relativeToScreen(20)}
+                    width={relativeToScreen(20)}
+                    fill='rgba(0,0,0,0.25)'
+                    style={{position: 'relative', top: relativeToScreen(4), left: 1, marginRight: relativeToScreen(6)}}
+                    />
                     {entry.jornal}
                 </Text>
             </View>
@@ -126,13 +141,13 @@ function EmptyCard(props) {
         // getMainScreenState: props.getMainScreenState,
 
     }
-    const textStyle = [{fontSize: 16, marginTop: 7}, styles.theme]
+    const textStyle = [{fontSize: relativeToScreen(16), textAlign: 'center', marginTop: relativeToScreen(7)}, styles.theme]
     return (
         <Pressable
         onPress={ () => props.parentProps.navigation.navigate('PostEntrance', navigateParams) }
-        style={[styles.card, {alignItems: 'center', justifyContent: 'center', fontSize: 16, height: 145}]}
+        style={[styles.card, {alignItems: 'center', justifyContent: 'center', fontSize: relativeToScreen(16), height: relativeToScreen(145)}]}
         >
-            <Icon name='inbox' fill='rgba(255,255,255,0.3)' width={25} height={25} />
+            <Icon name='inbox' fill='rgba(255,255,255,0.3)' width={relativeToScreen(25)} height={relativeToScreen(25)} />
             <Text style={textStyle}> Nenhuma entrada encontrada. </Text>
             <Text style={textStyle}> Pressione aqui para adicionar uma a este dia! </Text>
         </Pressable>
@@ -141,9 +156,9 @@ function EmptyCard(props) {
 
 function CardsLoadingMessage() {
     return(
-        <View style={[styles.card, {alignItems: 'center', justifyContent: 'center', height: 85}]}>
-            <Icon name='sync-outline' fill='rgba(255,255,255,1)' width={25} height={25} />
-            <Text style={[styles.theme, {marginTop: 10, fontSize: 16}]}>Sincronizando entradas...</Text>
+        <View style={[styles.card, {alignItems: 'center', justifyContent: 'center', height: relativeToScreen(85)}]}>
+            <Icon name='sync-outline' fill='rgba(255,255,255,1)' width={relativeToScreen(25)} height={relativeToScreen(25)} />
+            <Text style={[styles.theme, {marginTop: relativeToScreen(10), fontSize: relativeToScreen(16)}]}>Sincronizando entradas...</Text>
         </View>
     )
 }
@@ -169,14 +184,14 @@ export default class UserEntryCards extends Component {
         console.log('"UserEntryCards" sub-component will unmount...')
       }
     
-    EntryCard({ entry }) {
+    EntryCard({ entry, lastCard }) {
         function onEntryCardPress() {
             this.props.parentProps.navigation.setParams({ selectedEntryId: this.props.parentState.selectedEntryId === entry._id ? null : entry._id })
         }
         return (
         <Pressable
         onPress={onEntryCardPress.bind(this)}
-        style={[styles.card]}>
+        style={[styles.card, {marginBottom: lastCard ? 0 : styles.card.marginBottom }]}>
             <MoodHeader entry={entry} />
             <Emotions entry={entry} />
             <Address entry={entry} />
@@ -193,8 +208,8 @@ export default class UserEntryCards extends Component {
         if (selDateEntries.length) {
             return(
                 <>
+                    { this.props.parentState.isUserDataSyncing ? <CardsLoadingMessage /> : null }
                     { selDateEntries.map( entry => <this.EntryCard key={'entry-card-'+entry.startTime} entry={entry} />) }
-                    {/* { this.props.parentState.isUserDataSyncing ? <CardsLoadingMessage /> : null } */}
                 </>
             )
         } else if (this.props.parentState.isUserDataSyncing) {
@@ -207,7 +222,10 @@ export default class UserEntryCards extends Component {
 
     EditEntryButtons(props) {
         const buttonLabels = ['Editar', 'Excluir']
-        const onButtonPress = { 'Editar': this.editUserEntry, 'Excluir': () => {this.props.setAlertMsg('Pressione e segure para excluir uma entrada.')} }
+        const onButtonPress = {
+            'Editar': this.editUserEntry,
+            'Excluir': () => {this.props.setAlertMsg('Pressione e segure para excluir uma entrada.')}
+        }
         const onButtonLongPress = { 'Editar': () => {}, 'Excluir': this.deleteUserEntry }
 
         const [isButtonPressed, setIsButtonPressed] = useState({

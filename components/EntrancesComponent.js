@@ -1,58 +1,23 @@
 // Module imports
 import React, { Component } from 'react';
-import { View, Text, ImageBackground, Pressable, ScrollView, ActivityIndicator, Platform } from 'react-native';
+import { View, Text, ImageBackground, Pressable, ScrollView, ActivityIndicator } from 'react-native';
 import { Icon } from 'react-native-eva-icons'
+import { relativeToScreen } from '../styles/loginStyles';
+import { Today, formatDate, getNextDate, oneDigit } from '../shared/dates';
+
 
 // Component imports
 import UserEntryCards from './subcomponents/UserEntryCards';
 
 // Local imports
-import dateRange from '../shared/dateRange';
 import styles  from '../styles/entrancesStyles';
 
 // Defining pertinent constants
-const monthDict = {'Jan': '01', 'Feb': '02', 'Mar': '03', 'Apr': '04', 'May': '05', 'Jun': '06', 'Jul': '07', 'Ago': '08', 'Sep': '09', 'Oct': '10', 'Nov': '11', 'Dec': '12'}
-const englishMonthSigs = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dec']
-const portugueseMonthSigs = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
-const englishWeekDayMap = {'Mon': 'Seg', 'Tue': 'Ter', 'Wed': 'Qua', 'Thu': 'Qui', 'Fri': 'Sex', 'Sat': 'Sab', 'Sun': 'Dom'}
-
-// Defining pertinent functions
-export function Today() {
-    const now = Date().toString().split(' ')
-    const today = [ now[3], monthDict[now[1]], now[2] ].join('-')
-    return today
-}
-function getNextDate(date, next='next') {
-    const nextDate = dateRange[dateRange.indexOf(date) + (next=='previous' ? -1 : 1)]
-    return nextDate
-}
 function getTime() {
     //Wed,Jan,26,2022,15:12:37,GMT-0300,(Horário,Padrão,de,Brasília)
     const now = Date().toString().split(' ')
     const time = now[4]
     return time
-}
-function formatDate(selDate) {
-    
-    var ymd = selDate.split('-')
-    const yesterday = getNextDate(Today(), 'previous')
-    const englishWeekDay = new Date(ymd[0], ymd[1], ymd[2]).toString().split(' ')[0]
-    const weekDay = englishWeekDayMap[englishWeekDay]
-    var prefix = ''
-
-    if (selDate === Today()) prefix = 'Hoje, '
-    else if (selDate === yesterday) prefix = 'Ontem, '
-    else prefix = weekDay + ', '
-    
-    for (var i=0; i<12; i++) {
-        if (monthDict[ englishMonthSigs[i] ] == ymd[1]) {
-            return prefix + oneDigit(ymd[2]) + '° ' + portugueseMonthSigs[i]
-        }
-    }
-}
-function oneDigit(stringNumber) {
-    if (stringNumber[0] == '0') return stringNumber.slice(1, stringNumber.length)
-    else return stringNumber
 }
 
 export default class EntrancesScreen extends Component {
@@ -83,6 +48,19 @@ export default class EntrancesScreen extends Component {
         return this.state
     }
 
+    setAlertMsg(msg) {
+        this.setState({alertMsg: msg})
+        setTimeout( () => this.setState({alertMsg: ''}) , 1000 * 5 )
+    }
+    
+    alertMsg() {
+        return(
+            <View style={[styles.msgBox, this.state.alertMsg ? {} : {height: null, backgroundColor: 'transparent', borderColor: 'transparent'} ]}>
+                <Text style={styles.msg}>{this.state.alertMsg}</Text>
+            </View>
+        )
+    }
+
     onNextButtonPress(next='next') {
         function setSelectedDate() {
             this.props.navigation.setParams({
@@ -93,23 +71,10 @@ export default class EntrancesScreen extends Component {
         return setSelectedDate.bind(this);
     }
 
-    setAlertMsg(msg) {
-        this.setState({alertMsg: msg})
-        setTimeout( () => this.setState({alertMsg: ''}) , 1000 * 5 )
-    }
-    
-    alertMsg() {
-        return(
-            <View style={[styles.msgBox, this.state.alertMsg ? {} : {height: null, paddingVertical: 10, backgroundColor: 'transparent', borderColor: 'transparent'} ]}>
-                <Text style={styles.msg}>{this.state.alertMsg}</Text>
-            </View>
-        )
-    }
-
     DateNavigationButton = ({next}) => {
         return(
-            <Pressable onPress={this.onNextButtonPress(next)} hitSlop={15} >
-                <Icon name={ next=='next' ? 'arrow-forward' : 'arrow-back'} width={29} height={29} fill={styles.theme.color} />
+            <Pressable onPress={this.onNextButtonPress(next)} hitSlop={relativeToScreen(15)} >
+                <Icon name={ next=='next' ? 'arrow-forward' : 'arrow-back'} width={relativeToScreen(29)} height={relativeToScreen(29)} fill={styles.theme.color} />
             </Pressable>
         )
     }
@@ -136,10 +101,13 @@ export default class EntrancesScreen extends Component {
             <ImageBackground source={{uri: imgURI}} style={[styles.mainView, {backgroundColor: backgroundColor}]}>
                 
                 <ScrollView style={styles.scrollView}>
+                        <View style={[styles.header]}>
+                            <Text style={[styles.sectionTitle, styles.theme]}>{ 'Entradas' }</Text>                                
+                        </View>
                     <View style={styles.section}>
-                        <View style={[styles.cardRow, {justifyContent: 'space-between'}]}>
+                        <View style={[styles.cardRow, styles.navigationRow, {paddingVertical: 0}]}>
                             <this.DateNavigationButton icon='arrow-back' next='previous' />
-                            <Text style={[styles.sectionTitle, styles.theme]}> {'Suas entradas  •  ' + formatDate(this.props.route.params.selectedDate)} </Text>                                
+                            <Text style={[{fontSize: relativeToScreen(20), }, styles.theme]}> { formatDate(this.props.route.params.selectedDate)} </Text>                                
                             <this.DateNavigationButton icon='arrow-forward' next='next' />
                         </View>
                         <UserEntryCards
@@ -172,7 +140,7 @@ export default class EntrancesScreen extends Component {
                     this.state.isDeleteEntryLoading ? (
                         <ActivityIndicator color='red' size={'large'} />
                     ) : (
-                        <Icon name='plus-circle' width={72} height={72} fill='#f4f3f4' style={styles.postButtonLabel}/>
+                        <Icon name='plus-circle' width={relativeToScreen(72)} height={relativeToScreen(72)} fill='#f4f3f4' style={styles.postButtonLabel}/>
                     )
                 )}
                 </Pressable>

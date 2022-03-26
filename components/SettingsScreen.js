@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
-import { ImageBackground, View, Text, Pressable, ScrollView, ActivityIndicator, Switch, StatusBar, Platform } from 'react-native';
+import { ImageBackground, View, Text, Pressable, ScrollView, ActivityIndicator, Switch, StatusBar } from 'react-native';
 import { Icon } from 'react-native-eva-icons';
 import { keepUserConnectionAlive } from './LoginComponent';
+import { relativeToScreen } from '../styles/loginStyles';
 import { capitalize } from './subcomponents/EditEmotions';
-
 import NativeIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 // cors-midpoint uri (needed to avoid cors' allow-cross-origin error when fetching in web platforms)
@@ -12,79 +12,85 @@ const appServerURI = 'https://mood-tracker-server.herokuapp.com/'
 const colorList = require('../shared/colorList.json')
 
 var styles = {
-    background: {
+  background: {
     flex: 1,
     paddingTop: StatusBar.currentHeight,
+    paddingBottom: relativeToScreen(55),
     alignItems: 'center',
     justifyContent: 'space-between',
   },
+  scrollView: {
+    width: '100%',
+    // alignItems: 'center',
+  },
   foreground: {
-    width: 350,
+    width: relativeToScreen(350),
+    alignSelf: 'center'
   },
   header: {
-    height: 110,
+    height: relativeToScreen(120),
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     // borderWidth: 1,
   },
   settingsRow: {
-    height: 60,
-    paddingHorizontal: 10,
+    height: relativeToScreen(60),
+    paddingHorizontal: relativeToScreen(10),
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    borderRadius: 10,
+    borderRadius: relativeToScreen(10),
     // borderWidth: 1,
   },
   colorBox: {
-    height: 300,
+    height: relativeToScreen(225),
     paddingHorizontal: 0,
     borderColor: 'rgba(200,200,200,0.2)'
   },
   colorRow: {
     width: '100%',
-    height: 60,
-    paddingHorizontal: 10,
+    height: relativeToScreen(50),
+    paddingHorizontal: relativeToScreen(10),
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     borderBottomWidth: 1,
-    borderColor: 'rgba(200,200,200,0.2)',
-    borderRadius: 10,
+    borderColor: '#fff4',
+    borderRadius: relativeToScreen(10),
   },
   colorSquare: {
     // marginRight: 0,
-    width: 30,
-    height: 30,
-    borderRadius: 6,
+    width: relativeToScreen(28),
+    height: relativeToScreen(28),
+    borderRadius: relativeToScreen(6),
     borderColor: 'white'
   },
   logout: {
-    height: 33,
-    width: 85,
+    height: relativeToScreen(33),
+    width: relativeToScreen(85),
     marginTop: 0,
-    marginBottom: 20,
+    marginBottom: relativeToScreen(20),
     justifyContent: 'center',
     alignItems: 'center',
     // borderWidth: 1,
     // borderColor: 'red',
   },
   h1: {
-    fontSize: 25,
-    color: 'white'
+    fontSize: relativeToScreen(25),
+    color: '#fff'
   },
   h2: {
-    fontSize: 20,
-    color: 'white',
+    fontSize: relativeToScreen(20),
+    color: '#fff',
   },
   h3: {
-    fontSize: 17,
-    color: 'white',
+    fontSize: relativeToScreen(17),
+    color: '#fff',
   },
   h4: {
-    fontSize: 16,
-    color: 'white',
+    fontSize: relativeToScreen(16),
+    color: '#fff',
   },
 }
 
@@ -207,20 +213,19 @@ export default class SettingsScreen extends Component {
       source={{uri : imgURI}}
       style={[ styles.background, {backgroundColor: backgroundColor} ]}
       >
-        <ScrollView style={styles.foreground}>
-          <View style={styles.header}>
-            <Text style={styles.h1}>Configurações</Text>
+        <ScrollView style={styles.scrollView}>
+          <View style={styles.foreground}>
+            <View style={styles.header}>
+              <Text style={styles.h1}>Configurações</Text>
+            </View>
+            <this.ScreenSettings />
           </View>
-          <this.ScreenSettings />
-          <this.logoutPressable />
         </ScrollView>
       </ImageBackground>
     )
   }
 
   ScreenSettings() {
-    const [isHighResulotionButtonPressed, setIsHighResulotionButtonPressed] = React.useState(false)
-    // const isLoading = this.state.isSaveColorLoading | this.state.isDisplayBackgroundImageLoading | this.state.isChangeFontColorLoading
     return (
       <>
         <this.ChooseImageSection />
@@ -229,6 +234,7 @@ export default class SettingsScreen extends Component {
         <this.ChangeFontColorSection />
         <this.ChangeBackgroundColorSection />
         <this.ColorOptions />
+        <this.logoutPressable />
       </>
     )
   }
@@ -249,7 +255,7 @@ export default class SettingsScreen extends Component {
         </View>
         
         <Icon
-        width={30} height={30}
+        width={relativeToScreen(30)} height={relativeToScreen(30)}
         name='arrow-ios-forward-outline'
         fill={ fontColor } />
       </Pressable>
@@ -266,8 +272,8 @@ export default class SettingsScreen extends Component {
       style={[styles.settingsRow, {backgroundColor: isExposeImageButtonPressed ? '#0003' : null }]}
       >
         <View style={{flexDirection: 'row', alignItems: 'center'}}>
-          <Icon name='eye-outline' width={30} height={30} fill={styles.h1.color} />
-          <Text style={[styles.h2, {marginLeft: 10, marginRight: 20}]}>Ver papel de parede</Text>
+          <Icon name='eye-outline' width={relativeToScreen(30)} height={relativeToScreen(30)} fill={styles.h1.color} />
+          <Text style={[styles.h2, {marginLeft: relativeToScreen(10), marginRight: relativeToScreen(20)}]}>Ver papel de parede</Text>
           { isLoading ? <ActivityIndicator color='blue' /> : null }
         </View>
         <Switch
@@ -296,8 +302,8 @@ export default class SettingsScreen extends Component {
       >
         <View style={{flexDirection: 'row', alignItems: 'center'}}>
           {/* <Icon name='camera-outline' width={30} height={30} fill={styles.h1.color} /> */}
-          <NativeIcon name='high-definition' size={30} color={styles.h1.color} />
-          <Text style={[styles.h2, {marginLeft: 10, marginRight: 20}]}>Alta definição</Text>
+          <NativeIcon name='high-definition' size={relativeToScreen(30)} color={styles.h1.color} />
+          <Text style={[styles.h2, {marginLeft: relativeToScreen(10), marginRight: relativeToScreen(20)}]}>Alta definição</Text>
           { isLoading ? <ActivityIndicator color='blue' /> : null }
         </View>
         <Switch
@@ -325,8 +331,8 @@ export default class SettingsScreen extends Component {
       style={[styles.settingsRow, {backgroundColor: isChangeFontColorButtonPressed ? '#0003' : null }]}
       >
         <View style={{flexDirection: 'row', alignItems: 'center'}}>
-          <Icon name='moon-outline' width={30} height={30} fill={styles.h1.color} />
-          <Text style={[styles.h2, {marginLeft: 10, marginRight: 20}]}>Texto escuro</Text>
+          <Icon name='moon-outline' width={relativeToScreen(30)} height={relativeToScreen(30)} fill={styles.h1.color} />
+          <Text style={[styles.h2, {marginLeft: relativeToScreen(10), marginRight: relativeToScreen(20)}]}>Texto escuro</Text>
           { isLoading ? <ActivityIndicator color='blue' /> : null }
         </View>
         <Switch
@@ -346,10 +352,11 @@ export default class SettingsScreen extends Component {
 
   ChangeBackgroundColorSection() {
     const [isColorButtonPressed, setIsColorButtonPressed] = React.useState(false)
-    const newColorUnselected = this.state.selectedColor == this.props.appState.user.settings.backgroundColor
+    const settings = this.props.appState.user.settings
+    const newColorUnselected = this.state.selectedColor == settings.backgroundColor
     let fontColor = styles.h1.color
     let fontColorTransp = fontColor + '8'
-
+    const seeWallpaper = settings.displayBackgroundImage
     return(
       <Pressable
       onPressIn={() => blinkButton(setIsColorButtonPressed)}
@@ -357,17 +364,24 @@ export default class SettingsScreen extends Component {
         this.setState({ isBackgroundColorSettingsOpen: !this.state.isBackgroundColorSettingsOpen })
         if (!newColorUnselected) this.syncUserSettings()
       }}
+      disabled={seeWallpaper}
       style={[styles.settingsRow, {backgroundColor: isColorButtonPressed ? '#0003' : null }]}
       >
         <View style={{flexDirection: 'row', alignItems: 'center'} }>
-          <Icon name='color-palette-outline' height={30} width={30} fill={styles.h1.color} style={{marginRight: 0}} />
-          <Text style={[styles.h2, {marginLeft: 10}]}>Tema</Text>
+          <Icon
+          name='color-palette-outline'
+          height={relativeToScreen(30)}
+          width={relativeToScreen(30)}
+          fill={ seeWallpaper ? fontColorTransp : fontColor }
+          style={{marginRight: 0}}
+          />
+          <Text style={[styles.h2, {color: seeWallpaper ? fontColorTransp : fontColor, marginLeft: relativeToScreen(10)}]}>Tema</Text>
         </View>
         <View style={{flexDirection: 'row', alignItems: 'center'} }>
           <Icon
-          width={30} height={30}
+          width={relativeToScreen(30)} height={relativeToScreen(30)}
           name={this.state.isBackgroundColorSettingsOpen ? 'arrow-ios-upward-outline' : 'arrow-ios-downward-outline' }
-          fill={ fontColor } />
+          fill={ seeWallpaper ? fontColorTransp : fontColor } />
         </View>
       </Pressable>    
     )
@@ -422,7 +436,7 @@ export default class SettingsScreen extends Component {
       <View style={[styles.settingsRow, {justifyContent: 'space-between'}]}>
         <Pressable
         disabled={isLoading | newColorUnselected}
-        style={{ justifyContent: 'center', alignItems: 'center', width: 95 }}
+        style={{ justifyContent: 'center', alignItems: 'center', width: relativeToScreen(95) }}
         // onPressIn={() => blinkButton((bool) => this.setState({isRestoreColorLoading: bool}))}
         onPress={() => {
           this.setState({isRestoreColorLoading: true})
@@ -443,9 +457,9 @@ export default class SettingsScreen extends Component {
         <Pressable
         disabled={isLoading | newColorUnselected}
         onPress={this.onSaveColorButtonPress}
-        style={{ justifyContent: 'center', alignItems: 'center', width: 75 }}
+        style={{ justifyContent: 'center', alignItems: 'center', width: relativeToScreen(75) }}
         >
-          <Text style={[styles.h2, {width: 63, textAlign: 'center', color: isLoading | newColorUnselected ? styles.h1.color + '6' : styles.h1.color}]}>
+          <Text style={[styles.h2, {width: relativeToScreen(65), textAlign: 'center', color: isLoading | newColorUnselected ? styles.h1.color + '6' : styles.h1.color}]}>
             { this.state.isSaveColorLoading ? <ActivityIndicator color='blue' /> : 'Aplicar' }
           </Text>
         </Pressable>
@@ -476,12 +490,12 @@ export default class SettingsScreen extends Component {
       disabled={isLoading}
       style={[ styles.settingsRow, {
         justifyContent: 'flex-start',
-        marginBottom: 30,
+        marginBottom: relativeToScreen(30),
         backgroundColor: isLogoutButtonPressed ? styles.h1.color+'8' : null
       }]}
       >
-        <Icon name='log-out' width={30} height={30} fill={logoutColor} />
-        <Text style={[styles.h2, { marginLeft: 10, color: logoutColor }]}>Logout</Text>
+        <Icon name='log-out' width={relativeToScreen(30)} height={relativeToScreen(30)} fill={logoutColor} />
+        <Text style={[styles.h2, { marginLeft: relativeToScreen(10), color: logoutColor }]}>Logout</Text>
       </Pressable>
     )
   }

@@ -1,12 +1,11 @@
-import { Icon } from 'react-native-eva-icons'
-
 import React, { Component } from 'react';
 import { View, Text, ImageBackground, TextInput, Pressable, Platform, ActivityIndicator, Switch } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from "@react-native-community/netinfo";
 import * as Device from 'expo-device';
+import { Icon } from 'react-native-eva-icons'
 
-import styles from '../styles/loginStyles'
+import styles, { relativeToScreen } from '../styles/loginStyles'
 let backgroundColor = "#5926a6"
 let imgURI = require('../assets/wallpaper.png')
 
@@ -72,7 +71,7 @@ async function validateEmail(email) {
 
 function validatePassword(password) {
   console.log('VALIDATING PASSWORD FOR SIGNUP...')
-  const hasMinLength = password.length > 6
+  const hasMinLength = password.length > 5
   var res
   if (!hasMinLength) {
     res = {ok: false, status: 'A senha deve ter no mínimo 6 caractéres.'}
@@ -140,7 +139,6 @@ export async function keepUserConnectionAlive(id) {
   } else {
     console.log('SIGNIN STATUS: Fazendo login via conexã ativa. Pulando configuração de conexão ativa para o usuário...')
   }
-
 }
 
 class LoginScreen extends Component {
@@ -182,7 +180,7 @@ class LoginScreen extends Component {
     if (this.state.isDataLoading) {
       return <ActivityIndicator color='#000000' />
     } else {
-      return <Icon name='log-in-outline' animation='pulse' fill='#000' width={30} height={30} />
+      return <Icon name='log-in-outline' animation='pulse' fill='#000' width={relativeToScreen(30)} height={relativeToScreen(30)} />
     }
   }
 
@@ -243,6 +241,7 @@ class LoginScreen extends Component {
             onChangeText={this.onChangeText('email')}
             autoComplete='email'
             importantForAutofill='yes'
+            value={this.state.userInfo.email}
             />
             <TextInput
             placeholder='Senha'
@@ -252,13 +251,14 @@ class LoginScreen extends Component {
             onChangeText={this.onChangeText('password')}
             autoComplete='password'
             importantForAutofill='yes'
+            value={this.state.userInfo.password}
             />
           </View>
-          <View style={[styles.login.cardSection, {height: 138}]}>
+          <View style={[styles.login.cardSection, {height: '33.0%'}]}>
             {this.submitButton('signin')}
             {this.submitButton('signup')}
-            <View style={{flexDirection: 'row', height: 48, alignSelf: 'stretch', alignItems: 'center', justifyContent: 'flex-end'}}>
-              <Text style={{marginRight: Platform.OS=='web' ? 10 : null }}>Manter-me conectado</Text>
+            <View style={{flexDirection: 'row', height: relativeToScreen(48), alignSelf: 'stretch', alignItems: 'center', justifyContent: 'flex-end'}}>
+              <Text style={{marginRight: Platform.OS=='web' ? relativeToScreen(10) : null }}>Manter-me conectado</Text>
               <Switch
                 disabled={this.state.isDataLoading}
                 trackColor={{ false: "#767577", true: "#81b0ff" }}
@@ -269,7 +269,7 @@ class LoginScreen extends Component {
               />
             </View>
           </View>
-          <View style={[styles.login.cardSection, {height: 80, justifyContent: 'center'}]}>
+          <View style={[styles.login.cardSection, {height: '19.04%', justifyContent: 'center'}]}>
             {this.LoginIcon()}
           </View>
         </View>
@@ -298,7 +298,6 @@ class LoginScreen extends Component {
     try {
       console.log('RESTORE USER TOKE STATUS: STARTED...')
       var localAuthInfo = await AsyncStorage.getItem('LocalAuthenticationInfo')
-      
       if (localAuthInfo) {
         console.log('RESTORE USER TOKEN STATUS: LOCAL AUTH INFO ALREADY CONFIGURED. LOGGING CURRENT VALUE...')
         localAuthInfo = JSON.parse(localAuthInfo)

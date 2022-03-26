@@ -1,8 +1,9 @@
 import React, { Component, useState } from 'react';
-import { View, Text,  Pressable, TextInput, ActivityIndicator, Platform } from 'react-native';
+import { View, Text,  Pressable, TextInput } from 'react-native';
 import { Icon } from 'react-native-eva-icons'
-// import VectorIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { relativeToScreen } from '../../styles/loginStyles';
 import styles from '../../styles/postEntryStyles'
+// import VectorIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const appServerURI = 'https://mood-tracker-server.herokuapp.com/'
 
@@ -45,10 +46,10 @@ export default class EditEmotions extends Component {
         }
 
         const inputSectionStyle = {marginTop: 0, marginTop: 0   , alignItems: 'center'}
-        const textStyle = {color: styles.theme.color, fontSize: 16, alignSelf: 'center', marginBottom: 8}
-        const inputStyle = {width: '70%', height: 35, borderRadius: 16.5, color: styles.theme.color, backgroundColor: styles.altTheme.color+'8', fontSize: 15, textAlign: 'center' }
-        const tagStyle = {width: '45%', height: 28, borderRadius: 13.5,  marginBottom: 7, color: 'white', alignItems: 'center', justifyContent: 'center'}
-        const createEmotionViewStyle = {height: 420, marginTop: 10, paddingTop: 10, justifyContent: 'space-evenly', borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.2)'}
+        const textStyle = {color: styles.theme.color, fontSize: relativeToScreen(16), alignSelf: 'center', marginBottom: relativeToScreen(8)}
+        const inputStyle = {width: '70%', height: relativeToScreen(35), borderRadius: relativeToScreen(15), color: styles.theme.color, backgroundColor: styles.altTheme.color+'8', fontSize: relativeToScreen(15), textAlign: 'center' }
+        const tagStyle = {width: '45%', height: relativeToScreen(28), borderRadius: relativeToScreen(14),  marginBottom: relativeToScreen(7), color: 'white', alignItems: 'center', justifyContent: 'center'}
+        const createEmotionViewStyle = {height: relativeToScreen(420), marginTop: relativeToScreen(10), paddingTop: relativeToScreen(10), justifyContent: 'space-evenly', borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.2)'}
 
         const [isButtonPressed, setIsButtonPressed] = useState({
             'Salvar': false,
@@ -73,6 +74,7 @@ export default class EditEmotions extends Component {
         )
 
         const isNewEmotionFormComplete = !this.state.newEmotionName | !this.state.selectedEmotionType | !this.state.selectedEmotionEnergy
+        const unselectedLayout = this.props.selectedEmotionLayout==this.state.initialEmotionLayout
 
         switch (this.state.mode) {
 
@@ -82,7 +84,7 @@ export default class EditEmotions extends Component {
             case 'create':
                 return(
                     <View style={createEmotionViewStyle}>
-                        <Text style={[ styles.theme, {fontSize: 22, alignSelf: 'center'}]}>Criar emoção</Text>
+                        <Text style={[ styles.theme, {fontSize: relativeToScreen(22), alignSelf: 'center'}]}>Criar emoção</Text>
                         <View style={inputSectionStyle}>
                             <Text style={textStyle}>Nome</Text>
                             <TextInput
@@ -102,7 +104,7 @@ export default class EditEmotions extends Component {
                                     key={'emotion-'+type}
                                     onPress={() => this.setState({selectedEmotionType: typeSelected ? null : type })}
                                     style={[tagStyle, { backgroundColor: styles.altTheme.color + (typeSelected ? 'd' : '6') }]}>
-                                        <Text style={[{fontSize: 15}, styles.theme]}>{type}</Text>
+                                        <Text style={[{fontSize: relativeToScreen(15)}, styles.theme]}>{type}</Text>
                                     </Pressable>
                                 )
                             }) }
@@ -116,12 +118,27 @@ export default class EditEmotions extends Component {
                                     key={'emotion-'+type}
                                     onPress={() => this.setState({selectedEmotionEnergy: typeSelected ? null : type })}
                                     style={[tagStyle, { backgroundColor: styles.altTheme.color + (typeSelected ? 'd' : '6') }]}>
-                                        <Text style={[{fontSize: 15}, styles.theme]}>{type}</Text>
+                                        <Text style={[{fontSize: relativeToScreen(15)}, styles.theme]}>{type}</Text>
                                     </Pressable>
                                 )
                             }) }
                         </View>
                         <View style={[inputSectionStyle, {flexDirection: 'row', justifyContent: 'space-evenly'}]}>
+                            <Pressable
+                            onPress={() => {
+                                highlightButtonFor('Voltar')()
+                                this.setState({showEditMenu: true, showExpandMenuButton: true, mode: 'hidden'})
+                                setIsButtonPressed({'Voltar': false})
+                            }}
+                            onPressIn={highlightButtonFor('Voltar')}
+                            disabled={isLoading}
+                            style={[styles.editButton, {
+                                alignSelf: 'center',
+                                backgroundColor: isButtonPressed['Voltar'] ? styles.theme.color+'5' : '#0000',
+                                borderColor: isLoading ? styles.theme.color+'5' : styles.theme.color,
+                                }]}>
+                                <Text style={[styles.editButtonLabel, {color: isLoading ? styles.theme.color+'5' : styles.theme.color}]}>Voltar</Text>
+                            </Pressable>
                             <Pressable
                             onPress={() => {
                                 highlightButtonFor('Salvar')()
@@ -142,30 +159,15 @@ export default class EditEmotions extends Component {
                                 {'Salvar'}
                                 </Text>
                             </Pressable>
-                            <Pressable
-                            onPress={() => {
-                                highlightButtonFor('Voltar')()
-                                this.setState({showEditMenu: true, showExpandMenuButton: true, mode: 'hidden'})
-                                setIsButtonPressed({'Voltar': false})
-                            }}
-                            onPressIn={highlightButtonFor('Voltar')}
-                            disabled={isLoading}
-                            style={[styles.editButton, {
-                                alignSelf: 'center',
-                                backgroundColor: isButtonPressed['Voltar'] ? styles.theme.color+'5' : '#0000',
-                                borderColor: isLoading ? styles.theme.color+'5' : styles.theme.color,
-                                }]}>
-                                <Text style={[styles.editButtonLabel, {color: isLoading ? styles.theme.color+'5' : styles.theme.color}]}>Voltar</Text>
-                            </Pressable>
                         </View>
                     </View>
                 )
 
             case 'delete':
                 return(
-                    <View style={[createEmotionViewStyle, {height: 180}]}>
-                        <Text style={{color: styles.theme.color, fontSize: 22, alignSelf: 'center'}}>Excluir emoções</Text>
-                        <Text style={{color: styles.theme.color, fontSize: 16, textAlign: 'center'}}>Pressione e segure para excluir uma emoção.</Text>
+                    <View style={[createEmotionViewStyle, {height: relativeToScreen(180)}]}>
+                        <Text style={{color: styles.theme.color, fontSize: relativeToScreen(22), alignSelf: 'center'}}>Excluir emoções</Text>
+                        <Text style={{color: styles.theme.color, fontSize: relativeToScreen(16), textAlign: 'center'}}>Pressione e segure para excluir uma emoção.</Text>
                         <View style={[styles.cardRow, {justifyContent: 'space-evenly'}]}>
                             <Pressable
                             onPress={() => {
@@ -190,37 +192,22 @@ export default class EditEmotions extends Component {
 
             case 'layout':
                 return(
-                    <View style={[createEmotionViewStyle, {height: 320}]}>
+                    <View style={[createEmotionViewStyle, {height: relativeToScreen(320)}]}>
                         <View style={inputSectionStyle}>
-                            <Text style={{color: styles.theme.color, fontSize: 22, alignSelf: 'center', paddingBottom: 25}}>Escolha o layout</Text>
+                            <Text style={{color: styles.theme.color, fontSize: relativeToScreen(22), alignSelf: 'center', paddingBottom: relativeToScreen(25)}}>Escolha o layout</Text>
                             { ['Positiva ou Negativa', 'Calmo(a) ou Energizado(a)', 'Grade', 'Espalhado'].map((layout) => {
                                 const isLayoutSelected = this.props.selectedEmotionLayout === emotionLayoutMap[layout]
                                 return(
                                     <Pressable
                                     key={'emotion-'+layout}
                                     onPress={() => this.props.setParentState({selectedEmotionLayout: emotionLayoutMap[layout] })}
-                                    style={[tagStyle, {width: 230, height: 30, borderRadius: 15, marginBottom: 10, backgroundColor: isLayoutSelected ? styles.altTheme.color+'d' : styles.altTheme.color+'5'}]}>
+                                    style={[tagStyle, {width: relativeToScreen(230), height: relativeToScreen(30), borderRadius: relativeToScreen(15), marginBottom: relativeToScreen(10), backgroundColor: isLayoutSelected ? styles.altTheme.color+'d' : styles.altTheme.color+'5'}]}>
                                         <Text style={[{fontSize: 15, color: styles.theme.color}]}>{layout}</Text>
                                     </Pressable>
                                 )
                             }) }
                         </View>
                         <View style={[inputSectionStyle, {flexDirection: 'row', justifyContent: 'space-evenly'}]}>
-                            <Pressable
-                            onPress={() => {
-                                highlightButtonFor('Salvar-Layout')()
-                                this.onSaveEmotionLayoutButtonPress()
-                                setIsButtonPressed({'Salvar-Layout': false})
-                            }}
-                            onPressIn={highlightButtonFor('Salvar-Layout')}
-                            disabled={ isLoading }
-                            style={[styles.editButton, {
-                                alignSelf: 'center',
-                                backgroundColor: isButtonPressed['Salvar-Layout'] ? styles.theme.color+'5' : '#0000',
-                                borderColor: isLoading ? styles.theme.color+'5' : styles.theme.color,
-                                }]}>
-                                <Text style={[styles.editButtonLabel, {color: isLoading ? styles.theme.color+'5' : styles.theme.color}]}>Salvar</Text>
-                            </Pressable>
                             <Pressable
                             onPress={() => {
                                 highlightButtonFor('Voltar-Layout')()
@@ -236,6 +223,21 @@ export default class EditEmotions extends Component {
                                 backgroundColor: isButtonPressed['Voltar-Layout'] ? styles.theme.color+'5' : '#0000'
                                 }]}>
                                 <Text style={[styles.editButtonLabel, {color: isLoading ? styles.theme.color+'5' : styles.theme.color}]}>Voltar</Text>
+                            </Pressable>
+                            <Pressable
+                            onPress={() => {
+                                highlightButtonFor('Salvar-Layout')()
+                                this.onSaveEmotionLayoutButtonPress()
+                                setIsButtonPressed({'Salvar-Layout': false})
+                            }}
+                            onPressIn={highlightButtonFor('Salvar-Layout')}
+                            disabled={ isLoading || unselectedLayout }
+                            style={[styles.editButton, {
+                                alignSelf: 'center',
+                                backgroundColor: isButtonPressed['Salvar-Layout'] ? styles.theme.color+'5' : '#0000',
+                                borderColor: isLoading || unselectedLayout ? styles.theme.color+'5' : styles.theme.color,
+                                }]}>
+                                <Text style={[styles.editButtonLabel, {color: isLoading || unselectedLayout ? styles.theme.color+'5' : styles.theme.color}]}>Salvar</Text>
                             </Pressable>
                         </View>
                     </View>
@@ -285,7 +287,12 @@ export default class EditEmotions extends Component {
         return(
             <>
                 { showExpandMenuButton ? (
-                    <View style={[styles.cardRow, {height: 60, marginTop: 10, paddingTop: 10, justifyContent: showEditMenu ? 'space-between' : 'center', borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.2)'}]}>
+                    <View style={[styles.cardRow, {
+                        height: relativeToScreen(60),
+                        marginTop: relativeToScreen(10),
+                        paddingTop: relativeToScreen(10),
+                        justifyContent: showEditMenu ? 'space-between' : 'center', borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.2)'
+                    }]}>
                         { showEditMenu ? ( 
                             buttonLabels.map((label) => (
                                 <Pressable
@@ -293,7 +300,7 @@ export default class EditEmotions extends Component {
                                 style={[styles.editButton,  {
                                     backgroundColor: isButtonPressed[label] ? styles.theme.color+'5' : '#0000',
                                     borderColor: isLoading ? styles.theme.color+'5' : styles.theme.color,
-                                    width: 75
+                                    width: relativeToScreen(75)
                                 }]}
                                 disabled={ isLoading }
                                 onPress={() => {
@@ -309,9 +316,9 @@ export default class EditEmotions extends Component {
                         <Pressable
                         onPress={() => this.setState({ showEditMenu:  !showEditMenu })}
                         // disabled={isLoading}
-                        style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 5, width: 75}}>
-                            <Icon name={ !showEditMenu ? 'more-horizontal-outline' : 'arrow-back-outline' } fill={styles.theme.color} width={20} height={20} />
-                            <Text style={{color: styles.theme.color, fontSize: 15, marginLeft: 0}}> {anyOpen ? 'menos' : 'mais'}</Text>
+                        style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: relativeToScreen(5), width: relativeToScreen(75)}}>
+                            <Icon name={ !showEditMenu ? 'more-horizontal-outline' : 'arrow-back-outline' } fill={styles.theme.color} width={relativeToScreen(20)} height={relativeToScreen(20)} />
+                            <Text style={{color: styles.theme.color, fontSize: relativeToScreen(15), marginLeft: 0}}> {anyOpen ? 'menos' : 'mais'}</Text>
                         </Pressable>
                     </View> 
                 ) :  null  }
