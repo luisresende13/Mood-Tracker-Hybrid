@@ -251,7 +251,7 @@ export default class SettingsScreen extends Component {
       >
         <View style={{flexDirection: 'row', alignItems: 'center'}}>
           <Icon name='image-outline' width={30} height={30} fill={fontColor} />
-          <Text style={[styles.h2, {marginLeft: 10}]}>Papel de parede</Text>
+          <Text selectable={false} style={[styles.h2, {marginLeft: 10}]}>Papel de parede</Text>
         </View>
         
         <Icon
@@ -273,7 +273,7 @@ export default class SettingsScreen extends Component {
       >
         <View style={{flexDirection: 'row', alignItems: 'center'}}>
           <Icon name='eye-outline' width={relativeToScreen(30)} height={relativeToScreen(30)} fill={styles.h1.color} />
-          <Text style={[styles.h2, {marginLeft: relativeToScreen(10), marginRight: relativeToScreen(20)}]}>Ver papel de parede</Text>
+          <Text selectable={false} style={[styles.h2, {marginLeft: relativeToScreen(10), marginRight: relativeToScreen(20)}]}>Ver papel de parede</Text>
           { isLoading ? <ActivityIndicator color='blue' /> : null }
         </View>
         <Switch
@@ -303,7 +303,7 @@ export default class SettingsScreen extends Component {
         <View style={{flexDirection: 'row', alignItems: 'center'}}>
           {/* <Icon name='camera-outline' width={30} height={30} fill={styles.h1.color} /> */}
           <NativeIcon name='high-definition' size={relativeToScreen(30)} color={styles.h1.color} />
-          <Text style={[styles.h2, {marginLeft: relativeToScreen(10), marginRight: relativeToScreen(20)}]}>Alta definição</Text>
+          <Text selectable={false} style={[styles.h2, {marginLeft: relativeToScreen(10), marginRight: relativeToScreen(20)}]}>Alta definição</Text>
           { isLoading ? <ActivityIndicator color='blue' /> : null }
         </View>
         <Switch
@@ -332,7 +332,7 @@ export default class SettingsScreen extends Component {
       >
         <View style={{flexDirection: 'row', alignItems: 'center'}}>
           <Icon name='moon-outline' width={relativeToScreen(30)} height={relativeToScreen(30)} fill={styles.h1.color} />
-          <Text style={[styles.h2, {marginLeft: relativeToScreen(10), marginRight: relativeToScreen(20)}]}>Texto escuro</Text>
+          <Text selectable={false} style={[styles.h2, {marginLeft: relativeToScreen(10), marginRight: relativeToScreen(20)}]}>Texto escuro</Text>
           { isLoading ? <ActivityIndicator color='blue' /> : null }
         </View>
         <Switch
@@ -375,7 +375,7 @@ export default class SettingsScreen extends Component {
           fill={ seeWallpaper ? fontColorTransp : fontColor }
           style={{marginRight: 0}}
           />
-          <Text style={[styles.h2, {color: seeWallpaper ? fontColorTransp : fontColor, marginLeft: relativeToScreen(10)}]}>Tema</Text>
+          <Text selectable={false} style={[styles.h2, {color: seeWallpaper ? fontColorTransp : fontColor, marginLeft: relativeToScreen(10)}]}>Tema</Text>
         </View>
         <View style={{flexDirection: 'row', alignItems: 'center'} }>
           <Icon
@@ -418,7 +418,7 @@ export default class SettingsScreen extends Component {
       onPress={ this.onColorButtonPressFor(color) }
       disabled={isLoading}
       style={[styles.colorRow, {backgroundColor: isColorRowPressed ? '#0003' : null }]}>
-        <Text style={[
+        <Text selectable={false} style={[
           styles.h3,
           this.state.selectedColor == color
           ? {fontStyle: 'italic', textDecorationLine: 'underline' }
@@ -444,7 +444,7 @@ export default class SettingsScreen extends Component {
           this.setState({isRestoreColorLoading: false})
         }}
         >
-          <Text
+          <Text selectable={false}
             style={[styles.h2, { 
               textAlign: 'center',
               color: isLoading | newColorUnselected ? styles.h1.color + '6' : styles.h1.color
@@ -459,7 +459,7 @@ export default class SettingsScreen extends Component {
         onPress={this.onSaveColorButtonPress}
         style={{ justifyContent: 'center', alignItems: 'center', width: relativeToScreen(75) }}
         >
-          <Text style={[styles.h2, {width: relativeToScreen(65), textAlign: 'center', color: isLoading | newColorUnselected ? styles.h1.color + '6' : styles.h1.color}]}>
+          <Text selectable={false} style={[styles.h2, {width: relativeToScreen(65), textAlign: 'center', color: isLoading | newColorUnselected ? styles.h1.color + '6' : styles.h1.color}]}>
             { this.state.isSaveColorLoading ? <ActivityIndicator color='blue' /> : 'Aplicar' }
           </Text>
         </Pressable>
@@ -495,7 +495,7 @@ export default class SettingsScreen extends Component {
       }]}
       >
         <Icon name='log-out' width={relativeToScreen(30)} height={relativeToScreen(30)} fill={logoutColor} />
-        <Text style={[styles.h2, { marginLeft: relativeToScreen(10), color: logoutColor }]}>Logout</Text>
+        <Text selectable={false} style={[styles.h2, { marginLeft: relativeToScreen(10), color: logoutColor }]}>Logout</Text>
       </Pressable>
     )
   }

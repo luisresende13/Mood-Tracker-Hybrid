@@ -3,7 +3,7 @@ import Victory from '../victory';
 import { relativeToScreen } from '../../styles/loginStyles';
 import { moodColorsHEX } from '../PostEntryComponent';
 import { FullDates, intWeekDayMap, portugueseMonthSigs, YearTicks, datePeriodFilters, fullDateMap, dateDiff } from '../../shared/dates';
-import { stats, styles } from '../Charts';
+import { stats, groupBy, groupByMap, styles } from '../Charts';
 
 function stringTimeToSec(time) { // Expects 'hh:mm:ss' string format
   return parseInt(time.slice(0,2))*3600 + parseInt(time.slice(3,5))*60 + parseInt(time.slice(6,8))
@@ -138,7 +138,6 @@ function objListVariance(objList, by) {
 }
 
 function equalObjects(obj1, obj2) {
-  console.log(typeof(obj1))
   var equal = true
   if (typeof(obj1)!='object') {
     if (obj1!=obj2) equal = false
@@ -180,35 +179,25 @@ function dateAverage(data, isVariance, key, date, period) {
       const subsetAverage = isVariance
         ? objListVariance(dataSubset, 'y')
         : objListAverage(dataSubset, 'y')
-      const thisDatePeriodDate = FullDates.filter(datePeriodFilters({[key]: uniqueDate}, key))[0].date
-      var time_d = dateDiff(firstDatePeriodDate, thisDatePeriodDate)
+      const thisSubsetFirstDate = FullDates.filter(datePeriodFilters({[key]: uniqueDate}, key))[0].date
+      var time_d = dateDiff(firstDatePeriodDate, thisSubsetFirstDate)
       if (key=='hour') {
         time_d += uniqueDate['hour'] * 1/24
       }
-      avgData.push({
-        x: index,
-        y: subsetAverage,
-        time_d: time_d,
-      })
-      index += 1
+      if (time_d > 0) {
+        avgData.push({
+          x: index,
+          y: subsetAverage,
+          time_d: time_d,
+        })
+        index += 1          
+      }
     }
   })
   return avgData    
 }
 
-const statsMap = {
-  'sequencial': 'sequencial',
-  'Média (hora)': 'hour', 
-  'Média (dia)': 'day',
-  'Média (semana)': 'week',
-  'Média (mês)': 'month',
-  'Variância (hora)': 'hour',
-  'Variância (dia)': 'day',
-  'Variância (semana)': 'week',
-  'Variância (mês)': 'month',
-}
-
-export function MoodLineTemporal({ data, interpolation, date, period, mode, secMode }) {
+export function MoodLineTemporal({ data, interpolation, date, period, mode, secMode, thirdMode, setThirdMode }) {
   
   // Filter entries with non-empty startTime
   data = data.filter(entry => entry.startTime);
@@ -217,8 +206,12 @@ export function MoodLineTemporal({ data, interpolation, date, period, mode, secM
   data = appendTimeData(data, date, period);
 
   // Calculates and append averages by specified variable if average mode is active
-  const isVariance = stats.slice(stats.length-4, stats.length).includes(secMode)
-  if (secMode!='sequencial') data = dateAverage(data, isVariance, statsMap[secMode], date, period) 
+  const isVariance = secMode=='variância'
+  if (secMode!='sequência') {
+    if (thirdMode) {
+      data = dateAverage(data, isVariance, groupByMap[thirdMode], date, period)
+    }
+  }
 
   // Sort entries by variable
   const by = 'time_d';

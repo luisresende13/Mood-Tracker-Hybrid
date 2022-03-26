@@ -80,7 +80,7 @@ function ControlButton({title, onPress, isLoading}) {
       {isLoading ? (
         <ActivityIndicator color='blue' />
       ) : (
-        <Text style={[styles.controlButtonLabel, {
+        <Text selectable={false} style={[styles.controlButtonLabel, {
           color: styles.controlButtonLabel.color + ( isClicked ? '8' : 'f' )
         }]}
         >
@@ -153,22 +153,6 @@ export function WallpaperZoom(props) {
           onPress={onSaveImageButtonPress}
           isLoading={isSaveImageLoading}
           />
-          {/* <Pressable
-          onPress={() => props.navigation.goBack()}
-          style={styles.controlButton}
-          >
-            <Text style={styles.controlButtonLabel}>Voltar</Text>
-          </Pressable>
-          <Pressable
-          onPress={onSaveImageButtonPress}
-          style={styles.controlButton}
-          >
-            {isSaveImageLoading ? (
-              <ActivityIndicator color='blue' />
-            ) : (
-              <Text style={styles.controlButtonLabel}>Aplicar</Text>
-            )}
-          </Pressable> */}
         </View>
         <View style={styles.attributionView}>
           <Image

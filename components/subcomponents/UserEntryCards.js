@@ -148,8 +148,8 @@ function EmptyCard(props) {
         style={[styles.card, {alignItems: 'center', justifyContent: 'center', fontSize: relativeToScreen(16), height: relativeToScreen(145)}]}
         >
             <Icon name='inbox' fill='rgba(255,255,255,0.3)' width={relativeToScreen(25)} height={relativeToScreen(25)} />
-            <Text style={textStyle}> Nenhuma entrada encontrada. </Text>
-            <Text style={textStyle}> Pressione aqui para adicionar uma a este dia! </Text>
+            <Text selectable={false} style={textStyle}> Nenhuma entrada encontrada. </Text>
+            <Text selectable={false} style={textStyle}> Pressione aqui para adicionar uma a este dia! </Text>
         </Pressable>
     );
 }

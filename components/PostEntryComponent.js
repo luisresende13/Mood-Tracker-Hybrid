@@ -358,7 +358,7 @@ export default class PostEntranceScreen extends Component {
             <View style={[styles.card]} >
                 <Pressable style={styles.cardRow} onPress={this.setSelectedEntry(sectionName)} >
                     <Icon name={icon} fill={styles.theme.color+'c'} height={relativeToScreen(28)} width={relativeToScreen(28)} style={styles.entryIcon} />
-                    <Text style={styles.entryTitle}> {sectionName} </Text>
+                    <Text selectable={false} style={styles.entryTitle}> {sectionName} </Text>
                 </Pressable>    
                 {this.inputCardBody(sectionName, cardBodyStyle, cardBodyContent)}  
             </View>   
@@ -508,7 +508,7 @@ export default class PostEntranceScreen extends Component {
                 { isDataLoading ? (
                     <ActivityIndicator size='small' color={color} />
                 ) : (
-                    <Text style={styles.saveButtonLabel}> Salvar </Text>
+                    <Text selectable={false} style={styles.saveButtonLabel}> Salvar </Text>
                 ) }
             </Pressable>
         )

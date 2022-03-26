@@ -55,7 +55,7 @@ export default class EntrancesScreen extends Component {
     
     alertMsg() {
         return(
-            <View style={[styles.msgBox, this.state.alertMsg ? {} : {height: null, backgroundColor: 'transparent', borderColor: 'transparent'} ]}>
+            <View style={[styles.msgBox, this.state.alertMsg ? {} : {bottom: 0, left: 0, height: null, width: null, backgroundColor: 'transparent', borderColor: 'transparent'} ]}>
                 <Text style={styles.msg}>{this.state.alertMsg}</Text>
             </View>
         )

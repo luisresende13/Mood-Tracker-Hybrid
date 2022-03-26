@@ -104,7 +104,7 @@ export default class EditEmotions extends Component {
                                     key={'emotion-'+type}
                                     onPress={() => this.setState({selectedEmotionType: typeSelected ? null : type })}
                                     style={[tagStyle, { backgroundColor: styles.altTheme.color + (typeSelected ? 'd' : '6') }]}>
-                                        <Text style={[{fontSize: relativeToScreen(15)}, styles.theme]}>{type}</Text>
+                                        <Text selectable={false} style={[{fontSize: relativeToScreen(15)}, styles.theme]}>{type}</Text>
                                     </Pressable>
                                 )
                             }) }
@@ -118,7 +118,7 @@ export default class EditEmotions extends Component {
                                     key={'emotion-'+type}
                                     onPress={() => this.setState({selectedEmotionEnergy: typeSelected ? null : type })}
                                     style={[tagStyle, { backgroundColor: styles.altTheme.color + (typeSelected ? 'd' : '6') }]}>
-                                        <Text style={[{fontSize: relativeToScreen(15)}, styles.theme]}>{type}</Text>
+                                        <Text selectable={false} style={[{fontSize: relativeToScreen(15)}, styles.theme]}>{type}</Text>
                                     </Pressable>
                                 )
                             }) }
@@ -137,7 +137,7 @@ export default class EditEmotions extends Component {
                                 backgroundColor: isButtonPressed['Voltar'] ? styles.theme.color+'5' : '#0000',
                                 borderColor: isLoading ? styles.theme.color+'5' : styles.theme.color,
                                 }]}>
-                                <Text style={[styles.editButtonLabel, {color: isLoading ? styles.theme.color+'5' : styles.theme.color}]}>Voltar</Text>
+                                <Text selectable={false} style={[styles.editButtonLabel, {color: isLoading ? styles.theme.color+'5' : styles.theme.color}]}>Voltar</Text>
                             </Pressable>
                             <Pressable
                             onPress={() => {
@@ -152,7 +152,7 @@ export default class EditEmotions extends Component {
                                 backgroundColor: isButtonPressed['Salvar'] ? styles.theme.color+'5' : '#0000',
                                 borderColor: isLoading | isNewEmotionFormComplete ? styles.theme.color+'5' : styles.theme.color,
                                 }]}>
-                                <Text style={[ styles.editButtonLabel, {
+                                <Text selectable={false} style={[ styles.editButtonLabel, {
                                     color: isLoading | isNewEmotionFormComplete ? styles.theme.color+'5' : styles.theme.color
                                 }]}
                                 >
@@ -184,7 +184,7 @@ export default class EditEmotions extends Component {
                                 backgroundColor: isButtonPressed['Terminar'] ? styles.theme.color+'5' : '#0000'
                             }]}
                             >
-                                <Text style={[styles.editButtonLabel, {color: isLoading ? styles.theme.color+'5' : styles.theme.color}]}>Terminar</Text>
+                                <Text selectable={false} style={[styles.editButtonLabel, {color: isLoading ? styles.theme.color+'5' : styles.theme.color}]}>Terminar</Text>
                             </Pressable>
                         </View>
                     </View>
@@ -202,7 +202,7 @@ export default class EditEmotions extends Component {
                                     key={'emotion-'+layout}
                                     onPress={() => this.props.setParentState({selectedEmotionLayout: emotionLayoutMap[layout] })}
                                     style={[tagStyle, {width: relativeToScreen(230), height: relativeToScreen(30), borderRadius: relativeToScreen(15), marginBottom: relativeToScreen(10), backgroundColor: isLayoutSelected ? styles.altTheme.color+'d' : styles.altTheme.color+'5'}]}>
-                                        <Text style={[{fontSize: 15, color: styles.theme.color}]}>{layout}</Text>
+                                        <Text selectable={false} style={[{fontSize: 15, color: styles.theme.color}]}>{layout}</Text>
                                     </Pressable>
                                 )
                             }) }
@@ -222,7 +222,7 @@ export default class EditEmotions extends Component {
                                 borderColor: isLoading ? styles.theme.color+'5' : styles.theme.color,
                                 backgroundColor: isButtonPressed['Voltar-Layout'] ? styles.theme.color+'5' : '#0000'
                                 }]}>
-                                <Text style={[styles.editButtonLabel, {color: isLoading ? styles.theme.color+'5' : styles.theme.color}]}>Voltar</Text>
+                                <Text selectable={false} style={[styles.editButtonLabel, {color: isLoading ? styles.theme.color+'5' : styles.theme.color}]}>Voltar</Text>
                             </Pressable>
                             <Pressable
                             onPress={() => {
@@ -237,7 +237,7 @@ export default class EditEmotions extends Component {
                                 backgroundColor: isButtonPressed['Salvar-Layout'] ? styles.theme.color+'5' : '#0000',
                                 borderColor: isLoading || unselectedLayout ? styles.theme.color+'5' : styles.theme.color,
                                 }]}>
-                                <Text style={[styles.editButtonLabel, {color: isLoading || unselectedLayout ? styles.theme.color+'5' : styles.theme.color}]}>Salvar</Text>
+                                <Text selectable={false} style={[styles.editButtonLabel, {color: isLoading || unselectedLayout ? styles.theme.color+'5' : styles.theme.color}]}>Salvar</Text>
                             </Pressable>
                         </View>
                     </View>
@@ -309,7 +309,7 @@ export default class EditEmotions extends Component {
                                 } }
                                 onPressIn={highlightButtonFor(label)}
                                 >
-                                    <Text style={[styles.editButtonLabel, {color: isLoading ? styles.theme.color+'5' : styles.theme.color}]}>{label}</Text>                    
+                                    <Text selectable={false} style={[styles.editButtonLabel, {color: isLoading ? styles.theme.color+'5' : styles.theme.color}]}>{label}</Text>                    
                                 </Pressable>
                             ))
                         ) : null }
@@ -318,7 +318,7 @@ export default class EditEmotions extends Component {
                         // disabled={isLoading}
                         style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: relativeToScreen(5), width: relativeToScreen(75)}}>
                             <Icon name={ !showEditMenu ? 'more-horizontal-outline' : 'arrow-back-outline' } fill={styles.theme.color} width={relativeToScreen(20)} height={relativeToScreen(20)} />
-                            <Text style={{color: styles.theme.color, fontSize: relativeToScreen(15), marginLeft: 0}}> {anyOpen ? 'menos' : 'mais'}</Text>
+                            <Text selectable={false} style={{color: styles.theme.color, fontSize: relativeToScreen(15), marginLeft: 0}}> {anyOpen ? 'menos' : 'mais'}</Text>
                         </Pressable>
                     </View> 
                 ) :  null  }

@@ -169,7 +169,7 @@ export function formatWeek(date) {
   const lastWeek = getNext(thisWeek, 'previous', 'week')
   const isThisWeek = date.week==thisWeek.week && date.year==thisWeek.year
   const isLastWeek = date.week==lastWeek.week && date.year==lastWeek.year
-  if (isThisWeek) return `Essa semana, ${date.year}`
+  if (isThisWeek) return `Esta semana, ${date.year}`
   else if (isLastWeek) return `Semana passada, ${date.year}`
   else return `Semana ${date.week}, ${date.year}`
 }
@@ -179,9 +179,10 @@ export function formatMonth(date) {
   const lastMonth = getNext(thisMonth, 'previous', 'month')
   const isThisMonth = date.month==thisMonth.month && date.year==thisMonth.year
   const isLastMonth = date.month==lastMonth.month && date.year==lastMonth.year
-  if (isThisMonth) return `Esse mês, ${date.year}`
-  else if (isLastMonth) return `Mês passado, ${date.year}`
-  else return `Mês ${date.month}, ${date.year}`
+  const month = portugueseMonthSigs[date.month-1]
+  if (isThisMonth) return `Este mês, ${month} ${date.year}`
+  else if (isLastMonth) return `Mês passado, ${month} ${date.year}`
+  else return `${month}, ${date.year}`
 }
 
 export const formatPeriodDate = {

@@ -1,5 +1,5 @@
 import React, { Component, useContext } from 'react';
-import { ImageBackground, View, Text, ActivityIndicator, Platform, Pressable, PlatformColor } from 'react-native';
+import { ImageBackground, View, Text, ActivityIndicator, Platform } from 'react-native';
 import { Icon } from 'react-native-eva-icons'
 // import AsyncStorage from '@react-native-async-storage/async-storage';
 // import { LinearGradient } from 'expo-linear-gradient';
@@ -137,7 +137,7 @@ const tabNavigatorOptionsProvider = (settings) => {
         // tabBarIconStyle: {},
         // tabBarButton: tabBarButton,
         tabBarActiveTintColor: fontColor,
-        tabBarInactiveTintColor: fontColor + '6',
+        tabBarInactiveTintColor: fontColor + '8',
         tabBarActiveBackgroundColor: '#0006',
         tabBarInactiveBackgroundColor: '#0000',
         tabBarItemStyle: {borderRadius: 10},

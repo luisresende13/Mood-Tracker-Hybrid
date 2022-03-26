@@ -213,7 +213,7 @@ class LoginScreen extends Component {
       onPress={signIn ? this.onSignIn : this.onSignUp}
       style={[styles.login.button]}
       >
-        <Text style={styles.login.buttonLabel}>{ signIn ? 'Entrar' : 'Cadastrar' }</Text>
+        <Text selectable={false} style={styles.login.buttonLabel}>{ signIn ? 'Entrar' : 'Cadastrar' }</Text>
       </Pressable>
     )
   }

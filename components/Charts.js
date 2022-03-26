@@ -46,7 +46,7 @@ export var styles = {
   },
   card: {
     paddingVertical: relativeToScreen(5),
-    paddingHorizontal: relativeToScreen(10),
+    paddingHorizontal: relativeToScreen(15),
     borderRadius: relativeToScreen(20),
     backgroundColor: 'rgba(0,0,0,0.3)',
   },
@@ -58,6 +58,7 @@ export var styles = {
   cardHeader: {
     height: relativeToScreen(39),
     justifyContent: 'space-between',
+    // paddingHorizontal: relativeToScreen(5),
   },
   periodButton: {
     width: '35%',
@@ -82,7 +83,7 @@ export var styles = {
   controlRow: {
   width: '100%',
   height: relativeToScreen(30),
-  paddingHorizontal: relativeToScreen(5),
+  // paddingHorizontal: relativeToScreen(5),
   flexDirection: 'row',
   alignItems: 'center',
   justifyContent: 'space-between'
@@ -183,8 +184,22 @@ function ChartScreenHeader({title}) {
   )
 }
 
-export const stats = [ 'sequencial', 'Média (hora)', 'Média (dia)', 'Média (semana)', 'Média (mês)', 'Variância (hora)', 'Variância (dia)', 'Variância (semana)', 'Variância (mês)']
-const domainModes = ['expandir', 'enquadrar', 'enforcar']
+// export const stats = [
+//   'sequência', 'Média (hora)', 'Média (dia)',
+//   'Média (semana)', 'Média (mês)', 'Variância (hora)',
+//   'Variância (dia)', 'Variância (semana)', 'Variância (mês)'
+// ]
+
+export const stats = [ 'sequência', 'média', 'variância' ] 
+export const groupBy = [ 'hora', 'dia', 'semana', 'mês' ]
+export const groupByMap = {
+  'sequência': 'sequência',
+  'hora': 'hour',
+  'dia': 'day',
+  'semana': 'week',
+  'mês': 'month',
+}
+const domainModes = [ 'expandir', 'enquadrar', 'enforcar' ]
 
 function ChartPanel({imgURI, backgroundColor, entries}) {
 
@@ -213,10 +228,12 @@ function ChartPanel({imgURI, backgroundColor, entries}) {
           entries={entries}
           date={date}
           period={period}
-          initialMode={'expandir'}
+          initialMode='expandir'
           modes={domainModes}
-          initialSecMode='sequencial'
+          initialSecMode='sequência'
           secModes={stats}
+          initialThirdMode='hora'
+          thirdModes={groupBy}
           />
           <ChartCard
           title='Divisão das Avaliações'
@@ -224,8 +241,8 @@ function ChartPanel({imgURI, backgroundColor, entries}) {
           entries={entries}
           date={date}
           period={period}
-          initialMode='expandir'
-          modes={['expandir', 'enforcar', 'enquadrar']}
+          initialMode={null}
+          modes={null}
           />
         </View>
       </ScrollView>
@@ -246,7 +263,7 @@ function PeriodButton({period, setPeriod}) {
     onPress={() => setPeriod(periods[ periods[periods.length-1]==period ? 0 : periods.indexOf(period)+1 ])}
     >
       <Icon name='swap-outline' width={15} height={15} fill={styles.h1.color  + ( isClicked ? 'a' : 'f' )} />
-      <Text style={[styles.h3, {color: styles.h1.color   + ( isClicked ? 'a' : 'f' ), fontWeight: 'bold'}]}>{ ' '+periodMap[period] }</Text>
+      <Text selectable={false} style={[styles.h3, {color: styles.h1.color   + ( isClicked ? 'a' : 'f' ), fontWeight: 'bold'}]}>{ ' ' + periodMap[period] }</Text>
     </Pressable>
   )
 }
@@ -299,20 +316,24 @@ function next(current, list) {
   return list[ index == list.length-1 ? 0 : index+1 ]
 }
 
-const ChartCard = ({title, Chart, entries, date, period, initialMode, modes, initialSecMode, secModes=null}) => {
+const ChartCard = ({title, Chart, entries, date, period, initialMode, modes, initialSecMode, secModes, initialThirdMode, thirdModes}) => {
   const filter = datePeriodFilters(date, period)
   entries = entries.filter(filter)
 
   const [ mode, setMode ] = useState(initialMode)
   const [ secMode, setSecMode ] = useState(initialSecMode)
+  const [ thirdMode, setThirdMode ] = useState(initialThirdMode)
   const [ temporal, setTemporal ] = useState('temporal')
   return(
     <View style={styles.cardContainer}>
       <View style={styles.card}>
         <View style={[styles.cardRow, styles.cardHeader]}>
           <Text style={styles.h2}>{ title }</Text>
-          { temporal=='temporal'
-            ? <ModeSwapButton mode={ entries[1] ? mode : 'expandir' } setMode={setMode} modes={ modes } />
+          { initialMode
+            ? ( temporal=='temporal'
+              ? <ModeSwapButton mode={ entries[1] ? mode : initialMode } setMode={setMode} modes={ modes } />
+              : null
+            )
             : null
           }
         </View>
@@ -325,17 +346,28 @@ const ChartCard = ({title, Chart, entries, date, period, initialMode, modes, ini
           setMode={setMode}
           secMode={secMode}
           setSecMode={setSecMode}
+          thirdMode={thirdMode}
+          setThirdMode={setThirdMode}
           temporal={temporal}
           setTemporal={setTemporal}
           />
         </View>
       </View>
         { temporal=='temporal'
-          ? ( secModes
+          ? ( secMode
             ? (
-              <View style={styles.bottomControlRow}>
-                <ModeSwapButton mode={secMode} setMode={setSecMode} modes={secModes} />
-              </View>
+              <ModeControlRow
+              containerStyle={{ ...styles.bottomControlRow, justifyContent: 'space-between', paddingHorizontal: relativeToScreen(15)}}
+              var1={secMode}
+              setVar1={setSecMode}
+              var1Options={secModes}
+              var2={thirdMode}
+              setVar2={setThirdMode}
+              var2Options={thirdModes}
+              />        
+              // <View style={styles.bottomControlRow}>
+              //   <ModeSwapButton mode={secMode} setMode={setSecMode} modes={secModes} />
+              // </View>
             ) : null
           ) : null
         }
@@ -343,65 +375,13 @@ const ChartCard = ({title, Chart, entries, date, period, initialMode, modes, ini
   )
 }
 
-function setStatForPeriod(stat, setStat, entries, period) {
-  if (!entries[1])
-    setStat('sequencial')
-  else {
-    ['day', 'week', 'month', 'year'].forEach((per, index) => {
-      if (period==per) {
-        if ( stats.slice(index+2, 5).includes(stat) )
-          setStat('Variância (hora)')
-        else if ( stats.slice(6+index, stats.length).includes(stat) )
-          setStat('sequencial')
-      }
-    })
-  }
-}
-
-const interpolations = [ 'catmullRom', 'linear', 'natural', 'step', 'basis','cardinal', 'scatter' ]
-
-function MoodLineCard({entries, date, period, mode, setMode, secMode, setSecMode, temporal, setTemporal}) {
-
-  const [interpolation, setInterpolation] = useState('catmullRom')
-  setMode(entries[1] ? mode : 'expandir')
-  setStatForPeriod(secMode, setSecMode, entries, period)
-
-  const data = entries.map((entry, index) => {
-    return({
-      x: index+1,
-      y: moodMap[entry.mood],
-      date: entry.date,
-      startTime: entry.startTime
-    })
-  })
-
-  return(
-    <View style={{width: '100%',  alignItems: 'center', justifyContent: 'center'}}>
-      <View style={{width: '100%',  alignItems: 'center', justifyContent: 'flex-start'}}>
-        { temporal=='temporal'
-          ? <MoodLineTemporal data={data} interpolation={interpolation} date={date} period={period} mode={mode} setMode={setMode} secMode={secMode} />
-          : <MoodLine data={data} interpolation={interpolation} date={date} period={period} /> 
-        }
-      </View>
-      <ModeControlRow
-      var1={interpolation}
-      setVar1={setInterpolation}
-      var1Options={interpolations}
-      var2={temporal}
-      setVar2={setTemporal}
-      var2Options={['temporal', 'atemporal']}
-      />
-    </View>
-  )
-}
-
 function ModeControlRow(props) {
-  return(
-    <View style={styles.controlRow}>
-      <ModeSwapButton mode={props.var1} setMode={props.setVar1} modes={props.var1Options} />
-      <ModeSwapButton mode={props.var2} setMode={props.setVar2} modes={props.var2Options} />
+  return props.var1 || props.var2 ? (
+    <View style={[styles.controlRow, props.containerStyle]}>
+      { props.var1 ? <ModeSwapButton mode={props.var1} setMode={props.setVar1} modes={props.var1Options} /> : null }
+      { props.var2 ? <ModeSwapButton mode={props.var2} setMode={props.setVar2} modes={props.var2Options} /> : null }
     </View>
-  )
+  ) : null
 }
 
 function ModeSwapButton({mode, setMode, modes}) {
@@ -420,8 +400,66 @@ function ModeSwapButton({mode, setMode, modes}) {
       height={relativeToScreen(15)}
       fill={ styles.h1.color + (modeClicked ? '6' : '')}
       />
-      <Text style={[styles.h3, { color: styles.h1.color + (modeClicked ? '6' : '') } ]}>{ ' ' + capitalize(mode) }</Text>
+      <Text selectable={false} style={[styles.h3, { color: styles.h1.color + (modeClicked ? '6' : '') } ]}>{ ' ' + capitalize(mode) }</Text>
     </Pressable>
+  )
+}
+
+function setStatForPeriod(stat, setStat, by, setBy, entries, period) {
+  if (stat=='sequência') {
+    setBy(null)
+  } else if (!by) {
+    setBy('hora')
+  } else {
+    periods.forEach((per, index) => {
+      if (period==per) {
+        if ( groupBy.slice(index+1, 4).includes(by) )
+          setBy('hora')
+      }
+    })      
+  }
+}
+
+const interpolations = [ 'catmullRom', 'linear', 'natural', 'step', 'basis','cardinal', 'scatter' ]
+
+function MoodLineCard({entries, date, period, mode, setMode, secMode, setSecMode, thirdMode, setThirdMode, temporal, setTemporal}) {
+
+  const [interpolation, setInterpolation] = useState('catmullRom')
+  if (!entries[1]) {
+    setMode('expandir'); setSecMode('sequência')
+  }
+  setStatForPeriod(secMode, setSecMode, thirdMode, setThirdMode, entries, period)
+
+  const data = entries.map((entry, index) => {
+    return({
+      x: index+1,
+      y: moodMap[entry.mood],
+      date: entry.date,
+      startTime: entry.startTime
+    })
+  })
+
+  return(
+    <View style={{width: '100%',  alignItems: 'center', justifyContent: 'center'}}>
+      <View style={{width: '100%',  alignItems: 'center', justifyContent: 'flex-start'}}>
+        { temporal=='temporal'
+          ? <MoodLineTemporal
+            data={data} interpolation={interpolation}
+            date={date} period={period} mode={mode} secMode={secMode}
+            thirdMode={thirdMode} setThirdMode={setThirdMode}
+            />
+          : <MoodLine data={data} interpolation={interpolation} date={date} period={period} /> 
+        }
+      </View>
+      <ModeControlRow
+      var1={interpolation}
+      setVar1={setInterpolation}
+      var1Options={interpolations}
+      var2={temporal}
+      setVar2={setTemporal}
+      var2Options={['temporal', 'atemporal']}
+      />
+    </View>
   )
 }
 
@@ -444,7 +482,7 @@ function MoodLine({data, date, period, interpolation}) {
       tickFormat={ tick => parseInt(tick) }
       style={{
         axis: {stroke: "#fff0"},
-        grid: {stroke: "#fff7"},
+        grid: {stroke: styles.h1.color + '7'},
         tickLabels: {fontSize: relativeToScreen(17), padding: relativeToScreen(15), fill: styles.h1.color},
       }}
       />
@@ -471,7 +509,6 @@ function MoodLine({data, date, period, interpolation}) {
 }
 
 function MoodPieCard({entries}) {
-  // const entries = entries.filter(entry => entry.date==Today())
   var moodCount = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
   entries.forEach((entry) => {
     moodCount[moodMap[entry.mood]] += 1
