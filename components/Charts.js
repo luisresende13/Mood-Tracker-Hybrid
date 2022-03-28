@@ -5,13 +5,15 @@ import { Icon } from 'react-native-eva-icons';
 // import VectorIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Victory from './victory'
 
+import { MoodLineTemporal, appendTimeData, sortData } from './subcomponents/MoodLineTemporal';
+import { EmotionBarCard, EmotionBar } from './subcomponents/EmotionBar'
+
 import { relativeToScreen } from '../styles/loginStyles';
 import { blinkButton } from './SettingsScreen';
 import { Today, current, getNext, datePeriodFilters, formatPeriodDate } from '../shared/dates';
 
 import { moodColorsHEX } from './PostEntryComponent';
 import { capitalize } from './subcomponents/EditEmotions';
-import { MoodLineTemporal, appendTimeData, sortData } from './subcomponents/MoodLineTemporal';
 var moodColorsObj = {}
 moodColorsHEX.forEach((color, index) => {
   moodColorsObj[index+1] = color
@@ -56,7 +58,7 @@ export var styles = {
     alignItems: 'center',
   },
   cardHeader: {
-    height: relativeToScreen(39),
+    height: relativeToScreen(40),
     justifyContent: 'space-between',
     // paddingHorizontal: relativeToScreen(5),
   },
@@ -160,7 +162,7 @@ export var styles = {
 }
 
 const moods = [1,2,3,4,5]
-let moodMap = {
+export const moodMap = {
   'Horrível': 1,
   'Mal': 2,
   'Regular': 3,
@@ -169,7 +171,7 @@ let moodMap = {
 }
 
 const periods = ['day', 'week', 'month', 'year']
-const periodMap = {
+export const periodMap = {
   'day': 'Dia',
   'week': 'Semana',
   'month':'Mês',
@@ -223,7 +225,7 @@ function ChartPanel({imgURI, backgroundColor, entries}) {
           <ChartScreenHeader title={'Painel'} />
           <NavigationRow date={date} setDate={setDate} period={period} />
           <ChartCard
-          title={'Avaliações ' + ( period=='week' ? 'da ' : 'do ' )  + periodMap[period] }
+          title={'Avaliações ' + ( period=='week' ? 'da ' : 'do ' )  + periodMap[period].toLowerCase() }
           Chart={MoodLineCard}
           entries={entries}
           date={date}
@@ -236,13 +238,22 @@ function ChartPanel({imgURI, backgroundColor, entries}) {
           thirdModes={groupBy}
           />
           <ChartCard
-          title='Divisão das Avaliações'
+          title='Repartição das avaliações'
           Chart={MoodPieCard}
           entries={entries}
           date={date}
           period={period}
           initialMode={null}
           modes={null}
+          />
+          <ChartCard
+          title={'Emoções ' + ( period=='week' ? 'da ' : 'do ' )  + periodMap[period].toLowerCase()}
+          Chart={EmotionBarCard}
+          entries={entries}
+          date={date}
+          period={period}
+          initialMode='contagem'
+          modes={['contagem', '% entradas', '% emoções']}
           />
         </View>
       </ScrollView>
@@ -331,7 +342,7 @@ const ChartCard = ({title, Chart, entries, date, period, initialMode, modes, ini
           <Text style={styles.h2}>{ title }</Text>
           { initialMode
             ? ( temporal=='temporal'
-              ? <ModeSwapButton mode={ entries[1] ? mode : initialMode } setMode={setMode} modes={ modes } />
+              ? <ModeSwapButton mode={mode} setMode={setMode} modes={ modes } />
               : null
             )
             : null
@@ -365,9 +376,6 @@ const ChartCard = ({title, Chart, entries, date, period, initialMode, modes, ini
               setVar2={setThirdMode}
               var2Options={thirdModes}
               />        
-              // <View style={styles.bottomControlRow}>
-              //   <ModeSwapButton mode={secMode} setMode={setSecMode} modes={secModes} />
-              // </View>
             ) : null
           ) : null
         }
@@ -375,7 +383,7 @@ const ChartCard = ({title, Chart, entries, date, period, initialMode, modes, ini
   )
 }
 
-function ModeControlRow(props) {
+export function ModeControlRow(props) {
   return props.var1 || props.var2 ? (
     <View style={[styles.controlRow, props.containerStyle]}>
       { props.var1 ? <ModeSwapButton mode={props.var1} setMode={props.setVar1} modes={props.var1Options} /> : null }
@@ -405,7 +413,7 @@ function ModeSwapButton({mode, setMode, modes}) {
   )
 }
 
-function setStatForPeriod(stat, setStat, by, setBy, entries, period) {
+function setStatForPeriod(stat, by, setBy, period) {
   if (stat=='sequência') {
     setBy(null)
   } else if (!by) {
@@ -428,7 +436,7 @@ function MoodLineCard({entries, date, period, mode, setMode, secMode, setSecMode
   if (!entries[1]) {
     setMode('expandir'); setSecMode('sequência')
   }
-  setStatForPeriod(secMode, setSecMode, thirdMode, setThirdMode, entries, period)
+  setStatForPeriod(secMode, thirdMode, setThirdMode, period)
 
   const data = entries.map((entry, index) => {
     return({
@@ -452,6 +460,7 @@ function MoodLineCard({entries, date, period, mode, setMode, secMode, setSecMode
         }
       </View>
       <ModeControlRow
+      containerStyle={{height: 40}}
       var1={interpolation}
       setVar1={setInterpolation}
       var1Options={interpolations}
@@ -508,7 +517,7 @@ function MoodLine({data, date, period, interpolation}) {
   )
 }
 
-function MoodPieCard({entries}) {
+function MoodPieCard({entries, period}) {
   var moodCount = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
   entries.forEach((entry) => {
     moodCount[moodMap[entry.mood]] += 1
@@ -520,16 +529,20 @@ function MoodPieCard({entries}) {
     }
   })
   return(
-    <View style={styles.moodPieCard}>
-      <View style={styles.moodPieCardSection}>
+    <View style={[styles.moodPieCard, {justifyContent: entries[0] ? 'flex-start' : 'center'}]}>
         { entries[0]
-          ? <MoodPie data={moodPieData} />
-          : <Text style={[styles.h3, {width: '85%', textAlign: 'center'}]}>Você não possui entradas nesse período.</Text>
+          ? (
+            <>
+              <View style={styles.moodPieCardSection}>
+                <MoodPie data={moodPieData} />
+              </View>
+              <View style={styles.moodPieCardSection}>
+                <MoodPieStats data={moodPieData} nEntries={entries.length} />
+              </View>
+            </>
+          )
+          : <Text style={[styles.h3, {width: '60%', textAlign: 'center', alignSelf: 'center'}]}>{ `Você não possui entradas ${period=='week' ? 'nessa' : 'nesse'} ${periodMap[period].toLowerCase()}.` }</Text>
         }
-      </View>
-      <View style={styles.moodPieCardSection}>
-        <MoodPieStats data={moodPieData} nEntries={entries.length} />
-      </View>
     </View>
   )
 }

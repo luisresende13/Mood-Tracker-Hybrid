@@ -3,7 +3,7 @@ import Victory from '../victory';
 import { relativeToScreen } from '../../styles/loginStyles';
 import { moodColorsHEX } from '../PostEntryComponent';
 import { FullDates, intWeekDayMap, portugueseMonthSigs, YearTicks, datePeriodFilters, fullDateMap, dateDiff } from '../../shared/dates';
-import { stats, groupBy, groupByMap, styles } from '../Charts';
+import { groupByMap, periodMap, styles } from '../Charts';
 
 function stringTimeToSec(time) { // Expects 'hh:mm:ss' string format
   return parseInt(time.slice(0,2))*3600 + parseInt(time.slice(3,5))*60 + parseInt(time.slice(6,8))
@@ -22,9 +22,12 @@ export function appendTimeData(data, date, period) {
  return data
 }
 
-export function sortData(data, by='time_s') {
+export function sortData(data, by='time_s', ascending=true) {
   return data.sort((a, b) => {
-    return a[by] - b[by];
+    if (ascending)
+      return a[by] - b[by];
+    else 
+      return b[by] - a[by];
   })
 }
 
@@ -45,19 +48,19 @@ function lastDayOfTheMonth(date, period) {
 export function xTicks(date, period, mode) {
   let interval = ['enquadrar', 'enforcar'].includes(mode) ? 1 : 2
   return {
-  'day': () => range(0, 1, interval/24),
-  'month': () => range(0, lastDayOfTheMonth(date, period), interval),
-  'week': () => range(0, 7),
-  'year': () => YearTicks
+    'day': () => range(0, 1, interval/24),
+    'month': () => range(0, lastDayOfTheMonth(date, period), interval),
+    'week': () => range(0, 7),
+    'year': () => YearTicks
   }[period]()
 }
 
 export function expandDomains(date, period) {
   return {
-  'day': () => [0,1],
-  'week': () => [0, 7],
-  'month': () => [0,  lastDayOfTheMonth(date, period)],
-  'year' : () => [0, 365],
+    'day': () => [0,1],
+    'week': () => [0, 7],
+    'month': () => [0,  lastDayOfTheMonth(date, period)],
+    'year' : () => [0, 365],
   }[period]()
 }
 
@@ -67,7 +70,7 @@ export function getDomain(data, by='time_s', space=0) {
     let x_max = data[data.length-1][by]
     let x_dif = (x_max - x_min) * space
     let x_lim = [ x_min - x_dif, x_max + x_dif ]
-    if (x_lim[0] < 0) x_lim[0] = 0
+    if (x_lim[0] < 0) { x_lim[0] = 0 }
     return x_lim
   } else if (data[0]) {
     return [data[0][by] * 3 / 4, data[0][by] * 1.25]
@@ -141,8 +144,7 @@ function equalObjects(obj1, obj2) {
   var equal = true
   if (typeof(obj1)!='object') {
     if (obj1!=obj2) equal = false
-  }
-  else {
+  } else {
     for (let key of Object.keys(obj1)) {
       if (obj1[key] != obj2[key]) {
         equal = false
@@ -152,7 +154,7 @@ function equalObjects(obj1, obj2) {
   return equal
 }
 
-function objListIncludes(objList, obj) {
+export function objListIncludes(objList, obj) {
   var includes = false
   for (let listObj of objList) {
     if (equalObjects(listObj, obj)) {
@@ -271,15 +273,15 @@ export function MoodLineTemporal({ data, interpolation, date, period, mode, secM
       tickValues={range( isVariance ? 0 : 1, 6, 1)}
       tickFormat={tick => parseInt(tick)}
       style={chartStyles.yAxis}
-        />
+      />
       <Victory.VictoryAxis
-      label={data[0] ? xAxisLabel[period] : 'Você não possui entradas nesse período.' }
+      label={data[0] ? xAxisLabel[period] : `Você não possui entradas ${period=='week' ? 'nessa' : 'nesse'} ${periodMap[period].toLowerCase()}.` }
       tickComponent={<Victory.LineSegment y1={relativeToScreen( isVariance ? 180 : 150 )} y2={relativeToScreen( isVariance ? 190 : 160 )} />}
       tickValues={data[0] ? xTickValues : null}
       tickFormat={data[0] ? tickFormats(xTickValues)[period] : null}
       tickLabelComponent={<Victory.VictoryLabel angle={-90} dx={relativeToScreen(-32)} dy={relativeToScreen(-8)} />}
       style={chartStyles.xAxis}
-    />
+      />
       { interpolation == 'scatter' ? null : (
         <Victory.VictoryLine
         data={data}

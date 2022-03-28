@@ -3,7 +3,7 @@ const emotionGroupsNames = [ 'Bem & Calmo', 'Bem & Energizado', 'Mal & Calmo', '
 const goodEnergizedEmotions = ['Animação', 'Concentração', 'Desinibição', 'Motivação', 'Euforia']
 const goodCalmEmotions = ['Alívio', 'Calma', 'Conforto', 'Despreocupação', 'Inspiração', 'Orgulho', 'Paz', 'Relaxamento', 'Satisfação', 'Segurança', 'Criatividade']
 const badEnergizedEmotions = ['Inquietação', 'Ansiedade', 'Desespero', 'Frustração', 'Insatisfação', 'Irritação', 'Medo', 'Vergonha', 'Preocupação', 'Impaciência', 'Sobrecarregado(a)', 'Tensão']
-const badCalmEmotions = ['Depressão', 'Timidez', 'Cansaço', 'Tristeza','Confusão', 'Desanimo', 'Insegurança', 'Solidão', 'Tédio']
+const badCalmEmotions = ['Depressão', 'Timidez', 'Cansaço', 'Tristeza','Confusão', 'Desânimo', 'Insegurança', 'Solidão', 'Tédio']
 // const badEnergizedEmotions = ['Agitação', 'Ansiedade', 'Tristeza', 'Decepção', 'Depressão', 'Desespero', 'Frustração', 'Insatisfação', 'Irritação', 'Medo', 'Paranoia', 'Preocupação', 'Impaciencia', 'Raiva', 'Revolta', 'Sobrecarregado(a)', 'Tensão', 'Nojo']
 
 const emotionGroups = [ goodCalmEmotions.sort(), goodEnergizedEmotions.sort(), badCalmEmotions.sort(), badEnergizedEmotions.sort() ]
