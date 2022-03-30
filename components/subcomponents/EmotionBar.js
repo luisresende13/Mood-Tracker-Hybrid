@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useContext, useState } from 'react'
 import { View, Text } from 'react-native'
+import UserContext from '../../shared/UserContext'
 import { relativeToScreen } from '../../styles/loginStyles'
 import { styles, periodMap, ModeControlRow } from '../Charts'
 import { moodColorsHEX } from '../PostEntryComponent'
@@ -28,7 +29,7 @@ function itemsCount(objList, key) {
   return uniqueItemsCount
 }
 
-export function EmotionBarCard({entries, date, period, mode, setMode, secMode, setSecMode, thirdMode, setThirdMode, temporal, setTemporal}) {
+export function EmotionBarCard({entries, date, period, mode}) {//, setMode, secMode, setSecMode, thirdMode, setThirdMode, temporal, setTemporal}) {
 
   const uniqueEmotions = uniqueItems(entries, 'emotions')
   const emotionCount = itemsCount(entries, 'emotions')
@@ -44,21 +45,21 @@ export function EmotionBarCard({entries, date, period, mode, setMode, secMode, s
     energy: emotion.energy      
   }))
 
-  const y = mode=='contagem' ? 'y' : ( mode=='% entradas' ? 'entriesProportion' : 'emotionEntriesProportion' )
+  const y = mode=='contagem' ? 'y' : ( mode=='entradas %' ? 'entriesProportion' : 'emotionEntriesProportion' )
   data = sortData(data, y)
 
   const [by, setBy] = useState('positiva ou negativa')
 
   return(
     <View style={{width: '100%',  alignItems: 'center', justifyContent: 'center'}}>
-      <View style={{width: '100%',  alignItems: 'center', justifyContent: 'flex-start'}}>
+      <View style={{width: '100%',  alignItems: 'center', justifyContent: 'center', height: data[0] ? null : 150 }}>
           { data[0]
-            ? <EmotionBar data={data} date={date} period={period} mode={mode} y={y} by={by} />
+            ? <EmotionBar data={data} y={y} mode={mode} by={by} />
             : (
               <Text
-              style={[styles.h3, {width: '60%', textAlign: 'center', alignSelf: 'center'}]}
+              style={[styles.h3, {width: '70%', textAlign: 'center', alignSelf: 'center'}]}
               >
-                { `Você não possui entradas com emoções ${period=='week' ? 'nessa' : 'nesse'} ${periodMap[period].toLowerCase()}.` }
+                { `Você não possui emoções salvas ${period=='week' ? 'nessa' : 'nesse'} ${periodMap[period].toLowerCase()}.` }
               </Text>
             )
           }
@@ -80,27 +81,12 @@ const EmotionLabel = (props) => {
     const maxCount = props.data[props.data.length-1][props.variable]
     const labelLength = props.datum.emotion.length + 2 + 2
     const labelSize = labelLength * relativeToScreen(10) + relativeToScreen(10)
-    // const labelOutsideLimit = props.datum.y / maxCount
     const barHeight = props.datum[props.variable] / (props.variable=='y' ? maxCount : 1 ) * relativeToScreen(350)
     const labelOutside = labelSize > barHeight
-
-    console.log('emotion:')
-    console.log(props.datum.emotion)
-    console.log('maxCount:')
-    console.log(maxCount)
-    console.log('labelLength:')
-    console.log(labelLength)
-    console.log('labelSize:')
-    console.log(labelSize)
-    console.log('barHeight:')
-    console.log(barHeight)
-    // console.log('datum[props.variable]:')
-    // console.log(props.datum[props.variable])
-
     return <Victory.VictoryLabel {...props} labelOutside={labelOutside} textAnchor={ labelOutside ? 'start' : 'end' } dx={relativeToScreen(labelOutside ? 10 : -10)}  />
 }
 
-export function EmotionBar({data, date, period, mode, y, by}) {
+export function EmotionBar({data, mode, y, by}) {
   const emotionBarStyle = {
     parent: {},
     data: {
@@ -113,18 +99,19 @@ export function EmotionBar({data, date, period, mode, y, by}) {
     },
   }
 
-  const labelFormat = ({datum}) => `${datum.emotion} ${ y=='y' ? datum[y]+'x' : Math.round(datum[y]*100)+'%' }`
+  const labelFormat = ({datum}) => `${datum.emotion} ${ y=='y' ? parseInt(datum[y])+'x' : Math.round(datum[y]*100)+'%' }`
   const y_domain = [0, mode=='contagem' ? data[data.length-1].y : 1]
+  const animate = useContext(UserContext).user.settings.enableAnimations
 
   return(
     <Victory.VictoryBar
     horizontal
     data={data}
     x='emotion' y={y}
+    animate={ animate ? {duration: 2000, onLoad: {duration: 1000}} : null }
     domain={{y: y_domain}}
     height={relativeToScreen(data.length * 40 - 5)}
     width={relativeToScreen(320)}
-    // barRatio={1}
     barWidth={relativeToScreen(35)}
     padding={{top: relativeToScreen(20), bottom: relativeToScreen(20), left: relativeToScreen(0), right: relativeToScreen(0) }}
     labels={labelFormat}

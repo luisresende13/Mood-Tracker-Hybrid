@@ -186,7 +186,9 @@ export default class UserEntryCards extends Component {
     
     EntryCard({ entry, lastCard }) {
         function onEntryCardPress() {
-            this.props.parentProps.navigation.setParams({ selectedEntryId: this.props.parentState.selectedEntryId === entry._id ? null : entry._id })
+            this.props.parentProps.navigation.setParams({
+                selectedEntryId: this.props.parentState.selectedEntryId === entry._id ? null : entry._id
+            })
         }
         return (
         <Pressable
@@ -242,33 +244,30 @@ export default class UserEntryCards extends Component {
 
         const isLoading = this.props.parentState.isDeleteLoading | this.props.parentState.isUserDataSyncing
         const buttonLabel = (label) => <Text selectable={false} style={[styles.editButtonLabel, {color: label=='Excluir' ? 'red' : styles.theme.color }]}>{label}</Text>
-        if (this.props.parentState.selectedEntryId == props.entryId) {
-            return(
-                <View style={styles.editButtonsView}>
-                    { buttonLabels.map( (label) => (
-                        <Pressable
-                        key={`edit-${label}-${props.entryId}`}
-                        style={[ styles.editButton, {
-                            backgroundColor: isButtonPressed[label] ? styles.theme.color + '4' : '#0000',
-                            borderColor: label=='Excluir' ? 'red' : styles.theme.color
-                        }]}
-                        disabled={ isLoading }
-                        onPress={ () => {highlightButtonFor(label)(); onButtonPress[label]()} }
-                        onPressIn={highlightButtonFor(label)}
-                        onLongPress={() => {highlightButtonFor(label)(); onButtonLongPress[label]()}}
-                        >
-                            { label=='Excluir' ? (
-                                this.props.parentState.isDeleteLoading ? <ActivityIndicator color='red' /> : buttonLabel(label)
-                                
-                            ) : buttonLabel(label) }
-                                                
-                        </Pressable>
-                    )) }
-            </View>
-            )
-        } else {
-            return null
-        }
+        const isSelected = this.props.parentState.selectedEntryId == props.entryId
+        return(
+            <View style={[styles.editButtonsView, {height: isSelected ? null : 0 }]}>
+                { !isSelected ? null : buttonLabels.map(label => (
+                    <Pressable
+                    key={`edit-${label}-${props.entryId}`}
+                    style={[ styles.editButton, {
+                        backgroundColor: isButtonPressed[label] ? styles.theme.color + '4' : '#0000',
+                        borderColor: label=='Excluir' ? 'red' : styles.theme.color
+                    }]}
+                    disabled={ isLoading }
+                    onPress={ () => {highlightButtonFor(label)(); onButtonPress[label]()} }
+                    onPressIn={highlightButtonFor(label)}
+                    onLongPress={() => {highlightButtonFor(label)(); onButtonLongPress[label]()}}
+                    >
+                        { label=='Excluir' ? (
+                            this.props.parentState.isDeleteLoading ? <ActivityIndicator color='red' /> : buttonLabel(label)
+                            
+                        ) : buttonLabel(label) }
+                                            
+                    </Pressable>
+                ))}
+        </View>
+        )
     }
 
     editUserEntry() {

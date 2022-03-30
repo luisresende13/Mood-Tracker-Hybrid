@@ -1,16 +1,16 @@
 // Module imports
-import React, { Component } from 'react';
+import React, { Component, useState } from 'react';
 import { View, Text, ImageBackground, Pressable, ScrollView, ActivityIndicator } from 'react-native';
 import { Icon } from 'react-native-eva-icons'
 import { relativeToScreen } from '../styles/loginStyles';
-import { Today, formatDate, getNextDate, oneDigit } from '../shared/dates';
-
+import { Today, formatDate, getNextDate } from '../shared/dates';
 
 // Component imports
 import UserEntryCards from './subcomponents/UserEntryCards';
 
 // Local imports
 import styles  from '../styles/entrancesStyles';
+import { blinkButton } from './SettingsScreen';
 
 // Defining pertinent constants
 function getTime() {
@@ -34,6 +34,7 @@ export default class EntrancesScreen extends Component {
         this.setFontColor = this.setFontColor.bind(this);
         this.setAlertMsg = this. setAlertMsg.bind(this);
         this.getMainScreenState = this.getMainScreenState.bind(this); // remove
+        this.PostButton = this.PostButton.bind(this);
     }
     
     componentDidMount() {
@@ -79,6 +80,39 @@ export default class EntrancesScreen extends Component {
         )
     }
 
+    PostButton() {
+        const [ isButtonClicked, setIsButtonClicked ] = useState(false)
+        const isLoading = this.props.appState.isUserDataSyncing | this.state.isDeleteEntryLoading
+        const navigateParams = {
+            currentEntry: {type: 'new', date: Today(), entry: null},
+        }
+
+        return(
+            <Pressable
+            onPressIn={() => blinkButton(setIsButtonClicked, 200) }
+            onPress={() => {this.props.navigation.navigate( 'PostEntrance', navigateParams )}}
+            style={[styles.postButton, {backgroundColor: isLoading ? '#f4f3f4' : ( isButtonClicked ? '#0008' : '#000' )}]}
+            disabled={isLoading}
+            >
+            { this.props.appState.isUserDataSyncing ? (
+                    <ActivityIndicator color='black' size={'large'} />
+            ) : (
+                this.state.isDeleteEntryLoading ? (
+                    <ActivityIndicator color='red' size={'large'} />
+                ) : (
+                    <Icon
+                    name='plus-circle'
+                    width={relativeToScreen(72)}
+                    height={relativeToScreen(72)}
+                    fill={ isButtonClicked ? '#fff4' : '#f4f3f4' }
+                    style={styles.postButtonLabel}
+                    />
+                )
+            )}
+            </Pressable>
+        )
+    }
+
     setFontColor() {
         const fontColor = this.props.appState.user.settings.fontColorDark ? '#000' : '#fff'
         styles.theme = {color: fontColor}
@@ -86,12 +120,8 @@ export default class EntrancesScreen extends Component {
 
     render() {
         console.log('Rendering "EntriesScreen" component...')
-
         this.setFontColor()
-        const navigateParams = {
-            currentEntry: {type: 'new', date: Today(), entry: null},
-        }
-        const isLoading = this.props.appState.isUserDataSyncing | this.state.isDeleteEntryLoading
+
         const settings = this.props.appState.user.settings
         const backgroundImage = settings.backgroundImage
         const imgURI =  settings.displayBackgroundImage ? (backgroundImage ? ( settings.enableHighResolution ? backgroundImage.urls.raw : backgroundImage.urls.regular ) : null ) : null
@@ -129,22 +159,7 @@ export default class EntrancesScreen extends Component {
                     </View>
                 </ScrollView>
 
-                <Pressable
-                onPress={() => {this.props.navigation.navigate( 'PostEntrance', navigateParams )}}
-                style={[styles.postButton, {backgroundColor: isLoading ? 'white' : 'black'}]}
-                disabled={isLoading}
-                >
-                { this.props.appState.isUserDataSyncing ? (
-                        <ActivityIndicator color='black' size={'large'} />
-                ) : (
-                    this.state.isDeleteEntryLoading ? (
-                        <ActivityIndicator color='red' size={'large'} />
-                    ) : (
-                        <Icon name='plus-circle' width={relativeToScreen(72)} height={relativeToScreen(72)} fill='#f4f3f4' style={styles.postButtonLabel}/>
-                    )
-                )}
-                </Pressable>
-
+                <this.PostButton />
                 {this.alertMsg()}
   
             </ImageBackground>

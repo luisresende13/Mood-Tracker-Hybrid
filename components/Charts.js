@@ -1,19 +1,21 @@
-import React, { Component, useState } from 'react';
+import React, { Component, useContext, useState } from 'react';
 import { ImageBackground, View, Text, ScrollView, StatusBar, Pressable } from 'react-native';
 import "react-native";
 import { Icon } from 'react-native-eva-icons';
 // import VectorIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Victory from './victory'
 
-import { MoodLineTemporal, appendTimeData, sortData } from './subcomponents/MoodLineTemporal';
-import { EmotionBarCard, EmotionBar } from './subcomponents/EmotionBar'
+import { MoodLineTemporal } from './subcomponents/MoodLineTemporal';
+import { EmotionBarCard } from './subcomponents/EmotionBar'
 
 import { relativeToScreen } from '../styles/loginStyles';
 import { blinkButton } from './SettingsScreen';
 import { Today, current, getNext, datePeriodFilters, formatPeriodDate } from '../shared/dates';
 
-import { moodColorsHEX } from './PostEntryComponent';
 import { capitalize } from './subcomponents/EditEmotions';
+import UserContext from '../shared/UserContext';
+
+import { moodColorsHEX } from './PostEntryComponent';
 var moodColorsObj = {}
 moodColorsHEX.forEach((color, index) => {
   moodColorsObj[index+1] = color
@@ -194,6 +196,7 @@ function ChartScreenHeader({title}) {
 
 export const stats = [ 'sequência', 'média', 'variância' ] 
 export const groupBy = [ 'hora', 'dia', 'semana', 'mês' ]
+const domainModes = [ 'enquadrar', 'expandir', 'enforcar' ]
 export const groupByMap = {
   'sequência': 'sequência',
   'hora': 'hour',
@@ -201,9 +204,8 @@ export const groupByMap = {
   'semana': 'week',
   'mês': 'month',
 }
-const domainModes = [ 'expandir', 'enquadrar', 'enforcar' ]
 
-function ChartPanel({imgURI, backgroundColor, entries}) {
+function ChartPanel({entries, imgURI, backgroundColor, animate}) {
 
   const currentDates = {
     'day': Today(),
@@ -230,7 +232,7 @@ function ChartPanel({imgURI, backgroundColor, entries}) {
           entries={entries}
           date={date}
           period={period}
-          initialMode='expandir'
+          initialMode='enquadrar'
           modes={domainModes}
           initialSecMode='sequência'
           secModes={stats}
@@ -253,7 +255,7 @@ function ChartPanel({imgURI, backgroundColor, entries}) {
           date={date}
           period={period}
           initialMode='contagem'
-          modes={['contagem', '% entradas', '% emoções']}
+          modes={['contagem', 'entradas %', 'repartição %']}
           />
         </View>
       </ScrollView>
@@ -398,9 +400,7 @@ function ModeSwapButton({mode, setMode, modes}) {
     <Pressable
     style={styles.cardRow}
     onPressIn={() => blinkButton(setModeClicked, 300)}
-    onPress={() => {
-      setMode(next(mode, modes))
-    }}
+    onPress={() => setMode(next(mode, modes))}
     >
       <Icon
       name='swap-outline'
@@ -434,7 +434,7 @@ function MoodLineCard({entries, date, period, mode, setMode, secMode, setSecMode
 
   const [interpolation, setInterpolation] = useState('catmullRom')
   if (!entries[1]) {
-    setMode('expandir'); setSecMode('sequência')
+    setMode('enquadrar'); setSecMode('sequência')
   }
   setStatForPeriod(secMode, thirdMode, setThirdMode, period)
 
@@ -449,15 +449,12 @@ function MoodLineCard({entries, date, period, mode, setMode, secMode, setSecMode
 
   return(
     <View style={{width: '100%',  alignItems: 'center', justifyContent: 'center'}}>
-      <View style={{width: '100%',  alignItems: 'center', justifyContent: 'flex-start'}}>
-        { temporal=='temporal'
-          ? <MoodLineTemporal
-            data={data} interpolation={interpolation}
-            date={date} period={period} mode={mode} secMode={secMode}
-            thirdMode={thirdMode} setThirdMode={setThirdMode}
-            />
-          : <MoodLine data={data} interpolation={interpolation} date={date} period={period} /> 
-        }
+      <View style={{width: '100%',  alignItems: 'center', justifyContent: 'center'}}>
+        <MoodLineTemporal
+        data={data} temporal={temporal} interpolation={interpolation}
+        date={date} period={period} mode={mode} secMode={secMode}
+        thirdMode={thirdMode} setThirdMode={setThirdMode}
+        />
       </View>
       <ModeControlRow
       containerStyle={{height: 40}}
@@ -469,51 +466,6 @@ function MoodLineCard({entries, date, period, mode, setMode, secMode, setSecMode
       var2Options={['temporal', 'atemporal']}
       />
     </View>
-  )
-}
-
-function MoodLine({data, date, period, interpolation}) {
-  data = data.filter(entry => entry.startTime)
-  data = data.map((entry, index) => ({ ...entry, x:index+1 }))
-  data = appendTimeData(data, date, period)
-  const by = 'time_d'
-  data = sortData(data, by)
-  return(
-    <Victory.VictoryChart 
-    width={relativeToScreen(330)}
-    height={relativeToScreen(150)}
-    padding={{left: relativeToScreen(40), right: relativeToScreen(20), top: relativeToScreen(0), bottom: relativeToScreen(0)}}
-    domain={{x: [ 0.6, data.length + 0.4 ], y: [0.5, 5.5]}}
-    >
-      <Victory.VictoryAxis
-      dependentAxis
-      domain={[0.5, 5.5]}
-      tickFormat={ tick => parseInt(tick) }
-      style={{
-        axis: {stroke: "#fff0"},
-        grid: {stroke: styles.h1.color + '7'},
-        tickLabels: {fontSize: relativeToScreen(17), padding: relativeToScreen(15), fill: styles.h1.color},
-      }}
-      />
-      { interpolation == 'scatter' ? null : (
-        <Victory.VictoryLine
-        data={data}
-        x='x' y='y'
-        interpolation={interpolation}
-        style={{
-          data: {
-            stroke: styles.h1.color,
-            strokeWidth: 3,
-          },
-        }}
-        />
-      )}
-      <Victory.VictoryScatter
-      data={data}
-      size={['month', 'year'].includes(period) ? 4.5 : 5.7}
-      style={{ data: { fill: ({datum}) => moodColorsHEX[datum.y-1] }}}
-      />
-    </Victory.VictoryChart>
   )
 }
 
@@ -548,6 +500,7 @@ function MoodPieCard({entries, period}) {
 }
 
 function MoodPie({data}) {
+  const animate = useContext(UserContext).user.settings.enableAnimations
   var colorScale = []
   data.forEach(row => {colorScale.push(moodColorsHEX[row.x-1])})
   return(
@@ -562,6 +515,7 @@ function MoodPie({data}) {
     cornerRadius={4}
     colorScale={colorScale}
     labels={[]}
+    animate={ animate ? {duration: 2000, onLoad: {duration: 1000}} : null }
     />
   )
 }
@@ -586,7 +540,7 @@ function MoodStat({mood, data, nEntries}) {
           <Text style={[styles.h4, {color: '#000'}]}>{mood}</Text>
         </View>
       </View>
-      <View style={[styles.statsRowItem, {width: '31%'}]}>
+      <View style={[styles.statsRowItem, {width: null}]}>
         <Text style={styles.h4}>{`${moodCount}/${nEntries}` }</Text>
       </View>
       <View style={[styles.statsRowItem, {width: '13%'}]}>
@@ -608,7 +562,9 @@ export default class Charts extends Component {
   }
 
   ChartsScreen() {
+    var entries = this.props.appState.user.entries
     const settings = this.props.appState.user.settings
+    const backgroundColor = settings.backgroundColor
     const backgroundImage = settings.backgroundImage
     const imgURI =  settings.displayBackgroundImage
     ? ( backgroundImage
@@ -617,13 +573,11 @@ export default class Charts extends Component {
         : backgroundImage.urls.regular
       ) : null
     ) : null
-    const backgroundColor = settings.backgroundColor
-    var entries = this.props.appState.user.entries
     return(
       <ChartPanel
-      imgURI={imgURI}
-      backgroundColor={backgroundColor}
       entries={entries}
+      backgroundColor={backgroundColor}
+      imgURI={imgURI}
       />
     )  
   }

@@ -1,15 +1,16 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import Victory from '../victory';
 import { relativeToScreen } from '../../styles/loginStyles';
 import { moodColorsHEX } from '../PostEntryComponent';
 import { FullDates, intWeekDayMap, portugueseMonthSigs, YearTicks, datePeriodFilters, fullDateMap, dateDiff } from '../../shared/dates';
 import { groupByMap, periodMap, styles } from '../Charts';
+import UserContext from '../../shared/UserContext';
 
 function stringTimeToSec(time) { // Expects 'hh:mm:ss' string format
   return parseInt(time.slice(0,2))*3600 + parseInt(time.slice(3,5))*60 + parseInt(time.slice(6,8))
 }
 
-export function appendTimeData(data, date, period) {
+export function appendTimeData(data, date, period, uniform) {
   var datePeriodDates = FullDates.filter(datePeriodFilters(date, period))
   var time_s, time_d
   data.forEach((entry, index) => {
@@ -17,7 +18,8 @@ export function appendTimeData(data, date, period) {
     time_s = stringTimeToSec(entry.startTime)
     time_d = dateDifDays + time_s / (60*60*24)
     data[index]['time_s'] = time_s
-    data[index]['time_d'] = time_d
+    data[index]['time_d'] = uniform ? index+1 : time_d
+    data[index]['x'] = index+1
   })
  return data
 }
@@ -46,7 +48,7 @@ function lastDayOfTheMonth(date, period) {
 }
 
 export function xTicks(date, period, mode) {
-  let interval = ['enquadrar', 'enforcar'].includes(mode) ? 1 : 2
+  let interval = ['expandir', 'enforcar'].includes(mode) ? 1 : 2
   return {
     'day': () => range(0, 1, interval/24),
     'month': () => range(0, lastDayOfTheMonth(date, period), interval),
@@ -81,14 +83,14 @@ export function getDomain(data, by='time_s', space=0) {
 
 function x_domains(data, date, period) {
   return {
-  'expandir': () => expandDomains(date, period),
-  'enquadrar': () => getDomain(data, 'time_d', 0.1),
+  'enquadrar': () => expandDomains(date, period),
+  'expandir': () => getDomain(data, 'time_d', 0.1),
   'enforcar': () => getDomain(data, 'time_d', 0),
   }
 };
 
 const xAxisLabel = {
-  'day': 'Horário',
+  'day': 'Hora',
   'week': 'Dia da semana',
   'month': 'Dia do mês',
   'year': 'Mês'
@@ -96,9 +98,9 @@ const xAxisLabel = {
 
 function tickFormats(ticks) {
   return {
-    'day' : tick => Math.round(tick*24) + 'h',
+    'day' : tick => Math.round(tick*24),// + 'h',
     'week': tick => intWeekDayMap[tick],
-    'month': tick => tick+1,
+    'month': tick => parseInt(tick+1),
     'year': tick => portugueseMonthSigs[ticks.indexOf(tick)]
   }
 }
@@ -167,7 +169,7 @@ export function objListIncludes(objList, obj) {
 function dateAverage(data, isVariance, key, date, period) {
   const firstDatePeriodDate = FullDates.filter(datePeriodFilters(date, period))[0].date
   let uniqueDates = []
-  data.map(entry => {
+  data.forEach(entry => {
     let uniqueDate = dateObj[key](entry)
     if (!objListIncludes(uniqueDates, uniqueDate)) uniqueDates.push(uniqueDate)
   })
@@ -199,52 +201,68 @@ function dateAverage(data, isVariance, key, date, period) {
   return avgData    
 }
 
-export function MoodLineTemporal({ data, interpolation, date, period, mode, secMode, thirdMode, setThirdMode }) {
+export function MoodLineTemporal({ data, temporal, interpolation, date, period, mode, secMode, thirdMode, setThirdMode }) {
   
   // Filter entries with non-empty startTime
   data = data.filter(entry => entry.startTime);
 
   // Calculate and append 'time(s)' and 'time(d)' variables to each entry
-  data = appendTimeData(data, date, period);
+  data = appendTimeData(data, date, period, temporal=='atemporal');
 
   // Calculates and append averages by specified variable if average mode is active
   const isVariance = secMode=='variância'
-  if (secMode!='sequência') {
-    if (thirdMode) {
-      data = dateAverage(data, isVariance, groupByMap[thirdMode], date, period)
-    }
+  if (temporal=='temporal' && secMode!='sequência' && thirdMode) {
+    data = dateAverage(data, isVariance, groupByMap[thirdMode], date, period)
   }
 
   // Sort entries by variable
-  const by = 'time_d';
-  data = sortData(data, by);
+  data = sortData(data, 'time_d');
   
-  // Calculate tick values based on selected period and date
-  const xTickValues = xTicks(date, period, mode);
+  let x_domain, y_domain, xTickValues
+  if (temporal=='temporal') {
+    // Calculate x domain values based on selected period and date
+    x_domain = x_domains(data, date, period)[mode]();
+    y_domain = isVariance ? [0, 5.5] : [1, 5.5]
+    // Calculate tick values based on selected period and date
+    xTickValues = xTicks(date, period, mode);
+  }
 
-  // Calculate x domain values based on selected period and date
-  const x_domain = x_domains(data, date, period)[mode]();
-  const y_domain = isVariance ? [0, 5.5] : [1, 5.5]
-
+  // Defining chart styles
   const chartStyles = {
+    chartPadding: {
+      left: relativeToScreen(40),
+      right: relativeToScreen(20),
+      top: relativeToScreen(0),
+      bottom: relativeToScreen( temporal=='temporal' ? 90 : 0 )
+    },
     yAxis: {
       axis: { stroke: "#fff0" },
       grid: { stroke: styles.h1.color + '7' },
-      tickLabels: { fontSize: relativeToScreen(17), padding: relativeToScreen(15), fill: styles.h1.color },
+      tickLabels: {
+        fontSize: relativeToScreen(17),
+        padding: relativeToScreen(15),
+        fill: styles.h1.color
+      },
     },
     xAxis: {
       // parent: { padding: relativeToScreen(15) },
       grid: { stroke: "#fff0" },
       axis: { stroke: "#fff0" },
       axisLabel: {
-        width: '70%',
-        padding: relativeToScreen(!data[0] ? 35 : 65),
+        padding: relativeToScreen(!data[0] ? 45 : 65),
         fontSize: styles.h3.fontSize,
         fill: styles.h1.color,
         // padding: 0
       },
-      ticks: { stroke: styles.h1.color + (!data[0] ? '0' : ''), size: relativeToScreen(10) },
-      tickLabels: { fontSize: relativeToScreen(15), padding: relativeToScreen(0), fill: data[0] ? styles.h1.color : '#0000' },
+      ticks: {
+        stroke: styles.h1.color + (!data[0] ? '0' : ''),
+        size: relativeToScreen(10)
+      },
+      tickLabels: {
+        fontSize: relativeToScreen(15),
+        padding: relativeToScreen(0),
+        fill: data[0] ? styles.h1.color : '#0000'
+      },
     },
     line: {
       data: {
@@ -253,46 +271,65 @@ export function MoodLineTemporal({ data, interpolation, date, period, mode, secM
       },
     },
     scatter: {
-      data: { fill: ({ datum }) => moodColorsHEX[Math.round(datum.y - 1)] }
+      data: { fill: ({ datum }) => moodColorsHEX[Math.round(( isVariance ? - (datum.y-5) : datum.y )- 1)] }
     }
   }
 
-  const chartPaddings = {
-    chart: { left: relativeToScreen(40), right: relativeToScreen(20), top: relativeToScreen(0), bottom: relativeToScreen(90) }
+  const chartProps = {
+    'temporal': {
+      height: relativeToScreen(isVariance ? 255 : 225),
+      domain: { x: x_domain, y: y_domain },
+      yAxisDomain: null,
+    },
+    'atemporal': {
+      height: relativeToScreen(150),
+      domain: {x: [ 0.6, data.length + 0.4 ], y: [0.5, 5.5]},
+      yAxisDomain: [0.5, 5.5],
+    }
   }
+  
+  const animate = useContext(UserContext).user.settings.enableAnimations
 
   return (
     <Victory.VictoryChart
     width={relativeToScreen(330)}
-    height={relativeToScreen(isVariance ? 255 : 225)}
-    padding={chartPaddings.chart}
-    domain={{ x: x_domain, y: y_domain }}
+    height={chartProps[temporal].height}
+    domain={chartProps[temporal].domain}
+    padding={chartStyles.chartPadding}
+    animate={ !animate ? null : {
+      duration: 2000,
+      onLoad: {duration: 1000}
+    }}
     >
       <Victory.VictoryAxis
       dependentAxis
-      tickValues={range( isVariance ? 0 : 1, 6, 1)}
+      // domain={[0.5, 5.5]}  // only for temporal chart maybe...
+      domain={chartProps[temporal].yAxisDomain}  // only for temporal chart maybe...
+      tickValues={range( isVariance ? 0 : 1 , 6, 1)}
       tickFormat={tick => parseInt(tick)}
       style={chartStyles.yAxis}
       />
-      <Victory.VictoryAxis
-      label={data[0] ? xAxisLabel[period] : `Você não possui entradas ${period=='week' ? 'nessa' : 'nesse'} ${periodMap[period].toLowerCase()}.` }
-      tickComponent={<Victory.LineSegment y1={relativeToScreen( isVariance ? 180 : 150 )} y2={relativeToScreen( isVariance ? 190 : 160 )} />}
-      tickValues={data[0] ? xTickValues : null}
-      tickFormat={data[0] ? tickFormats(xTickValues)[period] : null}
-      tickLabelComponent={<Victory.VictoryLabel angle={-90} dx={relativeToScreen(-32)} dy={relativeToScreen(-8)} />}
-      style={chartStyles.xAxis}
-      />
+      { temporal!='temporal' ? null : (
+        <Victory.VictoryAxis
+        label={data[0] ? xAxisLabel[period] : `Você não possui entradas ${period=='week' ? 'nessa' : 'nesse'} ${periodMap[period].toLowerCase()}.` }
+        tickComponent={<Victory.LineSegment y1={relativeToScreen( isVariance ? 180 : 150 )} y2={relativeToScreen( isVariance ? 190 : 160 )} />}
+        tickValues={data[0] ? xTickValues : null}
+        tickFormat={data[0] ? tickFormats(xTickValues)[period] : null}
+        tickLabelComponent={<Victory.VictoryLabel angle={-90} dx={relativeToScreen(-32)} dy={relativeToScreen(-8)} />}
+        style={chartStyles.xAxis}
+        />
+      )}
       { interpolation == 'scatter' ? null : (
         <Victory.VictoryLine
         data={data}
-        x={by} y='y'
+        x='time_d' y='y'
         interpolation={interpolation}
         style={chartStyles.line}
         />
       )}
       <Victory.VictoryScatter
       data={data}
-      x={by} y='y'
+      x='time_d' y='y'
       size={['month', 'year'].includes(period) ? 4.5 : 5.7}
       style={chartStyles.scatter}
       />

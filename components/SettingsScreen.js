@@ -138,6 +138,44 @@ export async function postSettings(settings, username) {
  }
 } 
 
+const SwitchSection = ({title, icon, value, onValueChange, isLoading, nativeIcon=false}) => {
+  const [isButtonPressed, setIsButtonPressed] = React.useState(false)
+  return(
+    <Pressable
+    onPressIn={ () => blinkButton(setIsButtonPressed)}
+    style={[styles.settingsRow, {backgroundColor: isButtonPressed ? '#0003' : '#0000' }]}
+    >
+      <View style={{flexDirection: 'row', alignItems: 'center'}}>
+        { nativeIcon
+        ? <NativeIcon name={icon} size={relativeToScreen(30)} color={styles.h1.color} />
+        : <Icon name={icon} width={relativeToScreen(30)} height={relativeToScreen(30)} fill={styles.h1.color} />
+        }
+        <Text
+        selectable={false}
+        style={[styles.h2, {
+          marginLeft: relativeToScreen(10),
+          marginRight: relativeToScreen(20)
+        }]}
+        >
+          { title }
+        </Text>
+        { isLoading ? <ActivityIndicator color='blue' /> : null }
+      </View>
+      <Switch
+      disabled={isLoading}
+      trackColor={{ false: "#767577", true: "#81b0ff" }}
+      thumbColor={ value ? "#f4f3f4" : "#f4f3f4" }
+      ios_backgroundColor="#3e3e3e"
+      value={value}
+      onValueChange={() => {
+        blinkButton(setIsButtonPressed)
+        onValueChange(!value)
+      }}
+      />
+    </Pressable>    
+  )
+}
+
 export default class SettingsScreen extends Component {
 
   constructor(props) {
@@ -151,6 +189,7 @@ export default class SettingsScreen extends Component {
       isEnableHighResolutionLoading: false,
       isRestoreColorLoading: false,
       isSaveColorLoading: false,
+      isEnableAnimationsLoading: false,
     }
     this.syncUserSettings = this.syncUserSettings.bind(this);
     this.setFontColor = this.setFontColor.bind(this);
@@ -164,10 +203,15 @@ export default class SettingsScreen extends Component {
     this.ChangeBackgroundColorSection = this.ChangeBackgroundColorSection.bind(this);
     this.ColorOptions = this.ColorOptions.bind(this);
     this.ColorControl = this.ColorControl.bind(this);
+    this.EnableAnimationsSection = this.EnableAnimationsSection.bind(this);
     this.onLogoutButtonPress = this.onLogoutButtonPress.bind(this);
     this.onColorButtonPressFor = this.onColorButtonPressFor.bind(this);
     this.onSaveColorButtonPress = this.onSaveColorButtonPress.bind(this);
+    this.postSettingAndSync = this.postSettingAndSync.bind(this);
+    this.onDisplayBackgroundImageSwitch = this.onDisplayBackgroundImageSwitch.bind(this);
     this.onChangeFontColorSwitch = this.onChangeFontColorSwitch.bind(this);
+    this.onEnableHighResolutionSwitch = this.onEnableHighResolutionSwitch.bind(this);
+    this.onEnableAnimationsSwitch = this.onEnableAnimationsSwitch.bind(this);
     this.ColorRow = this.ColorRow.bind(this);
     this.isLoading = this.isLoading.bind(this);
     this.logoutPressable = this.logoutPressable.bind(this);
@@ -197,9 +241,7 @@ export default class SettingsScreen extends Component {
 
   setBackgroundColor() {
     const settings = this.props.appState.user.settings
-    this.setState({
-      selectedColor: settings.backgroundColor,
-    })
+    this.setState({selectedColor: settings.backgroundColor})
     this.props.navigation.setParams({selectedColor: settings.backgroundColor})  // Necessary to change the tab bar color dinamically in App.js
   }
 
@@ -207,7 +249,13 @@ export default class SettingsScreen extends Component {
     const settings = this.props.appState.user.settings
     const backgroundImage = settings.backgroundImage
     const backgroundColor = this.state.selectedColor
-    const imgURI = settings.displayBackgroundImage ? (backgroundImage ? ( settings.enableHighResolution ? backgroundImage.urls.raw : backgroundImage.urls.regular ) : null) : null
+    const imgURI = settings.displayBackgroundImage && !this.state.isBackgroundColorSettingsOpen
+    ? (backgroundImage
+      ? ( settings.enableHighResolution
+        ? backgroundImage.urls.raw
+        : backgroundImage.urls.regular )
+      : null )
+    : null
     return(
       <ImageBackground
       source={{uri : imgURI}}
@@ -232,6 +280,7 @@ export default class SettingsScreen extends Component {
         <this.DisplayBackgroundImageSection />
         <this.EnableHighResolutionSection />
         <this.ChangeFontColorSection />
+        <this.EnableAnimationsSection />
         <this.ChangeBackgroundColorSection />
         <this.ColorOptions />
         <this.logoutPressable />
@@ -240,131 +289,93 @@ export default class SettingsScreen extends Component {
   }
 
   ChooseImageSection() {
-    const [isChooseImageButtonPressed, setIsChooseImageButtonPressed] = React.useState(false)
-    let fontColor = styles.h1.color
-    let fontColorTransp = fontColor + '8'
+    const [isButtonPressed, setIsButtonPressed] = React.useState(false)
     return(
       <Pressable
-      onPressIn={() => blinkButton(setIsChooseImageButtonPressed)}
-      onPress={() => this.props.navigation.navigate('WallpaperTopics')}
-      style={[styles.settingsRow, {backgroundColor: isChooseImageButtonPressed ? '#0003' : null }]}
+      onPressIn={() => blinkButton(setIsButtonPressed)}
+      onPress={() => {
+        this.setState({isBackgroundColorSettingsOpen: false})
+        this.props.navigation.navigate('WallpaperTopics');
+      }}
+      style={[styles.settingsRow, {backgroundColor: isButtonPressed ? '#0003' : null }]}
       >
         <View style={{flexDirection: 'row', alignItems: 'center'}}>
-          <Icon name='image-outline' width={30} height={30} fill={fontColor} />
-          <Text selectable={false} style={[styles.h2, {marginLeft: 10}]}>Papel de parede</Text>
+          <Icon name='image-outline' width={30} height={30} fill={styles.h1.color} />
+          <Text selectable={false} style={[styles.h2, {marginLeft: 10}]}>{ 'Ver planos de fundo' }</Text>
         </View>
         
         <Icon
         width={relativeToScreen(30)} height={relativeToScreen(30)}
         name='arrow-ios-forward-outline'
-        fill={ fontColor } />
+        fill={ styles.h1.color } />
       </Pressable>
     )
   }
 
   DisplayBackgroundImageSection() {
-    const [isExposeImageButtonPressed, setIsExposeImageButtonPressed] = React.useState(false)
-    const displayBackgroundImageValue = this.props.appState.user.settings.displayBackgroundImage
-    const isLoading = this.state.isDisplayBackgroundImageLoading
     return(
-      <Pressable
-      onPressIn={ () => blinkButton(setIsExposeImageButtonPressed) }
-      style={[styles.settingsRow, {backgroundColor: isExposeImageButtonPressed ? '#0003' : null }]}
-      >
-        <View style={{flexDirection: 'row', alignItems: 'center'}}>
-          <Icon name='eye-outline' width={relativeToScreen(30)} height={relativeToScreen(30)} fill={styles.h1.color} />
-          <Text selectable={false} style={[styles.h2, {marginLeft: relativeToScreen(10), marginRight: relativeToScreen(20)}]}>Ver papel de parede</Text>
-          { isLoading ? <ActivityIndicator color='blue' /> : null }
-        </View>
-        <Switch
-        disabled={isLoading}
-        trackColor={{ false: "#767577", true: "#81b0ff" }}
-        thumbColor={displayBackgroundImageValue ? "#f4f3f4" : "#f4f3f4"}
-        ios_backgroundColor="#3e3e3e"
-        onValueChange={() => {
-          blinkButton(setIsExposeImageButtonPressed)
-          this.onDisplayBackgroundImageSwitch(!displayBackgroundImageValue)
-        }}
-        value={displayBackgroundImageValue}
-        />
-      </Pressable>
+      <SwitchSection
+      title='Plano de fundo'
+      icon='eye-outline'
+      value={this.props.appState.user.settings.displayBackgroundImage}
+      onValueChange={async value => {
+        await this.onDisplayBackgroundImageSwitch(value);
+        if (value) this.setState({isBackgroundColorSettingsOpen: false})
+      }}
+      isLoading={this.state.isDisplayBackgroundImageLoading}
+      />
     )
   }
 
   EnableHighResolutionSection() {
-    const [isEnableHighResolutionButtonPressed, setIsEnableHighResolutionButtonPressed] = React.useState(false)
-    const enableHighResolutionValue = this.props.appState.user.settings.enableHighResolution
-    const isLoading = this.state.isEnableHighResolutionLoading
     return(
-      <Pressable
-      onPressIn={ () => blinkButton(setIsEnableHighResolutionButtonPressed)}
-      style={[styles.settingsRow, {backgroundColor: isEnableHighResolutionButtonPressed ? '#0003' : null }]}
-      >
-        <View style={{flexDirection: 'row', alignItems: 'center'}}>
-          {/* <Icon name='camera-outline' width={30} height={30} fill={styles.h1.color} /> */}
-          <NativeIcon name='high-definition' size={relativeToScreen(30)} color={styles.h1.color} />
-          <Text selectable={false} style={[styles.h2, {marginLeft: relativeToScreen(10), marginRight: relativeToScreen(20)}]}>Alta definição</Text>
-          { isLoading ? <ActivityIndicator color='blue' /> : null }
-        </View>
-        <Switch
-        disabled={isLoading}
-        trackColor={{ false: "#767577", true: "#81b0ff" }}
-        thumbColor={enableHighResolutionValue ? "#f4f3f4" : "#f4f3f4"}
-        ios_backgroundColor="#3e3e3e"
-        onValueChange={() => {
-          blinkButton(setIsEnableHighResolutionButtonPressed)
-          this.onEnableHighResolutionSwitch(!enableHighResolutionValue)
-        }}
-        value={enableHighResolutionValue}
-        />
-      </Pressable>    
+      <SwitchSection
+      title='Alta definição (HD)'
+      icon='high-definition'
+      nativeIcon={true}
+      value={this.props.appState.user.settings.enableHighResolution}
+      onValueChange={this.onEnableHighResolutionSwitch}
+      isLoading={this.state.isEnableHighResolutionLoading}
+      />
     )
   }
 
   ChangeFontColorSection() {
-    const [isChangeFontColorButtonPressed, setIsChangeFontColorButtonPressed] = React.useState(false)
-    const changeFontColorValue = this.props.appState.user.settings.fontColorDark
-    const isLoading = this.state.isChangeFontColorLoading
     return(
-      <Pressable
-      onPressIn={ () => blinkButton(setIsChangeFontColorButtonPressed)}
-      style={[styles.settingsRow, {backgroundColor: isChangeFontColorButtonPressed ? '#0003' : null }]}
-      >
-        <View style={{flexDirection: 'row', alignItems: 'center'}}>
-          <Icon name='moon-outline' width={relativeToScreen(30)} height={relativeToScreen(30)} fill={styles.h1.color} />
-          <Text selectable={false} style={[styles.h2, {marginLeft: relativeToScreen(10), marginRight: relativeToScreen(20)}]}>Texto escuro</Text>
-          { isLoading ? <ActivityIndicator color='blue' /> : null }
-        </View>
-        <Switch
-        disabled={isLoading}
-        trackColor={{ false: "#767577", true: "#81b0ff" }}
-        thumbColor={changeFontColorValue ? "#f4f3f4" : "#f4f3f4"}
-        ios_backgroundColor="#3e3e3e"
-        onValueChange={() => {
-          blinkButton(setIsChangeFontColorButtonPressed)
-          this.onChangeFontColorSwitch(!changeFontColorValue)
-        }}
-        value={changeFontColorValue}
-        />
-      </Pressable>    
+      <SwitchSection
+      title='Texto escuro'
+      icon='moon-outline'
+      value={this.props.appState.user.settings.fontColorDark}
+      onValueChange={this.onChangeFontColorSwitch}
+      isLoading={this.state.isChangeFontColorLoading}
+      />
+    )
+  }
+
+  EnableAnimationsSection() {
+    return(
+      <SwitchSection
+      title='Animar gráficos'
+      icon='activity-outline'
+      value={this.props.appState.user.settings.enableAnimations}
+      onValueChange={this.onEnableAnimationsSwitch}
+      isLoading={this.state.isEnableAnimationsLoading}
+      />
     )
   }
 
   ChangeBackgroundColorSection() {
     const [isColorButtonPressed, setIsColorButtonPressed] = React.useState(false)
     const settings = this.props.appState.user.settings
-    const newColorUnselected = this.state.selectedColor == settings.backgroundColor
-    let fontColor = styles.h1.color
-    let fontColorTransp = fontColor + '8'
-    const seeWallpaper = settings.displayBackgroundImage
+    const isColorSelected = this.state.selectedColor != settings.backgroundColor
     return(
       <Pressable
       onPressIn={() => blinkButton(setIsColorButtonPressed)}
       onPress={() => {
         this.setState({ isBackgroundColorSettingsOpen: !this.state.isBackgroundColorSettingsOpen })
-        if (!newColorUnselected) this.syncUserSettings()
+        if (!isColorSelected) this.syncUserSettings()
       }}
-      disabled={seeWallpaper}
+      // disabled={null}
       style={[styles.settingsRow, {backgroundColor: isColorButtonPressed ? '#0003' : null }]}
       >
         <View style={{flexDirection: 'row', alignItems: 'center'} }>
@@ -372,16 +383,16 @@ export default class SettingsScreen extends Component {
           name='color-palette-outline'
           height={relativeToScreen(30)}
           width={relativeToScreen(30)}
-          fill={ seeWallpaper ? fontColorTransp : fontColor }
+          fill={styles.h1.color}
           style={{marginRight: 0}}
           />
-          <Text selectable={false} style={[styles.h2, {color: seeWallpaper ? fontColorTransp : fontColor, marginLeft: relativeToScreen(10)}]}>Tema</Text>
+          <Text selectable={false} style={[styles.h2, {color: styles.h1.color, marginLeft: relativeToScreen(10)}]}>Tema</Text>
         </View>
         <View style={{flexDirection: 'row', alignItems: 'center'} }>
           <Icon
           width={relativeToScreen(30)} height={relativeToScreen(30)}
           name={this.state.isBackgroundColorSettingsOpen ? 'arrow-ios-upward-outline' : 'arrow-ios-downward-outline' }
-          fill={ seeWallpaper ? fontColorTransp : fontColor } />
+          fill={styles.h1.color} />
         </View>
       </Pressable>    
     )
@@ -412,32 +423,45 @@ export default class SettingsScreen extends Component {
   ColorRow({color}) {
     const [isColorRowPressed, setIsColorRowPressed] = React.useState(false)
     const isLoading = this.state.isRestoreColorLoading | this.state.isSaveColorLoading
+    const isColorSelected = this.state.selectedColor == color
     return(
       <Pressable
       onPressIn={ () => blinkButton(setIsColorRowPressed, 300) }
       onPress={ this.onColorButtonPressFor(color) }
       disabled={isLoading}
-      style={[styles.colorRow, {backgroundColor: isColorRowPressed ? '#0003' : null }]}>
-        <Text selectable={false} style={[
-          styles.h3,
-          this.state.selectedColor == color
-          ? {fontStyle: 'italic', textDecorationLine: 'underline' }
-          : {fontStyle: 'italic', textDecorationLine: 'none' }
-        ]}>{ capitalize(color) }</Text>
-        <View style={[ styles.colorSquare, { backgroundColor: color, borderWidth: this.state.selectedColor==color ? 3 : 0 }]} />
+      style={[styles.colorRow, {
+        backgroundColor: isColorRowPressed || isColorSelected ? '#0003' : '#0000',
+      }]}
+      >
+        <Text
+        selectable={false}
+        style={[
+          styles.h3, {
+            fontStyle: 'italic',
+            textDecorationLine: isColorSelected ? 'underline' : 'none'
+          }
+        ]}
+        >
+          { capitalize(color) }
+        </Text>
+        <View
+        style={[ styles.colorSquare, {
+          backgroundColor: color,
+          borderWidth: isColorSelected ? 3 : 0
+        }]}
+        />
       </Pressable>
     )
   }
 
   ColorControl() {
-    const newColorUnselected = this.state.selectedColor == this.props.appState.user.settings.backgroundColor
-    const isLoading = this.state.isRestoreColorLoading | this.state.isSaveColorLoading
+    const isColorSelected = this.state.selectedColor == this.props.appState.user.settings.backgroundColor
+    const isLoading = this.state.isRestoreColorLoading || this.state.isSaveColorLoading
     return(
       <View style={[styles.settingsRow, {justifyContent: 'space-between'}]}>
         <Pressable
-        disabled={isLoading | newColorUnselected}
+        disabled={isLoading | isColorSelected}
         style={{ justifyContent: 'center', alignItems: 'center', width: relativeToScreen(95) }}
-        // onPressIn={() => blinkButton((bool) => this.setState({isRestoreColorLoading: bool}))}
         onPress={() => {
           this.setState({isRestoreColorLoading: true})
           this.syncUserSettings()
@@ -447,7 +471,7 @@ export default class SettingsScreen extends Component {
           <Text selectable={false}
             style={[styles.h2, { 
               textAlign: 'center',
-              color: isLoading | newColorUnselected ? styles.h1.color + '6' : styles.h1.color
+              color: isLoading | isColorSelected ? styles.h1.color + '6' : styles.h1.color
             }]}
           >
             { this.state.isRestoreColorLoading ? <ActivityIndicator color='blue' /> :  'Restaurar' }
@@ -455,11 +479,11 @@ export default class SettingsScreen extends Component {
         </Pressable>
 
         <Pressable
-        disabled={isLoading | newColorUnselected}
+        disabled={isLoading | isColorSelected}
         onPress={this.onSaveColorButtonPress}
         style={{ justifyContent: 'center', alignItems: 'center', width: relativeToScreen(75) }}
         >
-          <Text selectable={false} style={[styles.h2, {width: relativeToScreen(65), textAlign: 'center', color: isLoading | newColorUnselected ? styles.h1.color + '6' : styles.h1.color}]}>
+          <Text selectable={false} style={[styles.h2, {width: relativeToScreen(65), textAlign: 'center', color: isLoading | isColorSelected ? styles.h1.color + '6' : styles.h1.color}]}>
             { this.state.isSaveColorLoading ? <ActivityIndicator color='blue' /> : 'Aplicar' }
           </Text>
         </Pressable>
@@ -469,10 +493,10 @@ export default class SettingsScreen extends Component {
 
   isLoading() {
     return (
-      this.state.isDisplayBackgroundImageLoading | 
-      this.state.isChangeFontColorLoading |
-      this.state.isRestoreColorLoading |
-      this.state.isEnableHighResolutionLoading |
+      this.state.isDisplayBackgroundImageLoading ||
+      this.state.isChangeFontColorLoading ||
+      this.state.isRestoreColorLoading ||
+      this.state.isEnableHighResolutionLoading ||
       this.state.isSaveColorLoading
     )
   }
@@ -483,19 +507,26 @@ export default class SettingsScreen extends Component {
     const logoutColor = isLoading ? styles.h1.color+'8' : 'red'
     return(
       <Pressable   // logout pressable
-      onPress={() => {
-        blinkButton(setIsLogoutButtonPressed)
-        this.onLogoutButtonPress()
-      }}
+      onPressIn={() => blinkButton(setIsLogoutButtonPressed)}
       disabled={isLoading}
       style={[ styles.settingsRow, {
         justifyContent: 'flex-start',
         marginBottom: relativeToScreen(30),
-        backgroundColor: isLogoutButtonPressed ? styles.h1.color+'8' : null
+        backgroundColor: isLogoutButtonPressed ? '#0003' : '#0000'
       }]}
       >
         <Icon name='log-out' width={relativeToScreen(30)} height={relativeToScreen(30)} fill={logoutColor} />
-        <Text selectable={false} style={[styles.h2, { marginLeft: relativeToScreen(10), color: logoutColor }]}>Logout</Text>
+        <Text
+        selectable={false}
+        disabled={isLoading}
+        onPressIn={() => blinkButton(setIsLogoutButtonPressed)}
+        onPress={() => {
+          this.onLogoutButtonPress()
+        }}  
+        style={[styles.h2, { marginLeft: relativeToScreen(10), color: logoutColor }]}
+        >
+          { 'Logout' }
+        </Text>
       </Pressable>
     )
   }
@@ -508,40 +539,32 @@ export default class SettingsScreen extends Component {
     return onColorButtonPress.bind(this);
   }
 
-  async onDisplayBackgroundImageSwitch(value) {
-    this.setState({ isDisplayBackgroundImageLoading: true });
-    const newSettings = {displayBackgroundImage: value}
+  async postSettingAndSync(value, settingsVariable, loadingStateVariable, onSuccess=()=>{}) {
+    this.setState({ [loadingStateVariable]: true });
+    const newSettings = {[settingsVariable]: value}
     const postDisplayResult = await postSettings(newSettings, this.props.appState.user.username)
     if (postDisplayResult.ok) {
       // sync user data with app or entries component
       await this.props.appState.syncUserData()
+      onSuccess()
     }
-    this.setState({ isDisplayBackgroundImageLoading: false });
+    this.setState({ [loadingStateVariable]: false });
   }
 
-  async onChangeFontColorSwitch(value) {
-    this.setState({ isChangeFontColorLoading: true });
-    const newSettings = {fontColorDark: value}
-    const postDisplayResult = await postSettings(newSettings, this.props.appState.user.username)
-    if (postDisplayResult.ok) {
-      // sync user data with app or entries component
-      await this.props.appState.syncUserData()
-      // update style variable with new data
-      this.setFontColor()
-    }
-    this.setState({ isChangeFontColorLoading: false });
+  async onDisplayBackgroundImageSwitch(value) {
+    await this.postSettingAndSync(value, 'displayBackgroundImage', 'isDisplayBackgroundImageLoading')
   }
 
   async onEnableHighResolutionSwitch(value)  {
-    this.setState({ isEnableHighResolutionLoading: true });
-    const newSettings = {enableHighResolution: value}
-    const postHighResolutionResult = await postSettings(newSettings, this.props.appState.user.username)
-    if (postHighResolutionResult.ok) {
-      // sync user data with app or entries component
-      await this.props.appState.syncUserData()
-      // update style variable with new data
-    }
-    this.setState({ isEnableHighResolutionLoading: false });
+    await this.postSettingAndSync(value, 'enableHighResolution', 'isEnableHighResolutionLoading')
+  }
+
+  async onChangeFontColorSwitch(value) {
+    await this.postSettingAndSync(value, 'fontColorDark', 'isChangeFontColorLoading', this.setFontColor)
+  }
+
+  async onEnableAnimationsSwitch(value) {
+    await this.postSettingAndSync(value, 'enableAnimations', 'isEnableAnimationsLoading')
   }
 
   async onSaveColorButtonPress() {
@@ -574,8 +597,6 @@ export default class SettingsScreen extends Component {
 
   render() {
     console.log('Rendering "SettingsScreen" component...')
-    return (
-      <this.SettingsScreen />
-    );  
+    return <this.SettingsScreen />
   }
 }

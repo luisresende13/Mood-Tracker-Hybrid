@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, useState } from 'react';
 import { View, Text, ImageBackground, TextInput, Pressable, Platform, ActivityIndicator, Switch } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from "@react-native-community/netinfo";
@@ -6,6 +6,7 @@ import * as Device from 'expo-device';
 import { Icon } from 'react-native-eva-icons'
 
 import styles, { relativeToScreen } from '../styles/loginStyles'
+import { blinkButton } from './SettingsScreen';
 let backgroundColor = "#5926a6"
 let imgURI = require('../assets/wallpaper.png')
 
@@ -20,6 +21,7 @@ const userScheme = {
     displayBackgroundImage: true,
     enableHighResolution: false,
     fontColorDark: false,
+    enableAnimations: true,
   }
 }
 
@@ -81,23 +83,6 @@ function validatePassword(password) {
   return res
 }
 
-// async function fetchUsers() {
-//   var UsersResponse = await fetch( appServerURI + 'Users', { method: 'GET' });
-//   const UsersStatus = 'Status: ' + UsersResponse.status + ', ' + 'Status Text: ' + UsersResponse.statusText
-//   if (UsersResponse.ok) {
-//     console.log('fetch GET request for users data at signin successful.');
-//     console.log(UsersStatus)
-
-//     const Users = await UsersResponse.json();
-//     return Users
-//   } else {
-//     console.log('fetch GET request for users data at signin failed. Printing fetch response...')
-//     console.log(JSON.stringify(UsersResponse))
-//     console.log('Returning null...')
-//     return null
-//   }
-// }
-
 async function registerLocallyIfUserIsNewToDevice(user) {
   var localAuthInfo = await AsyncStorage.getItem('LocalAuthenticationInfo')
   localAuthInfo = JSON.parse(localAuthInfo)  
@@ -141,6 +126,21 @@ export async function keepUserConnectionAlive(id) {
   }
 }
 
+const SubmitButton = ({sign, isLoading, onPress}) => {
+  const [ isButtonPressed, setIsButtonPressed ] = useState(false)
+  const signIn = sign == 'signin'
+  return(
+    <Pressable
+    disabled={isLoading}
+    onPressIn={() => blinkButton(setIsButtonPressed, 300)}
+    onPress={onPress}
+    style={[styles.login.button, {backgroundColor: !isButtonPressed ? 'orchid' : "violet"}]} // hotpink, orchid, violet,
+    >
+      <Text selectable={false} style={styles.login.buttonLabel}>{ signIn ? 'Entrar' : 'Cadastrar' }</Text>
+    </Pressable>
+  )
+}
+
 class LoginScreen extends Component {
 
   constructor(props) {
@@ -159,7 +159,6 @@ class LoginScreen extends Component {
       isDataLoading: false,
     }
     this.onChangeText = this.onChangeText.bind(this);
-    this.submitButton = this.submitButton.bind(this);
     this.loginMsg = this.loginMsg.bind(this);
     this.setLoginMsg = this.setLoginMsg.bind(this);
     this.onSignIn = this.onSignIn.bind(this);
@@ -205,21 +204,9 @@ class LoginScreen extends Component {
     return setField
   }
 
-  submitButton(sign) {
-    const signIn = sign == 'signin'
-    return(
-      <Pressable
-      disabled={this.state.isDataLoading}
-      onPress={signIn ? this.onSignIn : this.onSignUp}
-      style={[styles.login.button]}
-      >
-        <Text selectable={false} style={styles.login.buttonLabel}>{ signIn ? 'Entrar' : 'Cadastrar' }</Text>
-      </Pressable>
-    )
-  }
-
   LoginScreen = () => {
-  return(
+    const isLoading = this.state.isDataLoading
+    return(
       <ImageBackground
       source={imgURI}
       style={[styles.login.mainView, {backgroundColor: backgroundColor, justifyContent: 'space-evenly'}]}
@@ -255,8 +242,8 @@ class LoginScreen extends Component {
             />
           </View>
           <View style={[styles.login.cardSection, {height: '33.0%'}]}>
-            {this.submitButton('signin')}
-            {this.submitButton('signup')}
+            <SubmitButton sign='signin' isLoading={isLoading} onPress={this.onSignIn} />
+            <SubmitButton sign='signup' isLoading={isLoading} onPress={this.onSignUp} />
             <View style={{flexDirection: 'row', height: relativeToScreen(48), alignSelf: 'stretch', alignItems: 'center', justifyContent: 'flex-end'}}>
               <Text style={{marginRight: Platform.OS=='web' ? relativeToScreen(10) : null }}>Manter-me conectado</Text>
               <Switch

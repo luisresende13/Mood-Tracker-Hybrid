@@ -249,8 +249,9 @@ export default class PostEntranceScreen extends Component {
     }
 
     EmotionButtons(emotions) {
-        return(
-            sortObjListByKey(emotions, 'name').map( emotion => (
+        return sortObjListByKey(emotions, 'name').map( emotion => {
+            const isEmotionSelected = this.state.isSelectedEmotions[emotion.name]
+            return(
                 <Pressable
                 key={'emotion-' + emotion.name}
                 title={emotion.name}
@@ -263,15 +264,17 @@ export default class PostEntranceScreen extends Component {
                     selectable={false}
                     // selectionColor={'#0000'}
                     onLongPress={null}
-                    style={[styles.emotionBadge,
-                        {backgroundColor: this.state.isSelectedEmotions[emotion.name] ? 'lightblue' : 'aliceblue' }
+                    style={[styles.emotionBadge, {
+                        backgroundColor: isEmotionSelected ? 'royalblue' : '#f4f3f4',
+                        color: isEmotionSelected ? '#fff' : '#000'
+                    }
                     ]}
                     >
                         {emotion.name}
                         </Text>
                 </Pressable>
-            ))
-        )
+            )
+        })
     }
 
     onEmotionButtonPress(emotion) {
@@ -477,11 +480,11 @@ export default class PostEntranceScreen extends Component {
         var color;
         switch (true) {
             case this.state.isFetchingLocationOrWeather:
-                color = 'brown'
+                color = 'blue'
                 break;
         
             case this.state.isPostEntryLoading:
-                color = 'black'
+                color = 'blue'
                 break;
             case this.state.isSaveEmotionLoading:
                 color = 'green'
@@ -503,7 +506,7 @@ export default class PostEntranceScreen extends Component {
             <Pressable
             onPress={this.onSaveButtonPress}
             disabled={isDataLoading}
-            style={styles.saveButton}
+            style={[styles.saveButton, {backgroundColor: isDataLoading ? '#fffa' : '#fff' }]}
             >
                 { isDataLoading ? (
                     <ActivityIndicator size='small' color={color} />
