@@ -245,8 +245,8 @@ export default class UserEntryCards extends Component {
         const isLoading = this.props.parentState.isDeleteLoading | this.props.parentState.isUserDataSyncing
         const buttonLabel = (label) => <Text selectable={false} style={[styles.editButtonLabel, {color: label=='Excluir' ? 'red' : styles.theme.color }]}>{label}</Text>
         const isSelected = this.props.parentState.selectedEntryId == props.entryId
-        return(
-            <View style={[styles.editButtonsView, {height: isSelected ? null : 0 }]}>
+        return !isSelected ? null : (
+            <View style={styles.editButtonsView}>
                 { !isSelected ? null : buttonLabels.map(label => (
                     <Pressable
                     key={`edit-${label}-${props.entryId}`}
