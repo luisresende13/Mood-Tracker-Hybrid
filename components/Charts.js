@@ -332,7 +332,6 @@ function next(current, list) {
 const ChartCard = ({title, Chart, entries, date, period, initialMode, modes, initialSecMode, secModes, initialThirdMode, thirdModes}) => {
   const filter = datePeriodFilters(date, period)
   entries = entries.filter(filter)
-
   const [ mode, setMode ] = useState(initialMode)
   const [ secMode, setSecMode ] = useState(initialSecMode)
   const [ thirdMode, setThirdMode ] = useState(initialThirdMode)
